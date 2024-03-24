@@ -1,0 +1,13 @@
+.ChatHistory {
+  position: relative;
+  overflow: scroll;
+  display: block;
+  height:580px;
+  max-height: 580px;
+  width: 90%;
+  top: 90px;
+  left: 10%;
+  border-style: solid;
+  border-width: 2px;
+  border-color: darkgray;
+}

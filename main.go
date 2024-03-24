@@ -27,11 +27,12 @@ func setupRoutes() {
 		ChatID:   0,
 		Messages: nil,
 	}
-	IdGenerator, err := sonyflake.New(sonyflake.Settings{
+	chat.Setting = sonyflake.Settings{
 		StartTime:      time.Now(),
 		MachineID:      nil,
 		CheckMachineID: nil,
-	})
+	}
+	IdGenerator, err := sonyflake.New(chat.Setting)
 	if err != nil {
 		fmt.Println(err)
 		return

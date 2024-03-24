@@ -3,12 +3,13 @@ import "./message.scss"
 class Message extends Component {
     constructor(props) {
         super(props);
+        let jsonObj = JSON.parse(this.props.message)
         this.state = {
-            message: this.props.message
+            message: jsonObj
         }
     }
     render() {
-        return <div className="Message">{this.state.message}</div>
+        return <div className="Message">{this.state.message.TimeStamp}: {this.state.message.Content}</div>
     }
 }
 export default Message;

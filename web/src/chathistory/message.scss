@@ -1,5 +1,9 @@
 .Message {
-  display: block;
+  display: inline-block;
+  position: relative;
+  width:55%;
+  word-wrap:break-word;
+  left: 1%;
   background-color: white;
   margin: 10px auto;
   padding: 10px 20px;

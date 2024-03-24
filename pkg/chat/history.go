@@ -9,5 +9,6 @@ type ChatHistory struct {
 	Messages []Message
 }
 
+var Setting sonyflake.Settings
 var IdGenerator *sonyflake.Sonyflake
 var History ChatHistory
