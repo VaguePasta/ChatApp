@@ -4,6 +4,7 @@ import ChatHistory from "./chathistory/chatHistory";
 import Header from "./header/header"
 import ChatBox from "./chatbox/chatbox";
 class App extends Component {
+    history = []
     constructor(props) {
         super(props);
         this.state = {
@@ -12,8 +13,9 @@ class App extends Component {
     }
     componentDidMount() {
         connect((message) => {
+            this.history.push(message)
             this.setState(() => ({
-                chatHistory : [...this.state.chatHistory, message]
+                chatHistory : this.history
             }))
         });
     }
@@ -27,5 +29,4 @@ class App extends Component {
         )
     }
 }
-
 export default App;

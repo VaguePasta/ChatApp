@@ -20,13 +20,15 @@ class ChatBox extends Component {
         )
     }
     sendHandler() {
-        send(this.state.value)
-        this.chatBoxRef.current.value =''
-        this.setState({value: this.chatBoxRef.current.value})
-        this.chatBoxRef.current.focus()
+        if (this.state.value !== '') {
+            send(this.state.value)
+            this.chatBoxRef.current.value = ''
+            this.setState({value: this.chatBoxRef.current.value})
+            this.chatBoxRef.current.focus()
+        }
     }
     keyDownHandler(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && !e.shiftKey && this.state.value !== '') {
             e.preventDefault()
             e.stopPropagation()
             send(this.state.value)
@@ -36,7 +38,10 @@ class ChatBox extends Component {
         }
     }
     changeHandler(e) {
-            this.setState({value: e.target.value})
+        if (e.target.value === '\n' && this.state.value === '') {
+            return
+        }
+        this.setState({value: e.target.value})
     }
 }
 export default ChatBox;
