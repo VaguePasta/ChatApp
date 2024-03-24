@@ -1,0 +1,27 @@
+.ChatBox {
+    width: 75%;
+    height: 25px;
+    padding: 4px 5px 4px 5px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    font-size: 16px;
+    position: fixed;
+    bottom: 10px;
+    resize: none;
+}
+.SendButton {
+    position: fixed;
+    left:78%;
+    bottom: 10px;
+    width: 40px;
+    height: 40px;
+    border-width: 0 0 0 0;
+    background-color: transparent;
+    background-image: url('../../static/icons/send-button.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+.SendButton:hover {
+    background-color: lightslategrey;
+}
