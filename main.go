@@ -1,28 +1,17 @@
 package main
 
 import (
-	"ChatApp/pkg/chat"
-	"ChatApp/pkg/websocket"
+	"ChatApp/internal/chat"
+	"ChatApp/internal/system"
+	"ChatApp/internal/websocket"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/sony/sonyflake"
 	"net/http"
 	"time"
 )
 
-func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
-	conn, err := websocket.Upgrade(w, r)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	client := &websocket.Client{
-		Conn: conn,
-		Pool: pool,
-	}
-	client.Register(pool)
-	client.Read()
-}
-func setupRoutes() {
+func setupRoutes() *mux.Router {
 	chat.History = chat.ChatHistory{
 		ChatID:   0,
 		Messages: nil,
@@ -35,18 +24,20 @@ func setupRoutes() {
 	IdGenerator, err := sonyflake.New(chat.Setting)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return nil
 	}
 	chat.IdGenerator = IdGenerator
 	pool := websocket.NewPool()
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(pool, w, r)
+	router := mux.NewRouter()
+	router.HandleFunc("/auth/login", system.LogIn)
+	router.HandleFunc("/ws/{token}", func(w http.ResponseWriter, r *http.Request) {
+		system.ServeWs(pool, w, r)
 	})
+	return router
 }
-
 func main() {
-	setupRoutes()
-	err := http.ListenAndServe(":8080", nil)
+	router := setupRoutes()
+	err := http.ListenAndServe(":8080", router)
 	if err != nil {
 		fmt.Println(err)
 		return

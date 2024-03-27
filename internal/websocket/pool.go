@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"ChatApp/pkg/chat"
+	"ChatApp/internal/chat"
 	"sync"
 )
 

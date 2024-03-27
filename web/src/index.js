@@ -1,6 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import {BrowserRouter, Route, Routes, Navigate} from "react-router-dom";
+import Dashboard from "./dashboard/dashboard";
+import {LogInPrompt} from "./auth/login";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App/>);
+root.render(
+    <React.StrictMode>
+        <BrowserRouter>
+            <Routes>
+                    <Route path="login" element={<LogInPrompt />} />
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="*" element={<Navigate to="/login" replace />}/>
+            </Routes>
+        </BrowserRouter>
+    </React.StrictMode>
+);

@@ -21,7 +21,7 @@ class ChatBox extends Component {
     }
     sendHandler() {
         if (this.state.value !== '') {
-            send(this.state.value)
+           send(this.state.value)
             this.chatBoxRef.current.value = ''
             this.setState({value: this.chatBoxRef.current.value})
             this.chatBoxRef.current.focus()
@@ -31,7 +31,7 @@ class ChatBox extends Component {
         if (e.key === 'Enter' && !e.shiftKey && this.state.value !== '') {
             e.preventDefault()
             e.stopPropagation()
-            send(this.state.value)
+           send(this.state.value)
             e.target.value = ''
             this.setState({value: e.target.value})
             this.chatBoxRef.current.focus()
