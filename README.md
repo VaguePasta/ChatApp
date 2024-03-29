@@ -1,2 +1,2 @@
 # ChatApp
- A simple chat app using Go and ReactJS
+ A simple chat app using Go, ReactJS and PostgreSQL.
