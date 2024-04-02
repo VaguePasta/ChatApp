@@ -12,7 +12,7 @@ export function LogInPrompt() {
         }
     }
     function PasswordHandler(e) {
-        if (e.key === 'Enter' && Password.current.value !== '') {
+        if (e.key === 'Enter' && Password.current.value !== '' && Username.current.value !== '') {
             LogIn(Username.current.value,Password.current.value)
             if (token !== "0") {
                 history("/dashboard")

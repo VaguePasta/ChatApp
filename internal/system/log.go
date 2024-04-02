@@ -38,7 +38,6 @@ func CheckToken(token string) bool {
 }
 func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	token := mux.Vars(r)["token"]
-	fmt.Println("Token: ", token)
 	if !CheckToken(token) {
 		return
 	}
@@ -52,6 +51,5 @@ func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 		Pool: pool,
 	}
 	client.Register(pool)
-	fmt.Println("A new user connected.")
 	client.Read()
 }
