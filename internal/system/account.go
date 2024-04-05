@@ -1,5 +1,7 @@
 package system
 
 type Account struct {
-	ID string
+	ID       int
+	Username string
+	isActive bool
 }

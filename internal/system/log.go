@@ -1,7 +1,9 @@
 package system
 
 import (
+	"ChatApp/internal/chat"
 	"ChatApp/internal/websocket"
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -16,7 +18,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	credentials := CheckCredentials(r.Form["username"][0], r.Form["password"][0])
-	if credentials == "0" {
+	if credentials == "" {
 		w.WriteHeader(401)
 	} else {
 		w.Header().Set("Content-Type", "text/plain")
@@ -27,18 +29,34 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func CheckCredentials(username string, password string) string {
+	var userid, _username, _password string
+	err := chat.DatabaseConn.QueryRow(context.Background(), "select user_id, username, password from users where username=$1 and password=$2", username, password).Scan(&userid, &_username, &_password)
+	if err != nil {
+		return ""
+	}
 	b := make([]byte, 8)
 	if _, err := rand.Read(b); err != nil {
 		return ""
 	}
-	return hex.EncodeToString(b)
+	token := hex.EncodeToString(b)
+	_, err = chat.DatabaseConn.Exec(context.Background(), "insert into sessions(user_id, session_key) VALUES ($1,$2)", userid, token)
+	if err != nil {
+		return ""
+	}
+	return token
 }
-func CheckToken(token string) bool {
-	return true
+func CheckToken(token string) string {
+	var userid string
+	err := chat.DatabaseConn.QueryRow(context.Background(), "select user_id from sessions where session_key=$1", token).Scan(&userid)
+	if err != nil {
+		return ""
+	}
+	return userid
 }
 func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	token := mux.Vars(r)["token"]
-	if !CheckToken(token) {
+	userid := CheckToken(token)
+	if userid == "" {
 		return
 	}
 	conn, err := websocket.Upgrade(w, r)
@@ -47,6 +65,7 @@ func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := &websocket.Client{
+		ID:   userid,
 		Conn: conn,
 		Pool: pool,
 	}

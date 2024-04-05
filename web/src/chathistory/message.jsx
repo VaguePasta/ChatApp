@@ -9,7 +9,7 @@ class Message extends Component {
         }
     }
     render() {
-        return <div className="Message">{this.state.message.TimeStamp}: {this.state.message.Content}</div>
+        return <div className="Message">{this.state.message.TimeStamp}: {this.state.message.Text}</div>
     }
 }
 export default Message;

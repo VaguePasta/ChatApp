@@ -7,6 +7,7 @@ export function LogIn(_username, _password) {
      log.send('username=' + _username + '&password=' + _password);
      if (log.status === 401) {
           token = "0"
+          console.log("Wrong username or password")
           return
      }
      token = log.responseText

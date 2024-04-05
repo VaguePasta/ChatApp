@@ -14,9 +14,7 @@ func (client *Client) Register(pool *Pool) {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 	pool.Clients[client] = true
-	for _, v := range chat.History.Messages {
-		SendTo(v, client)
-	}
+	//TODO: read all message in the client's channels to send to frontend
 }
 func (client *Client) Unregister(pool *Pool) {
 	pool.mutex.Lock()
@@ -28,13 +26,8 @@ func NewPool() *Pool {
 		Clients: make(map[*Client]bool),
 	}
 }
-func Broadcast(message chat.Message, pool *Pool) {
-	chat.History.Messages = append(chat.History.Messages, message)
-	for client := range pool.Clients {
-		client.Mutex.Lock() //Lock to prevent multiple messages written into the same conn at the same time.
-		SendTo(message, client)
-		client.Mutex.Unlock()
-	}
+func SendToChannel(message chat.Message, channel chat.Channel) {
+	//TODO: Write message to the database, and check if any user in the channel is online to send through conn.
 }
 func SendTo(message chat.Message, client *Client) {
 	err := client.Conn.WriteMessage(1, chat.ToJSON(message))

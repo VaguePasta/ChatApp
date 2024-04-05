@@ -2,7 +2,11 @@ package websocket
 
 import (
 	"ChatApp/internal/chat"
+	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/jackc/pgx/v5"
 	"sync"
 )
 
@@ -11,6 +15,10 @@ type Client struct {
 	Conn  *websocket.Conn
 	Pool  *Pool
 	Mutex sync.Mutex
+}
+type Result struct {
+	channel int
+	content string
 }
 
 func (client *Client) Read() {
@@ -23,17 +31,33 @@ func (client *Client) Read() {
 	}()
 
 	for {
-		messageType, p, err := client.Conn.ReadMessage()
+		_, content, err := client.Conn.ReadMessage()
 		if err != nil {
 			return
 		}
-		ID, _ := chat.IdGenerator.NextID()
-		message := chat.Message{
-			ID:          ID,
-			MessageType: messageType,
-			Content:     string(p),
+		var message Result
+		err = json.Unmarshal(content, &message)
+		if err != nil {
+			continue
 		}
-		//Broadcast the message to all clients in the pool
-		Broadcast(message, client.Pool)
+		ID, _ := chat.IdGenerator.NextID()
+		//textMessage := chat.Message{
+		//	ID:        ID,
+		//	ChannelID: message.channel,
+		//	Content:   message.content,
+		//}
+		query := "INSERT INTO messages(message_id, channel_id, sender_id, message) VALUES (@messageID, @channelID, @senderID, @content)"
+		args := pgx.NamedArgs{
+			"messageID": ID,
+			"channelID": message.channel,
+			"senderID":  client.ID,
+			"message":   message.content,
+		}
+		_, err = chat.DatabaseConn.Exec(context.Background(), query, args)
+		if err != nil {
+			fmt.Println(err)
+		}
+		//TODO: Send message to channel
+
 	}
 }
