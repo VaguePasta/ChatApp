@@ -49,6 +49,7 @@ func setupRoutes() *mux.Router {
 	pool := websocket.NewPool()
 	router := mux.NewRouter()
 	router.HandleFunc("/auth/login", system.LogIn)
+	router.HandleFunc("/auth/register", system.Register)
 	router.HandleFunc("/ws/{token}", func(w http.ResponseWriter, r *http.Request) {
 		system.ServeWs(pool, w, r)
 	})

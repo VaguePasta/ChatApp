@@ -1,11 +1,12 @@
-import {createRef} from "react";
-import "./loginprompt.scss"
+import {createRef, useState} from "react";
+import "./infoprompt.scss"
 import {LogIn, token} from "../api/api";
 import {Navigate, useNavigate} from "react-router-dom";
 export function LogInPrompt() {
     let history = useNavigate()
     let Username = createRef()
     let Password = createRef()
+    const [wrongCredential,credential] = useState(false)
     function UsernameHandler(e) {
         if (e.key === 'Enter') {
             Password.current.focus()
@@ -17,6 +18,7 @@ export function LogInPrompt() {
             if (token !== "0") {
                 history("/dashboard")
             }
+            else credential(true)
         }
     }
     function LoginClick() {
@@ -25,7 +27,11 @@ export function LogInPrompt() {
             if (token !== "0") {
                 history("/dashboard")
             }
+            else credential(true)
         }
+    }
+    function InputChangeHandler() {
+        if (wrongCredential) credential(false)
     }
     if (token !== "0") {
         return (
@@ -33,17 +39,18 @@ export function LogInPrompt() {
         )
     }
     return (
-        <div className="LoginPrompt">
-            <label className="LoginLabel" style={{fontSize:20, textAlign:"center",}}>Authentication Required</label>
-            <label className="LoginLabel" style={{fontSize:14, marginLeft:5, marginTop:20,marginBottom:10}}>
+        <div className="InfoPrompt">
+            <label className="InfoLabel" style={{fontSize:20, textAlign:"center",}}>Authentication Required</label>
+            <label className="InfoLabel" style={{fontSize:14, marginLeft:5, marginTop:20,marginBottom:10}}>
                 Username:
-                <input className="LoginText" ref={Username} onKeyDown={UsernameHandler}/>
+                <input className="InfoText" ref={Username} onChange={InputChangeHandler} onKeyDown={UsernameHandler}/>
             </label>
-            <label className="LoginLabel" style={{fontSize:14, marginLeft:5, marginTop:20,marginBottom:10}}>
+            <label className="InfoLabel" style={{fontSize:14, marginLeft:5, marginTop:20,marginBottom:10}}>
                 Password:
-                <input type="password" className="LoginText" ref={Password} onKeyDown={PasswordHandler}/>
+                <input type="password" className="InfoText" ref={Password} onChange={InputChangeHandler} onKeyDown={PasswordHandler}/>
             </label>
-            <button className="LoginButton" onClick={LoginClick}>Continue</button>
+            {wrongCredential ? <label className="InfoLabel" style={{fontSize:14, marginLeft:5, color:"red"}}>Wrong username or password</label> : false}
+            <button className="SubmitButton" onClick={LoginClick}>Continue</button>
         </div>
     )
 }

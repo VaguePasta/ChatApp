@@ -6,30 +6,34 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/jackc/pgx/v5"
 	"sync"
 )
 
 type Client struct {
-	ID    string
+	ID    int
+	Token string
 	Conn  *websocket.Conn
 	Pool  *Pool
 	Mutex sync.Mutex
 }
 type Result struct {
-	channel int
-	content string
+	Channel int    `json:"channel"`
+	Content string `json:"content"`
 }
 
 func (client *Client) Read() {
 	defer func() {
 		client.Unregister(client.Pool)
 		err := client.Conn.Close()
+		_, err = chat.DatabaseConn.Exec(context.Background(), "delete from sessions where session_key = $1", client.Token)
 		if err != nil {
-			return
+			fmt.Println(err)
+		}
+		_, err = chat.DatabaseConn.Exec(context.Background(), "update users set is_active = false where user_id = $1", client.ID)
+		if err != nil {
+			fmt.Println(err)
 		}
 	}()
-
 	for {
 		_, content, err := client.Conn.ReadMessage()
 		if err != nil {
@@ -38,26 +42,16 @@ func (client *Client) Read() {
 		var message Result
 		err = json.Unmarshal(content, &message)
 		if err != nil {
+			fmt.Println(err)
 			continue
 		}
 		ID, _ := chat.IdGenerator.NextID()
-		//textMessage := chat.Message{
-		//	ID:        ID,
-		//	ChannelID: message.channel,
-		//	Content:   message.content,
-		//}
-		query := "INSERT INTO messages(message_id, channel_id, sender_id, message) VALUES (@messageID, @channelID, @senderID, @content)"
-		args := pgx.NamedArgs{
-			"messageID": ID,
-			"channelID": message.channel,
-			"senderID":  client.ID,
-			"message":   message.content,
+		textMessage := chat.Message{
+			ID:        ID,
+			ChannelID: message.Channel,
+			Content:   message.Content,
+			SenderID:  client.ID,
 		}
-		_, err = chat.DatabaseConn.Exec(context.Background(), query, args)
-		if err != nil {
-			fmt.Println(err)
-		}
-		//TODO: Send message to channel
-
+		SendToChannel(client, &textMessage)
 	}
 }

@@ -8,7 +8,7 @@ import (
 type Message struct {
 	ID        uint64
 	ChannelID int
-	senderID  int
+	SenderID  int
 	Content   string
 }
 type SendMessage struct {

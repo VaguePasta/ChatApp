@@ -1,4 +1,4 @@
-.LoginPrompt {
+.InfoPrompt {
   position: absolute;
   top: 50%;
   left: 0;
@@ -13,7 +13,7 @@
   border-color: grey;
   background-color:aliceblue;
 }
-.LoginText {
+.InfoText {
   width: 90%;
   padding: 15px 5px 15px 5px;
   border: 2px solid #ccc;
@@ -25,7 +25,7 @@
   font-weight: 500;
   font-style: normal;
 }
-.LoginButton {
+.SubmitButton {
   font-family: "Open Sans", sans-serif;
   font-optical-sizing: auto;
   font-weight: 500;
@@ -39,10 +39,10 @@
   width:25%;
   display: block;
 }
-.LoginButton:hover {
+.SubmitButton:hover {
   background-color:#085ed7;
 }
-.LoginLabel {
+.InfoLabel {
   display: block;
   margin: auto;
   padding: 5px 0 0 0;

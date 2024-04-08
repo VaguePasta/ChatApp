@@ -39,24 +39,28 @@ func CheckCredentials(username string, password string) string {
 		return ""
 	}
 	token := hex.EncodeToString(b)
-	_, err = chat.DatabaseConn.Exec(context.Background(), "insert into sessions(user_id, session_key) VALUES ($1,$2)", userid, token)
+	_, err = chat.DatabaseConn.Exec(context.Background(), "insert into sessions (user_id, session_key) VALUES ($1,$2)", userid, token)
 	if err != nil {
 		return ""
 	}
 	return token
 }
-func CheckToken(token string) string {
-	var userid string
+func CheckToken(token string) int {
+	var userid int
 	err := chat.DatabaseConn.QueryRow(context.Background(), "select user_id from sessions where session_key=$1", token).Scan(&userid)
 	if err != nil {
-		return ""
+		return -1
+	}
+	_, err = chat.DatabaseConn.Exec(context.Background(), "update users set is_active = true where user_id = $1", userid)
+	if err != nil {
+		return -1
 	}
 	return userid
 }
 func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	token := mux.Vars(r)["token"]
 	userid := CheckToken(token)
-	if userid == "" {
+	if userid == -1 {
 		return
 	}
 	conn, err := websocket.Upgrade(w, r)
@@ -65,9 +69,10 @@ func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := &websocket.Client{
-		ID:   userid,
-		Conn: conn,
-		Pool: pool,
+		ID:    userid,
+		Token: token,
+		Conn:  conn,
+		Pool:  pool,
 	}
 	client.Register(pool)
 	client.Read()
