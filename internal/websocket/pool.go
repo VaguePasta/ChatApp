@@ -17,7 +17,6 @@ func (client *Client) Register(pool *Pool) {
 	pool.mutex.Lock()
 	defer pool.mutex.Unlock()
 	pool.Clients[client.Token] = client
-	//TODO: read all message in the client's channels to send to frontend
 }
 func (client *Client) Unregister(pool *Pool) {
 	pool.mutex.Lock()
@@ -41,7 +40,8 @@ func SendToChannel(client *Client, textMessage *chat.Message) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	onlineUsers, err := chat.DatabaseConn.Query(context.Background(), "select session_key from sessions inner join participants on sessions.user_id = participants.user_id where participants.channel_id = $1", 1)
+	chat.DatabaseConn.Exec(context.Background(), "update channels set last_message = $1 where channel_id = $2", textMessage.ID, textMessage.ChannelID)
+	onlineUsers, err := chat.DatabaseConn.Query(context.Background(), "select session_key from sessions inner join participants on sessions.user_id = participants.user_id where participants.channel_id = $1", textMessage.ChannelID)
 	defer onlineUsers.Close()
 	for onlineUsers.Next() {
 		var token string
@@ -50,15 +50,5 @@ func SendToChannel(client *Client, textMessage *chat.Message) {
 			continue
 		}
 		SendTo(textMessage, client.Pool.Clients[token])
-	}
-}
-func SendTo(message *chat.Message, client *Client) {
-	if message == nil {
-		fmt.Println("yes")
-		return
-	}
-	err := client.Conn.WriteMessage(1, chat.ToJSON(*message))
-	if err != nil {
-		return
 	}
 }

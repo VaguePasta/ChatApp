@@ -51,16 +51,16 @@ func CheckToken(token string) int {
 	if err != nil {
 		return -1
 	}
-	_, err = chat.DatabaseConn.Exec(context.Background(), "update users set is_active = true where user_id = $1", userid)
-	if err != nil {
-		return -1
-	}
 	return userid
 }
 func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	token := mux.Vars(r)["token"]
 	userid := CheckToken(token)
 	if userid == -1 {
+		return
+	}
+	_, err := chat.DatabaseConn.Exec(context.Background(), "update users set is_active = true where user_id = $1", userid)
+	if err != nil {
 		return
 	}
 	conn, err := websocket.Upgrade(w, r)

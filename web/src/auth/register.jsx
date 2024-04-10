@@ -54,22 +54,29 @@ export function RegisterPrompt() {
 
     return (
         <div className="InfoPrompt">
-            <label className="InfoLabel" style={{fontSize: 20, textAlign: "center",}}>Authentication Required</label>
+            <label className="InfoLabel" style={{fontSize: 20, textAlign: "center",}}>Create a new account</label>
             <label className="InfoLabel" style={{fontSize: 14, marginLeft: 5, marginTop: 20, marginBottom: 10}}>
                 Username:
                 <input className="InfoText" ref={Username} onKeyDown={UsernameHandler} onChange={InputChangeHandler}/>
             </label>
             <label className="InfoLabel" style={{fontSize: 14, marginLeft: 5, marginTop: 20, marginBottom: 10}}>
                 Password:
-                <input type="password" className="InfoText" ref={FirstPassword} onKeyDown={FirstPasswordHandler} onChange={InputChangeHandler}/>
+                <input type="password" className="InfoText" ref={FirstPassword} onKeyDown={FirstPasswordHandler}
+                       onChange={InputChangeHandler}/>
             </label>
             <label className="InfoLabel" style={{fontSize: 14, marginLeft: 5, marginTop: 20, marginBottom: 10}}>
                 Re-enter Password:
-                <input type="password" className="InfoText" ref={SecondPassword} onKeyDown={SecondPasswordHandler} onChange={InputChangeHandler}/>
+                <input type="password" className="InfoText" ref={SecondPassword} onKeyDown={SecondPasswordHandler}
+                       onChange={InputChangeHandler}/>
             </label>
-            {passwordMismatch ? <label style={{fontSize:16, marginLeft:5, color:"red"}}>Password does not match</label> : null}
-            {(registered && submit) ? <label style={{fontSize: 16, marginLeft: 5, color: "green"}}>Successfully Registered. Redirecting...</label> : null}
-            {(!registered && submit) ? <label style={{fontSize: 16, marginLeft: 5, color: "red"}}>User already existed.</label> : null}
+            <div style={{display:"block", marginBottom:5}}>
+                {passwordMismatch ? <label style={{fontSize: 16, marginLeft: 5, color: "red"}}>Password does not match.</label> : null}
+                {(registered && submit) ? <label style={{fontSize: 16, marginLeft: 5, color: "green"}}>Successfully Registered. Redirecting...</label> : null}
+                {(!registered && submit) ? <label style={{fontSize: 16, marginLeft: 5, color: "red"}}>User already existed.</label> : null}
+            </div>
+            <label className="InfoLabel" style={{fontSize: 15, marginLeft: 5, display: "inline"}}>Already have an
+                account? </label>
+            <a href="/login" className="InfoLabel" style={{fontSize: 15, display: "inline"}}>Log In</a>
             <button className="SubmitButton" onClick={RegisterClick}>Register</button>
         </div>
     )

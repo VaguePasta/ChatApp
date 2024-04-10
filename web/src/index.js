@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {BrowserRouter, Route, Routes, Navigate} from "react-router-dom";
-import Dashboard from "./dashboard/dashboard";
+import {Dashboard} from "./dashboard/dashboard";
 import {LogInPrompt} from "./auth/login";
 import {RegisterPrompt} from "./auth/register";
 

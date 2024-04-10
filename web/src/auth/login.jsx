@@ -49,8 +49,10 @@ export function LogInPrompt() {
                 Password:
                 <input type="password" className="InfoText" ref={Password} onChange={InputChangeHandler} onKeyDown={PasswordHandler}/>
             </label>
-            {wrongCredential ? <label className="InfoLabel" style={{fontSize:14, marginLeft:5, color:"red"}}>Wrong username or password</label> : false}
-            <button className="SubmitButton" onClick={LoginClick}>Continue</button>
+            {wrongCredential ? <label className="InfoLabel" style={{fontSize:14, marginLeft:5, color:"red"}}>Wrong username or password.</label> : false}
+            <label className="InfoLabel" style={{fontSize:15, marginLeft:5, display:"inline"}}>Don't have an account? </label>
+            <a href = "/register" className="InfoLabel" style={{fontSize:15, display:"inline"}}>Sign up</a>
+                <button className="SubmitButton" onClick={LoginClick}>Continue</button>
         </div>
     )
 }

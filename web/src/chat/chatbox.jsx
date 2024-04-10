@@ -1,6 +1,7 @@
 import {Component, createRef} from "react";
 import "./chatbox.scss"
 import {send} from "../api/api"
+import {CurrentChannel} from "../conversation/conversation";
 class ChatBox extends Component {
     chatBoxRef = createRef()
     constructor(props) {
@@ -21,7 +22,7 @@ class ChatBox extends Component {
     }
     sendHandler() {
         if (this.state.value !== '') {
-            send(JSON.stringify(["channel:","1","content:",this.state.value]))
+            send(JSON.stringify({channel:CurrentChannel,content:this.state.value}))
             this.chatBoxRef.current.value = ''
             this.setState({value: this.chatBoxRef.current.value})
             this.chatBoxRef.current.focus()
@@ -31,7 +32,7 @@ class ChatBox extends Component {
         if (e.key === 'Enter' && !e.shiftKey && this.state.value !== '') {
             e.preventDefault()
             e.stopPropagation()
-            send(JSON.stringify({channel:1,content:this.state.value}))
+            send(JSON.stringify({channel:CurrentChannel,content:this.state.value}))
             e.target.value = ''
             this.setState({value: e.target.value})
             this.chatBoxRef.current.focus()

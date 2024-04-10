@@ -1,38 +1,29 @@
-import Header from "../header/header";
-import ChatBox from "../chatbox/chatbox";
-import ChatHistory from "../chathistory/chatHistory";
-import {Component} from "react";
-import {connect, token} from "../api/api";
+import ChatBox from "../chat/chatbox";
+import {ChatHistory} from "../chat/chatHistory";
+import {token} from "../api/api";
 import {Navigate} from "react-router-dom";
-class Dashboard extends Component {
-    history = []
-    constructor(props) {
-        super(props);
-        this.state = {
-            chatHistory : []
-        }
+import {ConversationList} from "../conversation/conversationlist";
+import "./dashboard.scss"
+import {createContext, useContext, useState} from "react";
+import {CurrentChannel} from "../conversation/conversation";
+export const CurrentChatContext = createContext(0)
+export function Dashboard() {
+    const [channel,update] = useState(CurrentChannel)
+    function handler() {
+        update(CurrentChannel)
     }
-    componentDidMount() {
-        if (token !== "0") {
-            connect((message) => {
-                this.history.push(message)
-                this.setState(() => ({
-                    chatHistory: this.history
-                }))
-            });
-        }
+    if (token === "0") {
+        return <Navigate replace to="/login"/>
     }
-    render () {
-        if (token === "0") {
-            return <Navigate replace to="/login"/>
-        }
-        return (
-            <div>
-                <Header/>
-                <ChatHistory chatHistory={this.state.chatHistory}/>
+    return (
+        <div>
+            <CurrentChatContext.Provider value = {channel}>
+                <div className="Chat">
+                    <ConversationList handler={handler}/>
+                    <ChatHistory/>
+                </div>
                 <ChatBox/>
-            </div>
-        )
-    }
+            </CurrentChatContext.Provider>
+        </div>
+    )
 }
-export default Dashboard;

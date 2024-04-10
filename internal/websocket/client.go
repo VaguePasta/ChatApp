@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"net/http"
 	"sync"
 )
 
@@ -53,5 +55,39 @@ func (client *Client) Read() {
 			SenderID:  client.ID,
 		}
 		SendToChannel(client, &textMessage)
+	}
+}
+func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	token := mux.Vars(r)["token"]
+	channel := mux.Vars(r)["channelID"]
+	client := pool.Clients[token]
+	w.WriteHeader(200)
+	rows, _ := chat.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message from messages where channel_id = $1 order by message_id asc", channel)
+	for rows.Next() {
+		var messageID uint64
+		var channelID int
+		var senderID int
+		var message string
+		err := rows.Scan(&messageID, &channelID, &senderID, &message)
+		if err != nil {
+			return
+		}
+		SendTo(&chat.Message{
+			ID:        messageID,
+			ChannelID: channelID,
+			SenderID:  senderID,
+			Content:   message,
+		}, client)
+	}
+	rows.Close()
+}
+func SendTo(message *chat.Message, client *Client) {
+	if message == nil {
+		return
+	}
+	err := client.Conn.WriteMessage(1, chat.ToJSON(*message))
+	if err != nil {
+		return
 	}
 }
