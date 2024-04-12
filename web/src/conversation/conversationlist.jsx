@@ -1,4 +1,3 @@
-import {useReducer} from "react";
 import {server, token} from "../api/api";
 import {Conversation} from "./conversation";
 import "./conversationlist.scss"
@@ -11,7 +10,7 @@ export function RequestChannelList() {
     channels = JSON.parse(conn.responseText)
 }
 export function ConversationList(props) {
-    const [,forceUpdate] =  useReducer(x => x + 1,0);
+    // const [,forceUpdate] =  useReducer(x => x + 1,0);
     return (
         <div className="ConversationList">{channels.map(channel => <Conversation handler={props.handler} ChannelID={channel.ChannelID} Title={channel.Title}/>)}</div>
     )

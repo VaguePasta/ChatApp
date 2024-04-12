@@ -1,48 +1,30 @@
-import {Component, createRef} from "react";
+import {createRef} from "react";
 import "./chatbox.scss"
 import {send} from "../api/api"
 import {CurrentChannel} from "../conversation/conversation";
-class ChatBox extends Component {
-    chatBoxRef = createRef()
-    constructor(props) {
-        super(props);
-        this.state = {value : ''}
-        this.changeHandler = this.changeHandler.bind(this)
-        this.keyDownHandler = this.keyDownHandler.bind(this)
-        this.sendHandler = this.sendHandler.bind(this)
-    }
-
-    render() {
-        return (
-            <div>
-                <textarea ref={this.chatBoxRef} className = "ChatBox" value = {this.state.value} onKeyDown={this.keyDownHandler} onChange={this.changeHandler}/>
-                <button className="SendButton" onClick={this.sendHandler}/>
-            </div>
-        )
-    }
-    sendHandler() {
-        if (this.state.value !== '') {
-            send(JSON.stringify({channel:CurrentChannel,content:this.state.value}))
-            this.chatBoxRef.current.value = ''
-            this.setState({value: this.chatBoxRef.current.value})
-            this.chatBoxRef.current.focus()
+export function ChatBox() {
+    let chatBoxRef = createRef()
+    function sendHandler() {
+        if (chatBoxRef.current.value !== '') {
+            send(JSON.stringify({channel:CurrentChannel,content:chatBoxRef.current.value}))
+            chatBoxRef.current.value = ''
+            chatBoxRef.current.focus()
         }
     }
-    keyDownHandler(e) {
-        if (e.key === 'Enter' && !e.shiftKey && this.state.value !== '') {
+    function keyDownHandler(e) {
+        if (e.key === 'Enter' && !e.shiftKey && chatBoxRef.current.value !== '') {
             e.preventDefault()
             e.stopPropagation()
-            send(JSON.stringify({channel:CurrentChannel,content:this.state.value}))
+            send(JSON.stringify({channel:CurrentChannel,content:chatBoxRef.current.value}))
             e.target.value = ''
-            this.setState({value: e.target.value})
-            this.chatBoxRef.current.focus()
+            chatBoxRef.current.focus()
         }
     }
-    changeHandler(e) {
-        if (e.target.value === '\n' && this.state.value === '') {
-            return
-        }
-        this.setState({value: e.target.value})
-    }
+    return (
+        <div>
+            <textarea ref={chatBoxRef} className = "ChatBox" onKeyDown={keyDownHandler}/>
+            <button className="SendButton" onClick={sendHandler}/>
+        </div>
+    )
 }
 export default ChatBox;

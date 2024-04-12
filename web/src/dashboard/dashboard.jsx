@@ -1,23 +1,38 @@
 import ChatBox from "../chat/chatbox";
 import {ChatHistory} from "../chat/chatHistory";
-import {token} from "../api/api";
+import {SaveMessage, socket, token} from "../api/api";
 import {Navigate} from "react-router-dom";
-import {ConversationList} from "../conversation/conversationlist";
+import {channelsMap, ConversationList} from "../conversation/conversationlist";
 import "./dashboard.scss"
-import {createContext, useContext, useState} from "react";
+import {createContext, useEffect, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
-export const CurrentChatContext = createContext(0)
+export const CurrentChatContext = createContext({Channel:0,ChannelContent:[]})
 export function Dashboard() {
-    const [channel,update] = useState(CurrentChannel)
+    const [channelHistory,update] = useState({
+        Channel: CurrentChannel,
+        ChannelContent: channelsMap[CurrentChannel]
+    })
+    useEffect(() => {
+        socket.onmessage = data => {
+            let message = JSON.parse(data.data)
+            SaveMessage(message)
+            if (message.Channel === CurrentChannel) {
+                handler()
+            }
+        }
+    })
     function handler() {
-        update(CurrentChannel)
+        update({
+            Channel: CurrentChannel,
+            ChannelContent: channelsMap[CurrentChannel]
+        })
     }
     if (token === "0") {
         return <Navigate replace to="/login"/>
     }
     return (
         <div>
-            <CurrentChatContext.Provider value = {channel}>
+            <CurrentChatContext.Provider value = {channelHistory}>
                 <div className="Chat">
                     <ConversationList handler={handler}/>
                     <ChatHistory/>
