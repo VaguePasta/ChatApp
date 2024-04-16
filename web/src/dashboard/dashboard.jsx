@@ -9,8 +9,8 @@ import {CurrentChannel} from "../conversation/conversation";
 export const CurrentChatContext = createContext({Channel:0,ChannelContent:[]})
 export function Dashboard() {
     const [channelHistory,update] = useState({
-        Channel: CurrentChannel,
-        ChannelContent: channelsMap[CurrentChannel]
+        Channel: 0,
+        ChannelContent: []
     })
     useEffect(() => {
         socket.onmessage = data => {

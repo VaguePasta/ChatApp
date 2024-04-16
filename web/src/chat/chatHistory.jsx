@@ -1,18 +1,17 @@
-import {useContext} from "react";
+import {useContext, useEffect, useRef} from "react";
 import "./chatHistory.scss"
 import {Message} from "./message";
 import {CurrentChatContext} from "../dashboard/dashboard";
-import {channelsMap} from "../conversation/conversationlist";
 export function ChatHistory() {
-    let channel = useContext(CurrentChatContext)
-    if (channel === undefined) {
-        channel = {Channel: 0, ChannelContent: []}
-    }
-    let history = channelsMap[channel.Channel]
-    if (history === undefined) history = []
+    const history = useContext(CurrentChatContext)
+    const refs = useRef(null)
+    useEffect(() => {
+        setTimeout(() => refs.current.scrollIntoView({ behavior:"smooth" }));
+    }, [history]);
     return (
         <div className="ChatHistory">
-            {history.map(msg => <Message message={msg} />)}
+            {history.ChannelContent.map(msg => <Message message={msg}/>)}
+            <div ref={refs} style={{clear:"both"}}/>
         </div>
     );
 }

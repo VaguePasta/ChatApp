@@ -1,10 +1,9 @@
 import {channelsMap, RequestChannelList} from "../conversation/conversationlist";
-import {RequestChat} from "../conversation/conversation";
 
 export let token = "0";
 export let socket;
 export let server = "://localhost:8080/"
-
+export let userid;
 export function LogIn(_username, _password) {
      let log = new XMLHttpRequest();
      log.open("POST","http" + server + "auth/login",false);
@@ -14,7 +13,9 @@ export function LogIn(_username, _password) {
           token = "0"
           return
      }
-     token = log.responseText
+     let response = log.responseText.split("/")
+     userid = parseInt(response[0])
+     token = response[1]
      socket = new WebSocket("ws" + server + "ws/"+token)
      RequestChannelList()
 }
@@ -30,9 +31,5 @@ export let send = msg => {
      socket.send(msg);
 };
 export function SaveMessage(message) {
-     if (channelsMap[message.Channel] === undefined) {
-          channelsMap[message.Channel] = []
-          RequestChat(message.Channel)
-     }
      channelsMap[message.Channel].push(message)
 }

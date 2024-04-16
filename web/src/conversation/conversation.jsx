@@ -13,8 +13,7 @@ export function Conversation(props) {
     let thisButton = createRef()
     function ChooseChannel() {
         CurrentChannel = props.ChannelID
-        if (channelsMap[CurrentChannel] === undefined) {
-            channelsMap[CurrentChannel] = []
+        if (channelsMap[CurrentChannel].length === 0) {
             RequestChat(CurrentChannel)
         }
         props.handler()

@@ -8,9 +8,11 @@ export function RequestChannelList() {
     conn.open("GET","http" + server + "channel/" + token,false)
     conn.send()
     channels = JSON.parse(conn.responseText)
+    channels.forEach((element) => {
+        channelsMap[element.ChannelID] = []
+    })
 }
 export function ConversationList(props) {
-    // const [,forceUpdate] =  useReducer(x => x + 1,0);
     return (
         <div className="ConversationList">{channels.map(channel => <Conversation handler={props.handler} ChannelID={channel.ChannelID} Title={channel.Title}/>)}</div>
     )

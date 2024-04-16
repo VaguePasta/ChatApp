@@ -43,7 +43,7 @@ func CheckCredentials(username string, password string) string {
 	if err != nil {
 		return ""
 	}
-	return token
+	return userid + "/" + token
 }
 func CheckToken(token string) int {
 	var userid int
