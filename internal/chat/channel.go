@@ -23,7 +23,7 @@ func GetChatData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var channelIDs []Channel
-	channels, _ := DatabaseConn.Query(context.Background(), "select channel_id, title from channels where channel_id in (select channel_id from participants where user_id = $1) order by last_message desc", userid)
+	channels, _ := DatabaseConn.Query(context.Background(), "select channel_id, title from channels where channel_id in (select channel_id from participants where user_id = $1) order by last_message", userid)
 	for channels.Next() {
 		var channelID int
 		var title string

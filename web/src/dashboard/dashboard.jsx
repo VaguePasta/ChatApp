@@ -2,7 +2,7 @@ import ChatBox from "../chat/chatbox";
 import {ChatHistory} from "../chat/chatHistory";
 import {SaveMessage, socket, token} from "../api/api";
 import {Navigate} from "react-router-dom";
-import {channelsMap, ConversationList} from "../conversation/conversationlist";
+import {channels, channelsMap, ConversationList} from "../conversation/conversationlist";
 import "./dashboard.scss"
 import {createContext, useEffect, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
@@ -19,8 +19,12 @@ export function Dashboard() {
             if (message.Channel === CurrentChannel) {
                 handler()
             }
+            if (message.Type === "NewMessage") updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel))
         }
     })
+    function updateList(index) {
+        channels.unshift(channels.splice(index,1)[0])
+    }
     function handler() {
         update({
             Channel: CurrentChannel,
@@ -34,7 +38,7 @@ export function Dashboard() {
         <div>
             <CurrentChatContext.Provider value = {channelHistory}>
                 <div className="Chat">
-                    <ConversationList handler={handler}/>
+                    <ConversationList handler={handler} list={channels}/>
                     <ChatHistory/>
                 </div>
                 <ChatBox/>

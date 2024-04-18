@@ -49,6 +49,6 @@ func SendToChannel(client *Client, textMessage *chat.Message) {
 		if err != nil {
 			continue
 		}
-		SendTo(textMessage, client.Pool.Clients[token])
+		SendTo(textMessage, client.Pool.Clients[token], false)
 	}
 }

@@ -6,7 +6,7 @@ export function ChatHistory() {
     const history = useContext(CurrentChatContext)
     const refs = useRef(null)
     useEffect(() => {
-        setTimeout(() => refs.current.scrollIntoView({ behavior:"smooth" }));
+        setTimeout(() => refs.current.scrollIntoView());
     }, [history]);
     return (
         <div className="ChatHistory">

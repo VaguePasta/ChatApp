@@ -62,7 +62,6 @@ func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	token := mux.Vars(r)["token"]
 	channel := mux.Vars(r)["channelID"]
 	client := pool.Clients[token]
-	w.WriteHeader(200)
 	rows, _ := chat.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message from messages where channel_id = $1 order by message_id asc", channel)
 	for rows.Next() {
 		var messageID uint64
@@ -78,15 +77,16 @@ func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
 			ChannelID: channelID,
 			SenderID:  senderID,
 			Content:   message,
-		}, client)
+		}, client, true)
 	}
 	rows.Close()
+	w.WriteHeader(200)
 }
-func SendTo(message *chat.Message, client *Client) {
+func SendTo(message *chat.Message, client *Client, isGet bool) {
 	if message == nil {
 		return
 	}
-	err := client.Conn.WriteMessage(1, chat.ToJSON(*message))
+	err := client.Conn.WriteMessage(1, chat.ToJSON(*message, isGet))
 	if err != nil {
 		return
 	}
