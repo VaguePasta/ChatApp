@@ -19,6 +19,9 @@ export function ConversationList(props) {
         updateList(props.list)
     }, [props.list]);
     return (
-        <div className="ConversationList">{channelList.map(channel => <Conversation handler={props.handler} ChannelID={channel.ChannelID} Title={channel.Title}/>)}</div>
+        <div className="ConversationList">
+            <button style={{height:"5%",width:"100%"}}>New Chat</button>
+            {channelList.map(channel => <Conversation handler={props.handler} ChannelID={channel.ChannelID} Title={channel.Title}/>)}
+        </div>
     )
 }

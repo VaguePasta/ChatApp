@@ -3,6 +3,7 @@ package websocket
 import (
 	"ChatApp/internal/chat"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -86,7 +87,7 @@ func SendTo(message *chat.Message, client *Client, isGet bool) {
 	if message == nil {
 		return
 	}
-	err := client.Conn.WriteMessage(1, chat.ToJSON(*message, isGet))
+	err := client.Conn.WriteMessage(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString(chat.ToJSON(*message, isGet))))
 	if err != nil {
 		return
 	}

@@ -1,6 +1,6 @@
 import ChatBox from "../chat/chatbox";
 import {ChatHistory} from "../chat/chatHistory";
-import {SaveMessage, socket, token} from "../api/api";
+import {Decompress, SaveMessage, socket, token} from "../api/api";
 import {Navigate} from "react-router-dom";
 import {channels, channelsMap, ConversationList} from "../conversation/conversationlist";
 import "./dashboard.scss"
@@ -14,12 +14,12 @@ export function Dashboard() {
     })
     useEffect(() => {
         socket.onmessage = data => {
-            let message = JSON.parse(data.data)
+            let message = JSON.parse(Decompress(data.data))
             SaveMessage(message)
             if (message.Channel === CurrentChannel) {
                 handler()
             }
-            if (message.Type === "NewMessage") updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel))
+            if (message.Type === false) updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel))
         }
     })
     function updateList(index) {

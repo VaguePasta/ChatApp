@@ -1,5 +1,6 @@
 import {channelsMap, RequestChannelList} from "../conversation/conversationlist";
 
+const pako= require('pako');
 export let token = "0";
 export let socket;
 export let server = "://localhost:8080/"
@@ -32,4 +33,12 @@ export let send = msg => {
 };
 export function SaveMessage(message) {
      channelsMap[message.Channel].push(message)
+}
+export function Decompress(data) {
+     let binaryString = atob(data)
+     let arr = new Uint8Array(binaryString.length)
+     for (let i = 0; i < binaryString.length; i++) {
+          arr[i] = binaryString.charCodeAt(i);
+     }
+     return pako.inflate(arr, {to: 'string'})
 }
