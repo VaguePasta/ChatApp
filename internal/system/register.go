@@ -4,8 +4,8 @@ import (
 	"ChatApp/internal/chat"
 	"context"
 	"errors"
-	"fmt"
 	"github.com/jackc/pgx/v5"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
@@ -25,9 +25,9 @@ func CheckRegister(username string, password string) bool {
 	row := chat.DatabaseConn.QueryRow(context.Background(), "select 1 from users where username = $1 limit 1", username)
 	err := row.Scan()
 	if errors.Is(err, pgx.ErrNoRows) {
-		_, err = chat.DatabaseConn.Exec(context.Background(), "insert into users (username, password, register_at) values($1, $2, (select current_date))", username, password)
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		_, err = chat.DatabaseConn.Exec(context.Background(), "insert into users (username, password, register_at) values($1, $2, (select current_date))", username, hashedPassword)
 		if err != nil {
-			fmt.Println(err)
 			return false
 		}
 		return true

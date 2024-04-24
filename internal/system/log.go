@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
@@ -30,7 +31,12 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 }
 func CheckCredentials(username string, password string) string {
 	var userid, _username, _password string
-	err := chat.DatabaseConn.QueryRow(context.Background(), "select user_id, username, password from users where username=$1 and password=$2", username, password).Scan(&userid, &_username, &_password)
+	err := chat.DatabaseConn.QueryRow(context.Background(), "select user_id, username, password from users where username=$1", username).Scan(&userid, &_username, &_password)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(_password), []byte(password))
 	if err != nil {
 		return ""
 	}
