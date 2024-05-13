@@ -1,4 +1,5 @@
 import {channelsMap, RequestChannelList} from "../conversation/conversationlist";
+import {username} from "../auth/login";
 
 const pako= require('pako');
 export let token = "0";
@@ -41,4 +42,12 @@ export function Decompress(data) {
           arr[i] = binaryString.charCodeAt(i);
      }
      return pako.inflate(arr, {to: 'string'})
+}
+export function CreateChannel(users) {
+     let user_list = users.replace(/\s/g,'').split(";")
+     user_list.unshift(username)
+     let log = new XMLHttpRequest()
+     log.open("POST", "http" + server + "create/channel", false)
+     log.send(JSON.stringify(user_list))
+     return log.status === 201;
 }

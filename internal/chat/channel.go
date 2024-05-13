@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/sony/sonyflake"
+	"io"
 	"net/http"
 )
 
@@ -39,6 +40,25 @@ func GetChatData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+}
+func CreateChannel(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	err := r.ParseForm()
+	if err != nil {
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	var arr []string
+	err = json.Unmarshal(body, &arr)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	//TODO: Add new channel
+	//for index, element := range arr {
+	//	TODO: Add member to channel
+	//}
+	w.WriteHeader(201)
 }
 
 var Setting sonyflake.Settings

@@ -54,6 +54,7 @@ func setupRoutes() *mux.Router {
 	router.HandleFunc("/message/{token}/{channelID}", func(w http.ResponseWriter, r *http.Request) {
 		websocket.GetChannelMessages(pool, w, r)
 	})
+	router.HandleFunc("/create/channel", chat.CreateChannel)
 	router.HandleFunc("/ws/{token}", func(w http.ResponseWriter, r *http.Request) {
 		system.ServeWs(pool, w, r)
 	})

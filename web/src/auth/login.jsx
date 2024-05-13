@@ -2,6 +2,7 @@ import {createRef, useState} from "react";
 import "./infoprompt.scss"
 import {LogIn, token} from "../api/api";
 import {Navigate, useNavigate} from "react-router-dom";
+export let username = ''
 export function LogInPrompt() {
     let history = useNavigate()
     let Username = createRef()
@@ -16,6 +17,7 @@ export function LogInPrompt() {
         if (e.key === 'Enter' && Password.current.value !== '' && Username.current.value !== '') {
             LogIn(Username.current.value,Password.current.value)
             if (token !== "0") {
+                username = Username.current.value
                 history("/dashboard")
             }
             else credential(true)
@@ -25,6 +27,7 @@ export function LogInPrompt() {
         if (Username.current.value !== '' && Password.current.value !== '') {
             LogIn(Username.current.value,Password.current.value)
             if (token !== "0") {
+                username = Username.current.value
                 history("/dashboard")
             }
             else credential(true)
