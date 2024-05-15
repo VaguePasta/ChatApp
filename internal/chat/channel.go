@@ -54,10 +54,30 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	//TODO: Add new channel
-	//for index, element := range arr {
-	//	TODO: Add member to channel
-	//}
+	createTime, _ := IdGenerator.NextID()
+	var channelId string
+	err = DatabaseConn.QueryRow(context.Background(), "insert into channels (title, create_date, last_message) values ($1, (select current_date), $2) returning channel_id", arr[0]+"'s chat", createTime).Scan(&channelId)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	for index, element := range arr {
+		var privilege string
+		if index == 0 {
+			privilege = "admin"
+		} else {
+			privilege = "member"
+		}
+		var userId string
+		err := DatabaseConn.QueryRow(context.Background(), "select user_id from users where username = $1", element).Scan(&userId)
+		if err != nil {
+			continue
+		}
+		_, err = DatabaseConn.Exec(context.Background(), "insert into participants (user_id, channel_id, privilege) values ($1, $2, $3)", userId, channelId, privilege)
+		if err != nil {
+			continue
+		}
+	}
 	w.WriteHeader(201)
 }
 

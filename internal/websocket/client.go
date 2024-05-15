@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"net/http"
@@ -30,11 +29,9 @@ func (client *Client) Read() {
 		err := client.Conn.Close()
 		_, err = chat.DatabaseConn.Exec(context.Background(), "delete from sessions where session_key = $1", client.Token)
 		if err != nil {
-			fmt.Println(err)
 		}
 		_, err = chat.DatabaseConn.Exec(context.Background(), "update users set is_active = false where user_id = $1", client.ID)
 		if err != nil {
-			fmt.Println(err)
 		}
 	}()
 	for {
@@ -45,7 +42,6 @@ func (client *Client) Read() {
 		var message Result
 		err = json.Unmarshal(content, &message)
 		if err != nil {
-			fmt.Println(err)
 			continue
 		}
 		ID, _ := chat.IdGenerator.NextID()

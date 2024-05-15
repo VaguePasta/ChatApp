@@ -3,7 +3,6 @@ package websocket
 import (
 	"ChatApp/internal/chat"
 	"context"
-	"fmt"
 	"github.com/jackc/pgx/v5"
 	"sync"
 )
@@ -38,7 +37,7 @@ func SendToChannel(client *Client, textMessage *chat.Message) {
 	}
 	_, err := chat.DatabaseConn.Exec(context.Background(), query, args)
 	if err != nil {
-		fmt.Println(err)
+		return
 	}
 	chat.DatabaseConn.Exec(context.Background(), "update channels set last_message = $1 where channel_id = $2", textMessage.ID, textMessage.ChannelID)
 	onlineUsers, err := chat.DatabaseConn.Query(context.Background(), "select session_key from sessions inner join participants on sessions.user_id = participants.user_id where participants.channel_id = $1", textMessage.ChannelID)

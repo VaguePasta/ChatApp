@@ -1,34 +1,33 @@
 import {CreateChannel, server, token} from "../api/api";
 import {Conversation} from "./conversation";
 import "./conversationlist.scss"
-import {useEffect, useRef, useState} from "react";
+import {useRef, useState} from "react";
 import Popup from "reactjs-popup";
 export let channelsMap = new Map()
 export let channels = []
 export function RequestChannelList() {
-    channels = []
     let conn = new XMLHttpRequest()
     conn.open("GET","http" + server + "channel/" + token,false)
     conn.send()
+    channelsMap[0] = []
     if (conn.responseText !== 'null') {
         channels = JSON.parse(conn.responseText)
         channels.forEach((element) => {
-            if (channelsMap[element.ChannelID] === null) channelsMap[element.ChannelID] = []
+            channelsMap[element.ChannelID] = []
         })
     }
+    console.log("Requested.")
 }
 export function ConversationList(props) {
     const ref = useRef()
-    const [channelList, updateList] = useState(props.list)
-    useEffect(() => {
-        updateList(props.list)
-    }, [props.list]);
+    const [channelList, updateList] = useState(channels)
     function keyDownHandler(e) {
         if (e.key === 'Enter') {
             e.preventDefault()
             e.stopPropagation()
             if (CreateChannel(e.target.value)) {
-
+                RequestChannelList()
+                updateList(channels)
             }
             e.target.value = ''
             ref.current.close()

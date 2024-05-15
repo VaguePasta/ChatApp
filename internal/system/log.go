@@ -6,7 +6,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -33,7 +32,6 @@ func CheckCredentials(username string, password string) string {
 	var userid, _username, _password string
 	err := chat.DatabaseConn.QueryRow(context.Background(), "select user_id, username, password from users where username=$1", username).Scan(&userid, &_username, &_password)
 	if err != nil {
-		fmt.Println(err)
 		return ""
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(_password), []byte(password))
@@ -71,7 +69,6 @@ func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	}
 	conn, err := websocket.Upgrade(w, r)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	client := &websocket.Client{

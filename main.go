@@ -42,7 +42,6 @@ func setupRoutes() *mux.Router {
 	}
 	IdGenerator, err := sonyflake.New(chat.Setting)
 	if err != nil {
-		fmt.Println(err)
 		return nil
 	}
 	chat.IdGenerator = IdGenerator
@@ -68,7 +67,6 @@ func main() {
 	router := setupRoutes()
 	err := http.ListenAndServe(":8080", router)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 }
