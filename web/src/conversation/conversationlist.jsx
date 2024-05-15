@@ -1,8 +1,9 @@
 import {CreateChannel, server, token} from "../api/api";
 import {Conversation} from "./conversation";
 import "./conversationlist.scss"
-import {useRef, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import Popup from "reactjs-popup";
+import {CurrentChatContext} from "../dashboard/dashboard";
 export let channelsMap = new Map()
 export let channels = []
 export function RequestChannelList() {
@@ -19,6 +20,7 @@ export function RequestChannelList() {
     console.log("Requested.")
 }
 export function ConversationList(props) {
+    const list = useContext(CurrentChatContext)
     const ref = useRef()
     const [channelList, updateList] = useState(channels)
     function keyDownHandler(e) {
@@ -33,6 +35,9 @@ export function ConversationList(props) {
             ref.current.close()
         }
     }
+    useEffect(() => {
+        updateList(channels)
+    }, [list]);
     return (
         <div className="ConversationList">
             <Popup position="right center" trigger={<button style={{height:"5%",width:"100%"}}>New Chat</button>} ref={ref}>
