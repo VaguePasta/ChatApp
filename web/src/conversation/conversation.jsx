@@ -5,7 +5,7 @@ import {channelsMap} from "./conversationlist";
 export let CurrentChannel = 0;
 export function RequestChat(CurrentChannel) {
     let request = new XMLHttpRequest()
-    request.open("GET", "http" + server + "message/" + token + "/" + CurrentChannel, false)
+    request.open("GET", "http" + server + "message/" + token + "/" + CurrentChannel, true)
     request.send()
 }
 

@@ -80,6 +80,41 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(201)
 }
+func DeleteChannel(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	err := r.ParseForm()
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	var arr []string
+	err = json.Unmarshal(body, &arr)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	var privilege string
+	err = DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", arr[0], arr[1]).Scan(&privilege)
+	if err != nil {
+		w.WriteHeader(404)
+		return
+	}
+	if privilege != "admin" {
+		w.WriteHeader(401)
+		return
+	}
+	_, err = DatabaseConn.Exec(context.Background(), "delete from channels where channel_id = $1", arr[1])
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	w.WriteHeader(200)
+}
 
 var Setting sonyflake.Settings
 var IdGenerator *sonyflake.Sonyflake

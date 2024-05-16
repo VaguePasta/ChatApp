@@ -21,19 +21,19 @@ export function RegisterPrompt() {
         }
     }
 
-    function SecondPasswordHandler(e) {
+    async function SecondPasswordHandler(e) {
         if (e.key === 'Enter' && Username.current.value !=='' && SecondPassword.current.value !== '' && FirstPassword.current.value !== '') {
             if (!passwordMismatch) {
-                reg(Register(Username.current.value, FirstPassword.current.value))
+                reg(await Register(Username.current.value, FirstPassword.current.value))
                 sub(true)
                 setTimeout(()=> login("/login"),1000)
             }
         }
     }
 
-    function RegisterClick() {
+    async function RegisterClick() {
         if (Username.current.value !=='' && FirstPassword.current.value!=='' &&SecondPassword.current.value !== '' && !passwordMismatch) {
-            reg(Register(Username.current.value, FirstPassword.current.value))
+            reg(await Register(Username.current.value, FirstPassword.current.value))
             sub(true)
             setTimeout(()=> login("/login"),1000)
         }

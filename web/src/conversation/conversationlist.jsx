@@ -1,4 +1,4 @@
-import {CreateChannel, server, token} from "../api/api";
+import {CreateChannel, makeRequest, server, token} from "../api/api";
 import {Conversation} from "./conversation";
 import "./conversationlist.scss"
 import {useContext, useEffect, useRef, useState} from "react";
@@ -6,29 +6,28 @@ import Popup from "reactjs-popup";
 import {CurrentChatContext} from "../dashboard/dashboard";
 export let channelsMap = new Map()
 export let channels = []
-export function RequestChannelList() {
+export async function RequestChannelList() {
     let conn = new XMLHttpRequest()
-    conn.open("GET","http" + server + "channel/" + token,false)
-    conn.send()
+    conn.open("GET","http" + server + "channel/read/" + token,true)
     channelsMap[0] = []
-    if (conn.responseText !== 'null') {
-        channels = JSON.parse(conn.responseText)
+    let result = await makeRequest(conn,null)
+    if (result.Response !== 'null') {
+        channels = JSON.parse(result.Response)
         channels.forEach((element) => {
             channelsMap[element.ChannelID] = []
         })
     }
-    console.log("Requested.")
 }
 export function ConversationList(props) {
     const list = useContext(CurrentChatContext)
     const ref = useRef()
     const [channelList, updateList] = useState(channels)
-    function keyDownHandler(e) {
+    async function keyDownHandler(e) {
         if (e.key === 'Enter') {
             e.preventDefault()
             e.stopPropagation()
-            if (CreateChannel(e.target.value)) {
-                RequestChannelList()
+            if (await CreateChannel(e.target.value)) {
+                await RequestChannelList()
                 updateList(channels)
             }
             e.target.value = ''
@@ -40,7 +39,7 @@ export function ConversationList(props) {
     }, [list]);
     return (
         <div className="ConversationList">
-            <Popup position="right center" trigger={<button style={{height:"5%",width:"100%"}}>New Chat</button>} ref={ref}>
+            <Popup position="right center" trigger={<button style={{borderStyle:"solid", height:"5%",width:"100%"}}>New Chat</button>} ref={ref}>
                 <div>
                     <label style={{fontSize:14, marginLeft:5, marginTop:20,marginBottom:10}} onKeyDown={keyDownHandler}>
                         Enter user(s): <input/>

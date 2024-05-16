@@ -15,22 +15,24 @@ export function LogInPrompt() {
     }
     function PasswordHandler(e) {
         if (e.key === 'Enter' && Password.current.value !== '' && Username.current.value !== '') {
-            LogIn(Username.current.value,Password.current.value)
-            if (token !== "0") {
-                username = Username.current.value
-                history("/dashboard")
-            }
-            else credential(true)
+            LogIn(Username.current.value,Password.current.value).then(() => {
+                if (token !== "0") {
+                    username = Username.current.value
+                    history("/dashboard")
+                }
+                else credential(true)
+            })
         }
     }
     function LoginClick() {
         if (Username.current.value !== '' && Password.current.value !== '') {
-            LogIn(Username.current.value,Password.current.value)
-            if (token !== "0") {
-                username = Username.current.value
-                history("/dashboard")
-            }
-            else credential(true)
+            LogIn(Username.current.value,Password.current.value).then(() => {
+                if (token !== "0") {
+                    username = Username.current.value
+                    history("/dashboard")
+                }
+                else credential(true)
+            })
         }
     }
     function InputChangeHandler() {

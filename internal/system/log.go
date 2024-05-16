@@ -22,6 +22,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 	} else {
 		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(200)
 		_, err := w.Write([]byte(credentials))
 		if err != nil {
 			return
