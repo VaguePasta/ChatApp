@@ -1,11 +1,11 @@
-import {channels, channelsMap} from "../conversation/conversationlist";
 import {username} from "../auth/login";
-
 const pako= require('pako');
 export let token = "0";
 export let socket;
 export let server = "://localhost:8080/"
 export let userid;
+export let channelsMap = new Map()
+export let channels = []
 export function makeRequest(request, body) {
      return new Promise(function(resolve, reject) {
           request.onload = () => {
@@ -79,6 +79,7 @@ export async function RequestChannelList() {
      log.open("GET","http" + server + "channel/read",true)
      log.withCredentials = true;
      log.setRequestHeader('Authorization', token)
+     channelsMap = new Map()
      channelsMap[0] = []
      let result = await makeRequest(log,null)
      if (result.Response !== 'null') {
@@ -86,6 +87,9 @@ export async function RequestChannelList() {
           channels.forEach((element) => {
                channelsMap[element.ChannelID] = []
           })
+     }
+     else {
+          channels = []
      }
 }
 export function RequestChat(CurrentChannel) {
@@ -96,13 +100,12 @@ export function RequestChat(CurrentChannel) {
      log.send()
 }
 export async function CreateChannel(users) {
-     let user_list = users.replace(/\s/g,'').split(";")
-     user_list.unshift(username)
+     users.unshift(username)
      let log = new XMLHttpRequest()
      log.withCredentials = true;
      log.open("POST", "http" + server + "channel/create", true)
      log.setRequestHeader('Authorization', token)
-     let result = await makeRequest(log, JSON.stringify(user_list))
+     let result = await makeRequest(log, JSON.stringify(users))
      return result.Status === 201
 }
 export async function DeleteChannel(channel) {
@@ -110,8 +113,14 @@ export async function DeleteChannel(channel) {
      log.open("POST", "http" + server + "channel/delete", true)
      log.withCredentials = true;
      log.setRequestHeader('Authorization', token)
-     let result = await makeRequest(log, JSON.stringify([userid, channel]))
-     return result.Status
+     return await makeRequest(log, JSON.stringify([String(userid), String(channel)])).then(
+         () => {
+              return true
+         },
+         () => {
+              return false
+         }
+     )
 }
 export async function SearchUser(_username) {
      let log = new XMLHttpRequest()

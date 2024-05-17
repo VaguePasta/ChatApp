@@ -1,11 +1,9 @@
-import {SearchUser} from "../api/api";
+import {channels, CreateChannel, RequestChannelList, SearchUser} from "../api/api";
 import {Conversation} from "./conversation";
 import "./conversationlist.scss"
 import {useContext, useEffect, useRef, useState} from "react";
 import Popup from "reactjs-popup";
 import {CurrentChatContext} from "../dashboard/dashboard";
-export let channelsMap = new Map()
-export let channels = []
 export function ConversationList(props) {
     const list = useContext(CurrentChatContext)
     const ref = useRef()
@@ -26,7 +24,14 @@ export function ConversationList(props) {
         }
     }
     function CreateClick() {
-        console.log(userList)
+        CreateChannel(userList).then(
+            () => {
+                RequestChannelList().then(
+                    () => props.handler()
+                )
+                ref.current.close()
+            }
+        )
     }
     function RemoveUser(e,user) {
         changeUserList(userList.filter((_user) => _user !== user))
@@ -36,7 +41,7 @@ export function ConversationList(props) {
     }, [list]);
     return (
         <div className="ConversationList">
-            <Popup position="right center"
+            <Popup position="right center" className="modal-popup"
             trigger={<button style={{borderStyle: "solid", height: "5%", width: "100%"}}>New Chat</button>}
             ref={ref}
             onClose={() => changeUserList([])}

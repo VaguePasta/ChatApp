@@ -11,7 +11,7 @@
         top: 0;
     }
 }
-.popup-content {
+.modal-popup-content {
     position: absolute;
     margin: auto;
     top: 0;
@@ -27,18 +27,18 @@
     border-radius: 10px;
     animation: popup-open 0.5s;
 }
-.popup-arrow {
+.modal-popup-arrow {
     color: rgb(255, 255, 255);
 }
-[role='tooltip'].popup-content {
+[role='tooltip'].modal-popup-content {
     width: 200px;
     box-shadow: rgba(0, 0, 0, 0.16) 0 0 3px;
 }
 
-.popup-overlay {
+.modal-popup-overlay {
     background: rgba(0, 0, 0, 0.5);
 }
-[data-popup='tooltip'].popup-overlay {
+[data-popup='tooltip'].modal-popup-overlay {
     background: transparent;
 }
 .input {

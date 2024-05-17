@@ -80,7 +80,6 @@ func main() {
 	if !GetClientOrigin() {
 		return
 	}
-	fmt.Println(websocket.ClientOrigin)
 	defer db.DatabaseConn.Close()
 	router := setupRoutes()
 	err := http.ListenAndServe(":8080", handlers.CORS(
@@ -91,4 +90,5 @@ func main() {
 	if err != nil {
 		return
 	}
+	db.DatabaseConn.Exec(context.Background(), "truncate table sessions")
 }

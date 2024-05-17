@@ -3,7 +3,7 @@ import "./chatHistory.scss"
 import {Message} from "./message";
 import {CurrentChatContext} from "../dashboard/dashboard";
 import {ChatInfo} from "./chatinfo";
-export function ChatHistory() {
+export function ChatHistory(props) {
     const history = useContext(CurrentChatContext)
     const refs = useRef(null)
     useEffect(() => {
@@ -11,7 +11,7 @@ export function ChatHistory() {
     }, [history]);
     return (
         <div className="ChatWindow">
-            <ChatInfo></ChatInfo>
+            <ChatInfo handler={props.handler}></ChatInfo>
             <div className="ChatHistory">
                 {history.Content.map(msg => <Message message={msg}/>)}
                 <div ref={refs} style={{clear:"both"}}/>

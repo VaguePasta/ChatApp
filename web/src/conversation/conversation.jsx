@@ -1,8 +1,10 @@
 import "./conversation.scss"
 import {createRef} from "react";
-import {RequestChat} from "../api/api";
-import {channelsMap} from "./conversationlist";
+import {channelsMap, RequestChat} from "../api/api";
 export let CurrentChannel = 0;
+export function SetChannel(channel) {
+    CurrentChannel = channel
+}
 export function Conversation(props) {
     let thisButton = createRef()
     function ChooseChannel() {

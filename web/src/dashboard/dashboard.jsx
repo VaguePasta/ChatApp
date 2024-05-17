@@ -1,8 +1,8 @@
 import ChatBox from "../chat/chatbox";
 import {ChatHistory} from "../chat/chatHistory";
-import {Decompress, RequestChannelList, SaveMessage, socket, token} from "../api/api";
+import {channels, channelsMap, Decompress, RequestChannelList, SaveMessage, socket, token} from "../api/api";
 import {Navigate} from "react-router-dom";
-import {channels, channelsMap, ConversationList} from "../conversation/conversationlist";
+import {ConversationList} from "../conversation/conversationlist";
 import "./dashboard.scss"
 import {createContext, useEffect, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
@@ -13,8 +13,9 @@ export function Dashboard() {
         socket.onmessage = data => {
             let message = JSON.parse(Decompress(data.data))
             if (channelsMap[message.Channel] === undefined) {
-                RequestChannelList()
-                handler()
+                RequestChannelList().then(
+                    () => handler()
+                )
             }
             SaveMessage(message)
             if (message.Channel === CurrentChannel) {
@@ -41,7 +42,7 @@ export function Dashboard() {
             <CurrentChatContext.Provider value = {channelHistory}>
                 <div className="Chat">
                     <ConversationList handler={handler}/>
-                    <ChatHistory/>
+                    <ChatHistory handler={handler}/>
                 </div>
                 <ChatBox/>
             </CurrentChatContext.Provider>
