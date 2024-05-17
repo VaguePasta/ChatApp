@@ -1,23 +1,20 @@
 package system
 
 import (
-	"ChatApp/internal/chat"
+	"ChatApp/internal/db"
 	"ChatApp/internal/websocket"
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"github.com/gorilla/mux"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
 func LogIn(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", websocket.ClientOrigin)
 	err := r.ParseForm()
 	if err != nil {
 		return
 	}
-	credentials := CheckCredentials(r.Form["username"][0], r.Form["password"][0])
+	credentials := db.CheckCredentials(r.Form["username"][0], r.Form["password"][0])
 	if credentials == "" {
 		w.WriteHeader(401)
 	} else {
@@ -29,42 +26,13 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-func CheckCredentials(username string, password string) string {
-	var userid, _username, _password string
-	err := chat.DatabaseConn.QueryRow(context.Background(), "select user_id, username, password from users where username=$1", username).Scan(&userid, &_username, &_password)
-	if err != nil {
-		return ""
-	}
-	err = bcrypt.CompareHashAndPassword([]byte(_password), []byte(password))
-	if err != nil {
-		return ""
-	}
-	b := make([]byte, 8)
-	if _, err := rand.Read(b); err != nil {
-		return ""
-	}
-	token := hex.EncodeToString(b)
-	_, err = chat.DatabaseConn.Exec(context.Background(), "insert into sessions (user_id, session_key) VALUES ($1,$2)", userid, token)
-	if err != nil {
-		return ""
-	}
-	return userid + "/" + token
-}
-func CheckToken(token string) int {
-	var userid int
-	err := chat.DatabaseConn.QueryRow(context.Background(), "select user_id from sessions where session_key=$1", token).Scan(&userid)
-	if err != nil {
-		return -1
-	}
-	return userid
-}
 func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	token := mux.Vars(r)["token"]
-	userid := CheckToken(token)
+	userid := db.CheckToken(token)
 	if userid == -1 {
 		return
 	}
-	_, err := chat.DatabaseConn.Exec(context.Background(), "update users set is_active = true where user_id = $1", userid)
+	_, err := db.DatabaseConn.Exec(context.Background(), "update users set is_active = true where user_id = $1", userid)
 	if err != nil {
 		return
 	}

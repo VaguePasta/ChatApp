@@ -1,4 +1,4 @@
-import {CreateChannel, makeRequest, server, token} from "../api/api";
+import {SearchUser} from "../api/api";
 import {Conversation} from "./conversation";
 import "./conversationlist.scss"
 import {useContext, useEffect, useRef, useState} from "react";
@@ -6,45 +6,51 @@ import Popup from "reactjs-popup";
 import {CurrentChatContext} from "../dashboard/dashboard";
 export let channelsMap = new Map()
 export let channels = []
-export async function RequestChannelList() {
-    let conn = new XMLHttpRequest()
-    conn.open("GET","http" + server + "channel/read/" + token,true)
-    channelsMap[0] = []
-    let result = await makeRequest(conn,null)
-    if (result.Response !== 'null') {
-        channels = JSON.parse(result.Response)
-        channels.forEach((element) => {
-            channelsMap[element.ChannelID] = []
-        })
-    }
-}
 export function ConversationList(props) {
     const list = useContext(CurrentChatContext)
     const ref = useRef()
     const [channelList, updateList] = useState(channels)
+    const [userList, changeUserList] = useState([])
     async function keyDownHandler(e) {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && e.target.value !== "") {
             e.preventDefault()
             e.stopPropagation()
-            if (await CreateChannel(e.target.value)) {
-                await RequestChannelList()
-                updateList(channels)
+            if (await SearchUser(e.target.value)) {
+                if (userList.findIndex((user) => {
+                    return e.target.value === user
+                }) === -1) {
+                    changeUserList([...userList, e.target.value])
+                    e.target.value = ''
+                }
             }
-            e.target.value = ''
-            ref.current.close()
         }
+    }
+    function CreateClick() {
+        console.log(userList)
+    }
+    function RemoveUser(e,user) {
+        changeUserList(userList.filter((_user) => _user !== user))
     }
     useEffect(() => {
         updateList(channels)
     }, [list]);
     return (
         <div className="ConversationList">
-            <Popup position="right center" trigger={<button style={{borderStyle:"solid", height:"5%",width:"100%"}}>New Chat</button>} ref={ref}>
-                <div>
-                    <label style={{fontSize:14, marginLeft:5, marginTop:20,marginBottom:10}} onKeyDown={keyDownHandler}>
-                        Enter user(s): <input/>
-                    </label>
-                </div>
+            <Popup position="right center"
+            trigger={<button style={{borderStyle: "solid", height: "5%", width: "100%"}}>New Chat</button>}
+            ref={ref}
+            onClose={() => changeUserList([])}
+            modal nested>
+                <input className="input" onKeyDown={keyDownHandler}/>
+                    <div style={{overflow:"scroll", overflowX:"hidden",display:"block", width:"100%", height:"90%"}}>
+                        {userList.map(user =>
+                            <div key={user} style={{alignContent:"center",maxHeight:"10%", borderWidth: "1px", margin:"2px", borderStyle:"solid", display:"inline-block", background:"lightgray", padding:"3px 1px 3px 3px"}}>
+                                {user}
+                                <button onClick={(e) => RemoveUser(e,user)} className="remove-button">X</button>
+                            </div>
+                        )}
+                    </div>
+                <button onClick={CreateClick}>Create Channel</button>
             </Popup>
             {channelList.map(channel => <Conversation handler={props.handler} ChannelID={channel.ChannelID} Title={channel.Title}/>)}
         </div>

@@ -1,12 +1,13 @@
 package main
 
 import (
-	"ChatApp/internal/chat"
+	"ChatApp/internal/db"
 	"ChatApp/internal/system"
 	"ChatApp/internal/websocket"
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sony/sonyflake"
@@ -16,7 +17,7 @@ import (
 )
 
 func databaseConnect() bool {
-	DatabaseCredentials, err := os.Open("credentials.txt")
+	DatabaseCredentials, err := os.Open("DBcredentials.txt")
 	if err != nil {
 		fmt.Println("No credentials found.")
 		return false
@@ -27,34 +28,46 @@ func databaseConnect() bool {
 		*info = append(*info, scanner.Text())
 	}
 	DatabaseURL := "postgresql://" + (*info)[0] + ":" + (*info)[1] + "@" + (*info)[2] + ":" + (*info)[3] + "/" + (*info)[4]
-	chat.DatabaseConn, err = pgxpool.New(context.Background(), DatabaseURL)
+	db.DatabaseConn, err = pgxpool.New(context.Background(), DatabaseURL)
 	if err != nil {
-		fmt.Println("Cannot connect to database.")
+		fmt.Println("Cannot connect to db.")
 		return false
 	}
 	return true
 }
+func GetClientOrigin() bool {
+	client, err := os.Open("CLorigin.txt")
+	if err != nil {
+		fmt.Println("No client origin found.")
+		return false
+	}
+	scanner := bufio.NewScanner(client)
+	scanner.Scan()
+	websocket.ClientOrigin = scanner.Text()
+	return true
+}
 func setupRoutes() *mux.Router {
-	chat.Setting = sonyflake.Settings{
+	db.Setting = sonyflake.Settings{
 		StartTime:      time.Now(),
 		MachineID:      nil,
 		CheckMachineID: nil,
 	}
-	IdGenerator, err := sonyflake.New(chat.Setting)
+	IdGenerator, err := sonyflake.New(db.Setting)
 	if err != nil {
 		return nil
 	}
-	chat.IdGenerator = IdGenerator
+	db.IdGenerator = IdGenerator
 	pool := websocket.NewPool()
 	router := mux.NewRouter()
 	router.HandleFunc("/auth/login", system.LogIn)
 	router.HandleFunc("/auth/register", system.Register)
-	router.HandleFunc("/channel/read/{token}", chat.GetChatData)
-	router.HandleFunc("/message/{token}/{channelID}", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/channel/read", system.GetChatData)
+	router.HandleFunc("/message/{channelID}", func(w http.ResponseWriter, r *http.Request) {
 		websocket.GetChannelMessages(pool, w, r)
 	})
-	router.HandleFunc("/channel/create", chat.CreateChannel)
-	router.HandleFunc("/channel/delete", chat.DeleteChannel)
+	router.HandleFunc("/channel/create", system.CreateChannel)
+	router.HandleFunc("/channel/delete", system.DeleteChannel)
+	router.HandleFunc("/user/{username}", system.SearchUser)
 	router.HandleFunc("/ws/{token}", func(w http.ResponseWriter, r *http.Request) {
 		system.ServeWs(pool, w, r)
 	})
@@ -64,9 +77,17 @@ func main() {
 	if !databaseConnect() {
 		return
 	}
-	defer chat.DatabaseConn.Close()
+	if !GetClientOrigin() {
+		return
+	}
+	fmt.Println(websocket.ClientOrigin)
+	defer db.DatabaseConn.Close()
 	router := setupRoutes()
-	err := http.ListenAndServe(":8080", router)
+	err := http.ListenAndServe(":8080", handlers.CORS(
+		handlers.AllowedHeaders([]string{"Accept", "‘Access-Control-Allow-Credentials’", "Authorization", "Accept-Language", "Content-Type", "Content-Language", "Origin"}),
+		handlers.AllowedOrigins([]string{websocket.ClientOrigin}),
+		handlers.AllowCredentials(),
+	)(router))
 	if err != nil {
 		return
 	}

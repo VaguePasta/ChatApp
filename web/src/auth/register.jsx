@@ -24,18 +24,29 @@ export function RegisterPrompt() {
     async function SecondPasswordHandler(e) {
         if (e.key === 'Enter' && Username.current.value !=='' && SecondPassword.current.value !== '' && FirstPassword.current.value !== '') {
             if (!passwordMismatch) {
-                reg(await Register(Username.current.value, FirstPassword.current.value))
+                await Register(Username.current.value, FirstPassword.current.value).then(
+                    (result) => {
+                        reg(result)
+                        if (result) {
+                            setTimeout(() => login("/login"), 1000)
+                        }
+                    }
+                )
                 sub(true)
-                setTimeout(()=> login("/login"),1000)
             }
         }
     }
-
     async function RegisterClick() {
         if (Username.current.value !=='' && FirstPassword.current.value!=='' &&SecondPassword.current.value !== '' && !passwordMismatch) {
-            reg(await Register(Username.current.value, FirstPassword.current.value))
+            await Register(Username.current.value, FirstPassword.current.value).then(
+                (result) => {
+                    reg(result)
+                    if (result) {
+                        setTimeout(() => login("/login"), 1000)
+                    }
+                }
+            )
             sub(true)
-            setTimeout(()=> login("/login"),1000)
         }
     }
 

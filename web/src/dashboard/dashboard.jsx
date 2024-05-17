@@ -1,8 +1,8 @@
 import ChatBox from "../chat/chatbox";
 import {ChatHistory} from "../chat/chatHistory";
-import {Decompress, SaveMessage, socket, token} from "../api/api";
+import {Decompress, RequestChannelList, SaveMessage, socket, token} from "../api/api";
 import {Navigate} from "react-router-dom";
-import {channels, channelsMap, ConversationList, RequestChannelList} from "../conversation/conversationlist";
+import {channels, channelsMap, ConversationList} from "../conversation/conversationlist";
 import "./dashboard.scss"
 import {createContext, useEffect, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
