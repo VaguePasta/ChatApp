@@ -42,8 +42,9 @@ func GetClientOrigin() bool {
 		return false
 	}
 	scanner := bufio.NewScanner(client)
-	scanner.Scan()
-	websocket.ClientOrigin = scanner.Text()
+	for scanner.Scan() {
+		websocket.ClientOrigin = append(websocket.ClientOrigin, scanner.Text())
+	}
 	return true
 }
 func setupRoutes() *mux.Router {
@@ -84,7 +85,7 @@ func main() {
 	router := setupRoutes()
 	err := http.ListenAndServe(":8080", handlers.CORS(
 		handlers.AllowedHeaders([]string{"Accept", "‘Access-Control-Allow-Credentials’", "Authorization", "Accept-Language", "Content-Type", "Content-Language", "Origin"}),
-		handlers.AllowedOrigins([]string{websocket.ClientOrigin}),
+		handlers.AllowedOrigins(websocket.ClientOrigin),
 		handlers.AllowCredentials(),
 	)(router))
 	if err != nil {

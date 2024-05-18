@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"net/http"
@@ -23,10 +24,11 @@ type Result struct {
 	Content string `json:"content"`
 }
 
-var ClientOrigin string
+var ClientOrigin []string
 
 func (client *Client) Read() {
 	defer func() {
+		fmt.Println("Unregister")
 		client.Unregister(client.Pool)
 		err := client.Conn.Close()
 		_, err = db.DatabaseConn.Exec(context.Background(), "delete from sessions where session_key = $1", client.Token)
@@ -57,7 +59,8 @@ func (client *Client) Read() {
 	}
 }
 func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", ClientOrigin)
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	token := r.Header.Get("Authorization")
 	if db.CheckToken(token) == -1 {
@@ -92,6 +95,7 @@ func SendTo(message *Message, client *Client, isGet bool) {
 	}
 	err := client.Conn.WriteMessage(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString(ToJSON(*message, isGet))))
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 }

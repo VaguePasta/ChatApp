@@ -2,7 +2,6 @@ package system
 
 import (
 	"ChatApp/internal/db"
-	"ChatApp/internal/websocket"
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5"
@@ -11,7 +10,8 @@ import (
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", websocket.ClientOrigin)
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	err := r.ParseForm()
 	if err != nil {
 		return

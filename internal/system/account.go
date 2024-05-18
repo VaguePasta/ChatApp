@@ -2,7 +2,6 @@ package system
 
 import (
 	"ChatApp/internal/db"
-	"ChatApp/internal/websocket"
 	"context"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -15,7 +14,8 @@ type Account struct {
 }
 
 func SearchUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", websocket.ClientOrigin)
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	if db.CheckToken(r.Header.Get("Authorization")) == -1 {
 		w.WriteHeader(401)

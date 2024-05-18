@@ -11,17 +11,27 @@ export function Dashboard() {
     const [channelHistory,update] = useState({Current: 0, Channels: [], Content: []})
     useEffect(() => {
         socket.onmessage = data => {
+            console.log("Received")
             let message = JSON.parse(Decompress(data.data))
             if (channelsMap[message.Channel] === undefined) {
                 RequestChannelList().then(
-                    () => handler()
+                    () => {
+                        handler()
+                        SaveMessage(message)
+                        if (message.Channel === CurrentChannel) {
+                            handler()
+                        }
+                        if (message.Type === false) updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel))
+                    }
                 )
             }
-            SaveMessage(message)
-            if (message.Channel === CurrentChannel) {
-                handler()
+            else {
+                SaveMessage(message)
+                if (message.Channel === CurrentChannel) {
+                    handler()
+                }
+                if (message.Type === false) updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel))
             }
-            if (message.Type === false) updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel))
         }
     })
     function updateList(index) {

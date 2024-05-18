@@ -2,7 +2,7 @@ import {username} from "../auth/login";
 const pako= require('pako');
 export let token = "0";
 export let socket;
-export let server = "://localhost:8080/"
+export let server = "://192.168.1.102:8080/"
 export let userid;
 export let channelsMap = new Map()
 export let channels = []
@@ -35,11 +35,13 @@ export async function LogIn(_username, _password) {
      log.open("POST","http" + server + "auth/login",true);
      log.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
      await makeRequest(log, 'username=' + _username + '&password=' + _password).then(
-         (_result) => {
+          (_result) => {
               let response = _result.Response.split("/")
               userid = parseInt(response[0])
               token = response[1]
               socket = new WebSocket("ws" + server + "ws/" + token)
+               socket.onopen = () => console.log("Connected")
+               socket.onclose = () => console.log("Disconnected")
          },
          () => {
               token = "0"

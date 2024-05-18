@@ -2,7 +2,6 @@ package system
 
 import (
 	"ChatApp/internal/db"
-	"ChatApp/internal/websocket"
 	"context"
 	"encoding/json"
 	"io"
@@ -15,7 +14,8 @@ type Channel struct {
 }
 
 func GetChatData(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", websocket.ClientOrigin)
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	token := r.Header.Get("Authorization")
 	if db.CheckToken(token) == -1 {
@@ -47,7 +47,8 @@ func GetChatData(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func CreateChannel(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", websocket.ClientOrigin)
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	err := r.ParseForm()
 	if err != nil {
@@ -91,7 +92,8 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(201)
 }
 func DeleteChannel(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", websocket.ClientOrigin)
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	err := r.ParseForm()
 	if err != nil {

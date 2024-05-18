@@ -4,12 +4,14 @@ import (
 	"ChatApp/internal/db"
 	"ChatApp/internal/websocket"
 	"context"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 func LogIn(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", websocket.ClientOrigin)
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	err := r.ParseForm()
 	if err != nil {
 		return
@@ -36,8 +38,10 @@ func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	conn, err := websocket.Upgrade(w, r)
+	websocket.Upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+	conn, err := websocket.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	client := &websocket.Client{
@@ -46,6 +50,7 @@ func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 		Conn:  conn,
 		Pool:  pool,
 	}
+	fmt.Println("No error")
 	client.Register(pool)
 	client.Read()
 }
