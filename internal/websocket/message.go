@@ -11,17 +11,19 @@ import (
 )
 
 type Message struct {
-	ID        uint64
-	ChannelID int
-	SenderID  int
-	Content   string
+	ID         uint64
+	ChannelID  int
+	SenderID   int
+	SenderName string
+	Content    string
 }
 type SendMessage struct {
-	Type      bool
-	TimeStamp string
-	Text      string
-	Sender    int
-	Channel   int
+	Type       bool
+	TimeStamp  string
+	Text       string
+	SenderID   int
+	SenderName string
+	Channel    int
 }
 
 func Compress(src []byte) []byte {
@@ -39,11 +41,12 @@ func Compress(src []byte) []byte {
 }
 func ToJSON(message Message, isGet bool) []byte {
 	jsonified, _ := json.Marshal(SendMessage{
-		Type:      isGet,
-		Sender:    message.SenderID,
-		Channel:   message.ChannelID,
-		TimeStamp: db.Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
-		Text:      message.Content,
+		Type:       isGet,
+		SenderID:   message.SenderID,
+		SenderName: message.SenderName,
+		Channel:    message.ChannelID,
+		TimeStamp:  db.Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
+		Text:       message.Content,
 	})
 	return Compress(jsonified)
 }
@@ -52,7 +55,7 @@ func SendToChannel(client *Client, textMessage *Message) {
 	args := pgx.NamedArgs{
 		"messageID": textMessage.ID,
 		"channelID": textMessage.ChannelID,
-		"senderID":  client.ID,
+		"senderID":  textMessage.SenderID,
 		"content":   textMessage.Content,
 	}
 	_, err := db.DatabaseConn.Exec(context.Background(), query, args)

@@ -4,7 +4,6 @@ import (
 	"ChatApp/internal/db"
 	"ChatApp/internal/websocket"
 	"context"
-	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -34,23 +33,22 @@ func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	if userid == -1 {
 		return
 	}
-	_, err := db.DatabaseConn.Exec(context.Background(), "update users set is_active = true where user_id = $1", userid)
+	var username string
+	err := db.DatabaseConn.QueryRow(context.Background(), "update users set is_active = true where user_id = $1 returning username", userid).Scan(&username)
 	if err != nil {
 		return
 	}
-	websocket.Upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := websocket.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	client := &websocket.Client{
 		ID:    userid,
+		Name:  username,
 		Token: token,
 		Conn:  conn,
 		Pool:  pool,
 	}
-	fmt.Println("No error")
 	client.Register(pool)
 	client.Read()
 }

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 
 type Client struct {
 	ID    int
+	Name  string
 	Token string
 	Conn  *websocket.Conn
 	Pool  *Pool
@@ -28,7 +28,6 @@ var ClientOrigin []string
 
 func (client *Client) Read() {
 	defer func() {
-		fmt.Println("Unregister")
 		client.Unregister(client.Pool)
 		err := client.Conn.Close()
 		_, err = db.DatabaseConn.Exec(context.Background(), "delete from sessions where session_key = $1", client.Token)
@@ -50,10 +49,11 @@ func (client *Client) Read() {
 		}
 		ID, _ := db.IdGenerator.NextID()
 		textMessage := Message{
-			ID:        ID,
-			ChannelID: message.Channel,
-			Content:   message.Content,
-			SenderID:  client.ID,
+			ID:         ID,
+			ChannelID:  message.Channel,
+			Content:    message.Content,
+			SenderName: client.Name,
+			SenderID:   client.ID,
 		}
 		SendToChannel(client, &textMessage)
 	}
@@ -74,16 +74,22 @@ func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
 		var messageID uint64
 		var channelID int
 		var senderID int
+		var senderName string
 		var message string
 		err := rows.Scan(&messageID, &channelID, &senderID, &message)
 		if err != nil {
-			return
+			continue
+		}
+		err = db.DatabaseConn.QueryRow(context.Background(), "select username from users where user_id = $1", senderID).Scan(&senderName)
+		if err != nil {
+			continue
 		}
 		SendTo(&Message{
-			ID:        messageID,
-			ChannelID: channelID,
-			SenderID:  senderID,
-			Content:   message,
+			ID:         messageID,
+			ChannelID:  channelID,
+			SenderName: senderName,
+			SenderID:   senderID,
+			Content:    message,
 		}, client, true)
 	}
 	rows.Close()
@@ -95,7 +101,6 @@ func SendTo(message *Message, client *Client, isGet bool) {
 	}
 	err := client.Conn.WriteMessage(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString(ToJSON(*message, isGet))))
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 }

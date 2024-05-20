@@ -1,15 +1,15 @@
 .Message {
-  display: block;
-  position: relative;
   max-width:55%;
   word-wrap:break-word;
-  color: white;
-  margin: 4px 2% 4px 0;
+  margin: 5px 10px;
   padding: 5px 7px 5px 7px;
   border-radius: 5px;
-  clear: both;
   border-color: grey;
   left: 1%;
   right: 1%;
   white-space:pre-wrap;
+  font-size: 17px;
+  display: block;
+  align-content: center;
+  clear: both;
 }

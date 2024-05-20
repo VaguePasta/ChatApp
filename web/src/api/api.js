@@ -40,8 +40,6 @@ export async function LogIn(_username, _password) {
               userid = parseInt(response[0])
               token = response[1]
               socket = new WebSocket("ws" + server + "ws/" + token)
-               socket.onopen = () => console.log("Connected")
-               socket.onclose = () => console.log("Disconnected")
          },
          () => {
               token = "0"
