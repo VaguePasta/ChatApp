@@ -15,6 +15,8 @@ export function Conversation(props) {
         props.handler()
     }
     return (
-            <button className="Conversation" onClick={ChooseChannel} ref={thisButton}>{props.Title}</button>
+        CurrentChannel === props.ChannelID ?
+            <button className="ActiveConversation" onClick={ChooseChannel} ref={thisButton}>{props.Title}</button>
+            : <button className="Conversation" onClick={ChooseChannel} ref={thisButton}>{props.Title}</button>
     )
 }

@@ -1,4 +1,3 @@
-import ChatBox from "../chat/chatbox";
 import {ChatHistory} from "../chat/chatHistory";
 import {channels, channelsMap, Decompress, RequestChannelList, SaveMessage, socket, token} from "../api/api";
 import {Navigate} from "react-router-dom";
@@ -53,7 +52,6 @@ export function Dashboard() {
                     <ConversationList handler={handler}/>
                     <ChatHistory handler={handler}/>
                 </div>
-                <ChatBox/>
             </CurrentChatContext.Provider>
         </div>
     )

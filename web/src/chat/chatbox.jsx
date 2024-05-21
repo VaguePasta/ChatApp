@@ -21,8 +21,8 @@ export function ChatBox() {
         }
     }
     return (
-        <div>
-            <textarea ref={chatBoxRef} className = "ChatBox" onKeyDown={keyDownHandler}/>
+        <div style={{background:"white", height:"max-content", width:"100%", display:"flex", alignItems:"center"}}>
+            <textarea ref={chatBoxRef} className="ChatBox" onKeyDown={keyDownHandler}/>
             <button className="SendButton" onClick={sendHandler}/>
         </div>
     )

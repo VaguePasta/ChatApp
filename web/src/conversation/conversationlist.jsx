@@ -1,6 +1,7 @@
 import {channels, CreateChannel, RequestChannelList, SearchUser} from "../api/api";
 import {Conversation} from "./conversation";
 import "./conversationlist.scss"
+import "./conversation.scss"
 import {useContext, useEffect, useRef, useState} from "react";
 import Popup from "reactjs-popup";
 import {CurrentChatContext} from "../dashboard/dashboard";
@@ -42,7 +43,7 @@ export function ConversationList(props) {
     return (
         <div className="ConversationList">
             <Popup position="right center" className="modal-popup"
-            trigger={<button style={{borderStyle: "solid", height: "5%", width: "100%"}}>New Chat</button>}
+            trigger={<button className="Conversation" style={{top:"0", height:"5%", borderWidth:"1px 0", borderStyle:"solid", position:"sticky"}}>New Chat</button>}
             ref={ref}
             onClose={() => changeUserList([])}
             modal nested>

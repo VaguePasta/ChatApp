@@ -32,11 +32,15 @@ export function ChatInfo(props) {
             }
         )
     }
+    async function GetChatMember() {
+        ref.current.close()
+    }
     return (
         <div className="ChatInfo">
             {channelName}
             <Popup ref={ref} trigger={<button style={{display:"inline-block", float:"right", marginRight:"3%"}}>X</button>}>
                 <div>
+                    <button onClick={GetChatMember}>Chat member(s)...</button>
                     <button onClick={DeleteChannelClick} style={{display:"block"}}>Delete Channel</button>
                 </div>
             </Popup>

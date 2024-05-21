@@ -1,5 +1,12 @@
 .ConversationList {
     width:10%;
+    overflow: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.ConversationList::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 @keyframes popup-open {
     0% {
