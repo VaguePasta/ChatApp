@@ -19,6 +19,7 @@ type Message struct {
 }
 type SendMessage struct {
 	Type       bool
+	ID         uint64
 	TimeStamp  string
 	Text       string
 	SenderID   int
@@ -42,6 +43,7 @@ func Compress(src []byte) []byte {
 func ToJSON(message Message, isGet bool) []byte {
 	jsonified, _ := json.Marshal(SendMessage{
 		Type:       isGet,
+		ID:         message.ID,
 		SenderID:   message.SenderID,
 		SenderName: message.SenderName,
 		Channel:    message.ChannelID,

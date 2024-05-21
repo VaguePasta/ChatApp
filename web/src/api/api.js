@@ -64,7 +64,12 @@ export let send = msg => {
      socket.send(msg);
 };
 export function SaveMessage(message) {
-     channelsMap[message.Channel].push(message)
+     if (message.Type === true) {
+          channelsMap[message.Channel].unshift(message)
+     }
+     else {
+          channelsMap[message.Channel].push(message)
+     }
 }
 export function Decompress(data) {
      let binaryString = atob(data)
@@ -94,7 +99,11 @@ export async function RequestChannelList() {
 }
 export function RequestChat(CurrentChannel) {
      let log = new XMLHttpRequest()
-     log.open("GET", "http" + server + "message/" + CurrentChannel, true)
+     let lastMessage = "0"
+     if (channelsMap[CurrentChannel].length !== 0) {
+          lastMessage = channelsMap[CurrentChannel][0].ID
+     }
+     log.open("GET", "http" + server + "message/" + CurrentChannel + "/" + lastMessage, true)
      log.withCredentials = true;
      log.setRequestHeader('Authorization', token)
      log.send()

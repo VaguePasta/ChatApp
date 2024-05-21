@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"strconv"
 	"sync"
 )
 
@@ -68,8 +69,12 @@ func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	channel := mux.Vars(r)["channelID"]
+	lastMessage, _ := strconv.ParseInt(mux.Vars(r)["lastMessage"], 10, 64)
+	if lastMessage == 0 {
+		lastMessage = 9223372036854775807
+	}
 	client := pool.Clients[token]
-	rows, _ := db.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message from messages where channel_id = $1 order by message_id asc", channel)
+	rows, _ := db.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message from messages where channel_id = $1 and message_id < $2 order by message_id desc limit 12", channel, lastMessage)
 	for rows.Next() {
 		var messageID uint64
 		var channelID int
