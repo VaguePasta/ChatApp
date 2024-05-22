@@ -4,6 +4,7 @@ import (
 	"ChatApp/internal/db"
 	"context"
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"io"
 	"net/http"
 )
@@ -131,4 +132,34 @@ func DeleteChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(200)
+}
+func GetChannelMember(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	if db.CheckToken(r.Header.Get("Authorization")) == -1 {
+		w.WriteHeader(401)
+		return
+	}
+	var members [][2]string
+	channel := mux.Vars(r)["channelID"]
+	rows, _ := db.DatabaseConn.Query(context.Background(), "select username, privilege from participants inner join users on participants.user_id = users.user_id where channel_id = $1 order by privilege, username", channel)
+	for rows.Next() {
+		var user [2]string
+		err := rows.Scan(&user[0], &user[1])
+		if err != nil {
+			continue
+		}
+		members = append(members, user)
+	}
+	memberList, err := json.Marshal(members)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	_, err = w.Write(memberList)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
 }

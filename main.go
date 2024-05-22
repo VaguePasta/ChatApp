@@ -49,7 +49,7 @@ func GetClientOrigin() bool {
 }
 func setupRoutes() *mux.Router {
 	db.Setting = sonyflake.Settings{
-		StartTime:      time.Now(),
+		StartTime:      time.Date(2024, time.May, 22, 0, 0, 0, 0, time.UTC).Local(),
 		MachineID:      nil,
 		CheckMachineID: nil,
 	}
@@ -68,6 +68,7 @@ func setupRoutes() *mux.Router {
 	})
 	router.HandleFunc("/channel/create", system.CreateChannel)
 	router.HandleFunc("/channel/delete", system.DeleteChannel)
+	router.HandleFunc("/channel/member/{channelID}", system.GetChannelMember)
 	router.HandleFunc("/user/{username}", system.SearchUser)
 	router.HandleFunc("/ws/{token}", func(w http.ResponseWriter, r *http.Request) {
 		system.ServeWs(pool, w, r)

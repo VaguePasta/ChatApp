@@ -17,3 +17,30 @@
   align-content: flex-start;
   flex: 0 1 auto;
 }
+.tooltip-popup-content {
+  position: absolute;
+  right: 0;
+  width: fit-content;
+  border-style: solid;
+  border-width: 2px;
+  background-color: white;
+  float: right;
+  max-width: fit-content;
+  max-height: 75%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+}
+.tooltip-popup-arrow {
+  color: black;
+}
+[role='tooltip'].tooltip-popup-content {
+  width: 200px;
+}
+
+.tooltip-popup-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+[data-popup='tooltip'].tooltip-popup-overlay {
+  background: transparent;
+}

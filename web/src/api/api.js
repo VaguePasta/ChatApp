@@ -108,6 +108,20 @@ export function RequestChat(CurrentChannel) {
      log.setRequestHeader('Authorization', token)
      log.send()
 }
+export async function RequestChatMember(CurrentChannel) {
+     let log = new XMLHttpRequest()
+     log.open("GET", "http" + server + "channel/member/" + CurrentChannel, true)
+     log.withCredentials = true;
+     log.setRequestHeader('Authorization', token)
+     return await makeRequest(log, null).then(
+         (result) => {
+              return JSON.parse(result.Response)
+         },
+         () => {
+              return []
+         }
+     )
+}
 export async function CreateChannel(users) {
      users.unshift(username)
      let log = new XMLHttpRequest()
