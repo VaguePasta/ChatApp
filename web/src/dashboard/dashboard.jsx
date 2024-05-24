@@ -1,7 +1,7 @@
 import {ChatHistory} from "../chat/chatHistory";
 import {channels, channelsMap, Decompress, RequestChannelList, SaveMessage, socket, token} from "../api/api";
 import {Navigate} from "react-router-dom";
-import {ConversationList} from "../conversation/conversationlist";
+import {User} from "./user"
 import "./dashboard.scss"
 import {createContext, useEffect, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
@@ -53,7 +53,7 @@ export function Dashboard() {
         <div>
             <CurrentChatContext.Provider value = {channelHistory}>
                 <div className="Chat">
-                    <ConversationList handler={handler}/>
+                    <User handler={handler}/>
                     <ChatHistory handler={handler}/>
                 </div>
             </CurrentChatContext.Provider>

@@ -73,6 +73,7 @@ func SendToChannel(client *Client, textMessage *Message) {
 		if err != nil {
 			continue
 		}
-		SendTo(textMessage, client.Pool.Clients[token], false)
+		_client, _ := client.Pool.Clients.Get(token)
+		SendTo(textMessage, _client, false)
 	}
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http"
 	"strconv"
-	"sync"
 )
 
 type Client struct {
@@ -18,7 +17,6 @@ type Client struct {
 	Token string
 	Conn  *websocket.Conn
 	Pool  *Pool
-	Mutex sync.Mutex
 }
 type Result struct {
 	Channel int    `json:"channel"`
@@ -73,7 +71,7 @@ func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	if lastMessage == 0 {
 		lastMessage = 9223372036854775807
 	}
-	client := pool.Clients[token]
+	client, _ := pool.Clients.Get(token)
 	rows, _ := db.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message from messages where channel_id = $1 and message_id < $2 order by message_id desc limit 12", channel, lastMessage)
 	for rows.Next() {
 		var messageID uint64

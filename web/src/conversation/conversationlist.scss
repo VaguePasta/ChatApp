@@ -1,8 +1,9 @@
 .ConversationList {
-    width:10%;
+    width:100%;
     overflow: scroll;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    flex: 1;
 }
 .ConversationList::-webkit-scrollbar {
     width: 0;

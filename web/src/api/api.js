@@ -1,4 +1,5 @@
 import {username} from "../auth/login";
+import {useNavigate} from "react-router-dom";
 const pako= require('pako');
 export let token = "0";
 export let socket;
@@ -118,7 +119,7 @@ export async function RequestChatMember(CurrentChannel) {
               return JSON.parse(result.Response)
          },
          () => {
-              return []
+              return null
          }
      )
 }
@@ -158,4 +159,8 @@ export async function SearchUser(_username) {
                return false
          }
      )
+}
+export function LogOut() {
+     token = "0"
+     socket.close()
 }

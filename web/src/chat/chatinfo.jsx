@@ -38,9 +38,14 @@ export function ChatInfo(props) {
     }
     async function GetChatMember() {
         if (CurrentChannel !== channelUsers.CurrentList) {
+            let list = await RequestChatMember(CurrentChannel)
+            if (list === null) {
+                ref.current.close()
+                return
+            }
             updateUser({
                 CurrentList: CurrentChannel,
-                UserList: await RequestChatMember(CurrentChannel),
+                UserList: list,
             })
         }
     }
