@@ -20,3 +20,22 @@
 .User-Button:hover {
   background: darkgrey;
 }
+.error-popup-content {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: white;
+  border: 1px solid black;
+  animation: popup-open 0.5s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px;
+}
+.error-popup-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+[data-popup='tooltip'].modal-popup-overlay {
+  background: transparent;
+}

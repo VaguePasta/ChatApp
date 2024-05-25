@@ -1,5 +1,4 @@
 import {username} from "../auth/login";
-import {useNavigate} from "react-router-dom";
 const pako= require('pako');
 export let token = "0";
 export let socket;

@@ -1,12 +1,15 @@
 import {ChatHistory} from "../chat/chatHistory";
-import {channels, channelsMap, Decompress, RequestChannelList, SaveMessage, socket, token} from "../api/api";
-import {Navigate} from "react-router-dom";
+import {channels, channelsMap, Decompress, LogOut, RequestChannelList, SaveMessage, socket, token} from "../api/api";
+import {Navigate, useNavigate} from "react-router-dom";
 import {User} from "./user"
 import "./dashboard.scss"
-import {createContext, useEffect, useState} from "react";
+import {createContext, useEffect, useRef, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
+import Popup from "reactjs-popup";
 export const CurrentChatContext = createContext({Current:0, Channels: [], Content: [], LoadOldMessage: false})
 export function Dashboard() {
+    const ref = useRef()
+    let history = useNavigate()
     const [channelHistory,update] = useState({Current: 0, Channels: [], Content: [], LoadOldMessage: false})
     function onMessage(message) {
         SaveMessage(message)
@@ -34,9 +37,18 @@ export function Dashboard() {
                 onMessage(message)
             }
         }
+        socket.onerror = () => {
+            if (token !== "0") {
+                ref.current.open()
+            }
+        }
     })
     function updateList(index) {
         channels.unshift(channels.splice(index,1)[0])
+    }
+    function connectionLost() {
+        LogOut()
+        history("/login", {replace: true})
     }
     function handler(load) {
         update({
@@ -51,6 +63,10 @@ export function Dashboard() {
     }
     return (
         <div>
+            <Popup ref={ref} modal onClose={connectionLost} className="error-popup">
+                Connection to server lost. Please log in again.
+                <button style={{flex:"1", minWidth:"40%", margin:"5px"}} onClick={()=>ref.current.close()}>OK</button>
+            </Popup>
             <CurrentChatContext.Provider value = {channelHistory}>
                 <div className="Chat">
                     <User handler={handler}/>
