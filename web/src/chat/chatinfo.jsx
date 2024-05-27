@@ -52,13 +52,13 @@ export function ChatInfo(props) {
     return (
         <div className="ChatInfo">
             {channelName}
-            <Popup ref={ref} trigger={<button style={{display:"inline-block", float:"right", marginRight:"3%"}}>X</button>}>
+            <Popup position="bottom right" className="tooltip-popup" ref={ref} trigger={<button style={{aspectRatio:"1/1", marginLeft:"auto"}}>X</button>}>
                 <div>
                     <Popup className="tooltip-popup" onOpen={GetChatMember} trigger={<button>Chat member(s)...</button>} nested position="left top">
                         {channelUsers.UserList.map(user =>
                             <div style={{display:"flex", flexFlow:"column", borderStyle:"solid" ,borderWidth:"0 0 1px 0"}}>
                                 <div style={{whiteSpace:"nowrap", fontSize:"16px",margin:"0px 5px", padding:"2px 1px", maxWidth:"200px", overflow:"clip"}}>{user[0]}</div>
-                                <div style={{fontSize:"12px", margin:"0px 5px", padding:"2px 1px", color:"#248a92"}}>{user[1]}</div>
+                                <div style={{fontSize:"12px", margin:"0px 5px", padding:"2px 1px", color:"#248a92", textTransform:"capitalize"}}>{user[1]}</div>
                             </div>)}
                     </Popup>
                     <button onClick={DeleteChannelClick} style={{display:"block"}}>Delete Channel</button>

@@ -1,16 +1,14 @@
 .ChatHistory {
   overflow: scroll;
-  width: 100%;
   overflow-x: hidden;
   scroll-behavior: smooth;
-  flex: 1 1 auto;
+  flex: 1;
   position: relative;
   min-height: 0;
   min-width: 0;
   scrollbar-width: thin;
 }
 .ChatWindow {
-  width: 100%;
   border-style: solid;
   border-width: 0 0 0 2px;
   border-color: darkgray;
@@ -19,4 +17,5 @@
   overflow: hidden;
   display: flex;
   flex-flow: column;
+  flex: 1;
 }
