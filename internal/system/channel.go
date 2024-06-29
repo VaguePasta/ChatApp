@@ -163,3 +163,39 @@ func GetChannelMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+func ChangeChannelName(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	if db.CheckToken(r.Header.Get("Authorization")) == -1 {
+		w.WriteHeader(401)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	var arr []string
+	err = json.Unmarshal(body, &arr)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	var privilege string
+	err = db.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", arr[0], arr[1]).Scan(&privilege)
+	if err != nil {
+		w.WriteHeader(404)
+		return
+	}
+	if privilege != "admin" {
+		w.WriteHeader(401)
+		return
+	}
+	_, err = db.DatabaseConn.Exec(context.Background(), "update channels set title = $1 where channel_id = $2", arr[2], arr[1])
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	w.WriteHeader(200)
+}

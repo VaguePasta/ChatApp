@@ -2,7 +2,7 @@ import {username} from "../auth/login";
 const pako= require('pako');
 export let token = "0";
 export let socket;
-export let server = "://192.168.1.102:8080/"
+export let server = "://localhost:8080/"
 export let userid;
 export let channelsMap = new Map()
 export let channels = []
@@ -64,12 +64,11 @@ export let send = msg => {
      socket.send(msg);
 };
 export function SaveMessage(message) {
-     if (message.Type === true) {
-          channelsMap[message.Channel].unshift(message)
-     }
-     else {
+     let insertPos = channelsMap[message.Channel].findIndex((element) => element.ID > message.ID);
+     if (insertPos === -1) {
           channelsMap[message.Channel].push(message)
      }
+     else channelsMap[message.Channel].splice(insertPos, 0, message)
 }
 export function Decompress(data) {
      let binaryString = atob(data)
@@ -162,4 +161,18 @@ export async function SearchUser(_username) {
 export function LogOut() {
      token = "0"
      socket.close()
+}
+export async function ChangeChannelName(_channel, _name) {
+     let log = new XMLHttpRequest()
+     log.open("POST", "http" + server + "channel/rename", true)
+     log.withCredentials = true
+     log.setRequestHeader('Authorization', token)
+     return await makeRequest(log, JSON.stringify([String(userid), String(_channel), _name])).then(
+         () => {
+              return true
+         },
+         () => {
+              return false
+         }
+     )
 }

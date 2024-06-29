@@ -7,16 +7,13 @@
   font-size: 19px;
   border-style:solid;
   text-align: left;
-  text-align-all: center;
   border-width: 0 0 1px 0;
   font-family: "Radio Canada Big", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
   flex: 1;
-  justify-content: center;
   display: flex;
-  align-items: center;
 }
 .tooltip-popup-content {
   position: absolute;
@@ -30,7 +27,7 @@
   max-height: 75%;
   overflow-x: hidden;
   overflow-y: scroll;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 .tooltip-popup-arrow {
   color: black;
@@ -44,4 +41,16 @@
 }
 [data-popup='tooltip'].tooltip-popup-overlay {
   background: transparent;
+}
+.popup-button {
+  display: block;
+  width: 100%;
+  border-style: solid;
+  background: white;
+  border-color: black;
+  border-width: 0 0;
+}
+.popup-button:hover {
+  background: lightslategrey;
+  color:white;
 }

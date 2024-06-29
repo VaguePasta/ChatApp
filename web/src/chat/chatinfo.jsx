@@ -2,7 +2,13 @@ import {useContext, useEffect, useRef, useState} from "react";
 import "./chatinfo.scss"
 import {CurrentChannel, SetChannel} from "../conversation/conversation";
 import {CurrentChatContext} from "../dashboard/dashboard";
-import {channels, DeleteChannel, RequestChannelList, RequestChatMember} from "../api/api";
+import {
+    ChangeChannelName,
+    channels,
+    DeleteChannel,
+    RequestChannelList,
+    RequestChatMember,
+} from "../api/api";
 import Popup from "reactjs-popup";
 export function ChatInfo(props) {
     const currentChat = useContext(CurrentChatContext)
@@ -49,19 +55,36 @@ export function ChatInfo(props) {
             })
         }
     }
+
+    async function ChangeName(e) {
+        if (e.key === 'Enter' && e.target.value !== "") {
+            ref.current.close()
+            e.preventDefault()
+            e.stopPropagation()
+            if (await ChangeChannelName(CurrentChannel, e.target.value) === true) {
+                changeName(e.target.value)
+                await RequestChannelList()
+            }
+            props.handler()
+        }
+    }
+
     return (
         <div className="ChatInfo">
             {channelName}
-            <Popup position="bottom right" className="tooltip-popup" ref={ref} trigger={<button style={{aspectRatio:"1/1", marginLeft:"auto"}}>X</button>}>
+            <Popup position="bottom right" className="tooltip-popup" ref={ref} trigger={<button style={{height:"70%", aspectRatio:"1/1", marginLeft:"auto"}}>X</button>}>
                 <div>
-                    <Popup className="tooltip-popup" onOpen={GetChatMember} trigger={<button>Chat member(s)...</button>} nested position="left top">
+                    <Popup trigger={<button className="popup-button">Change Channel Name</button>}>
+                        <input onKeyDown={ChangeName}/>
+                    </Popup>
+                    <Popup className="tooltip-popup" onOpen={GetChatMember} trigger={<button style={{borderWidth:"1px 0"}} className="popup-button">Chat member(s)...</button>} nested position="left top">
                         {channelUsers.UserList.map(user =>
                             <div style={{display:"flex", flexFlow:"column", borderStyle:"solid" ,borderWidth:"0 0 1px 0"}}>
                                 <div style={{whiteSpace:"nowrap", fontSize:"16px",margin:"0px 5px", padding:"2px 1px", maxWidth:"200px", overflow:"clip"}}>{user[0]}</div>
                                 <div style={{fontSize:"12px", margin:"0px 5px", padding:"2px 1px", color:"#248a92", textTransform:"capitalize"}}>{user[1]}</div>
                             </div>)}
                     </Popup>
-                    <button onClick={DeleteChannelClick} style={{display:"block"}}>Delete Channel</button>
+                    <button onClick={DeleteChannelClick} className="popup-button">Delete Channel</button>
                 </div>
             </Popup>
         </div>

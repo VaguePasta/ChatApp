@@ -69,6 +69,7 @@ func setupRoutes() *mux.Router {
 	router.HandleFunc("/channel/create", system.CreateChannel)
 	router.HandleFunc("/channel/delete", system.DeleteChannel)
 	router.HandleFunc("/channel/member/{channelID}", system.GetChannelMember)
+	router.HandleFunc("/channel/rename", system.ChangeChannelName)
 	router.HandleFunc("/user/{username}", system.SearchUser)
 	router.HandleFunc("/ws/{token}", func(w http.ResponseWriter, r *http.Request) {
 		system.ServeWs(pool, w, r)
@@ -82,6 +83,7 @@ func main() {
 	if !GetClientOrigin() {
 		return
 	}
+	db.DatabaseConn.Exec(context.Background(), "truncate table sessions")
 	defer db.DatabaseConn.Close()
 	router := setupRoutes()
 	err := http.ListenAndServe(":8080", handlers.CORS(
@@ -92,5 +94,4 @@ func main() {
 	if err != nil {
 		return
 	}
-	db.DatabaseConn.Exec(context.Background(), "truncate table sessions")
 }
