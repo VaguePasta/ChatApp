@@ -22,7 +22,32 @@
     background-image: url('../../static/icons/send-button.png');
     background-repeat: no-repeat;
     background-size: 100% 100%;
+    margin-right: 2px;
 }
 .SendButton:hover {
     background-color: lightslategrey;
+}
+.FunctionButton {
+    width: 40px;
+    height: 40px;
+    border-style: none;
+    border-color: #000;
+    background-color: transparent;
+    margin: 0 1px;
+    box-shadow: none;
+    background-repeat: no-repeat;
+    background-size: 95% 95%;
+}
+.ImageButton {
+    background-image: url('../../static/icons/image.png');
+}
+.VideoButton {
+    background-image: url('../../static/icons/video.png');;
+}
+.FunctionButton:hover {
+    border-width: 1px;
+    border-style: solid;
+}
+.Input {
+    padding: 2px 3px;
 }

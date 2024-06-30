@@ -15,12 +15,14 @@ type Message struct {
 	ChannelID  int
 	SenderID   int
 	SenderName string
+	Type       string
 	Content    string
 }
 type SendMessage struct {
-	Type       bool
+	isNew      bool
 	ID         uint64
 	TimeStamp  string
+	Type       string
 	Text       string
 	SenderID   int
 	SenderName string
@@ -40,25 +42,27 @@ func Compress(src []byte) []byte {
 	}
 	return buf.Bytes()
 }
-func ToJSON(message Message, isGet bool) []byte {
+func ToJSON(message Message, _isNew bool) []byte {
 	jsonified, _ := json.Marshal(SendMessage{
-		Type:       isGet,
+		isNew:      _isNew,
 		ID:         message.ID,
 		SenderID:   message.SenderID,
 		SenderName: message.SenderName,
 		Channel:    message.ChannelID,
 		TimeStamp:  db.Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
+		Type:       message.Type,
 		Text:       message.Content,
 	})
 	return Compress(jsonified)
 }
 func SendToChannel(client *Client, textMessage *Message) {
-	query := "INSERT INTO messages(message_id, channel_id, sender_id, message) VALUES (@messageID, @channelID, @senderID, @content)"
+	query := "INSERT INTO messages(message_id, channel_id, sender_id, type, message) VALUES (@messageID, @channelID, @senderID, @messageType ,@content)"
 	args := pgx.NamedArgs{
-		"messageID": textMessage.ID,
-		"channelID": textMessage.ChannelID,
-		"senderID":  textMessage.SenderID,
-		"content":   textMessage.Content,
+		"messageID":   textMessage.ID,
+		"channelID":   textMessage.ChannelID,
+		"senderID":    textMessage.SenderID,
+		"messageType": textMessage.Type,
+		"content":     textMessage.Content,
 	}
 	_, err := db.DatabaseConn.Exec(context.Background(), query, args)
 	if err != nil {
@@ -74,6 +78,6 @@ func SendToChannel(client *Client, textMessage *Message) {
 			continue
 		}
 		_client, _ := client.Pool.Clients.Get(token)
-		SendTo(textMessage, _client, false)
+		SendTo(textMessage, _client, true)
 	}
 }

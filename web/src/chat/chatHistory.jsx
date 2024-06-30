@@ -13,6 +13,7 @@ export function ChatHistory(props) {
         if (!history.LoadOldMessage) setTimeout(() => refs.current.scrollIntoView());
     }, [history]);
     function ScrollHandler(e) {
+        console.log("Scrolling")
         if (e.currentTarget.scrollTop === 0) {
             RequestChat(CurrentChannel)
         }

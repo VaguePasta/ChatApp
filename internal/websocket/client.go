@@ -20,6 +20,7 @@ type Client struct {
 }
 type Result struct {
 	Channel int    `json:"channel"`
+	Type    string `json:"type"`
 	Content string `json:"content"`
 }
 
@@ -50,6 +51,7 @@ func (client *Client) Read() {
 		textMessage := Message{
 			ID:         ID,
 			ChannelID:  message.Channel,
+			Type:       message.Type,
 			Content:    message.Content,
 			SenderName: client.Name,
 			SenderID:   client.ID,
@@ -72,14 +74,15 @@ func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
 		lastMessage = 9223372036854775807
 	}
 	client, _ := pool.Clients.Get(token)
-	rows, _ := db.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message from messages where channel_id = $1 and message_id < $2 order by message_id desc limit 12", channel, lastMessage)
+	rows, _ := db.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message, type from messages where channel_id = $1 and message_id < $2 order by message_id desc limit 16", channel, lastMessage)
 	for rows.Next() {
 		var messageID uint64
 		var channelID int
 		var senderID int
 		var senderName string
+		var _type string
 		var message string
-		err := rows.Scan(&messageID, &channelID, &senderID, &message)
+		err := rows.Scan(&messageID, &channelID, &senderID, &message, &_type)
 		if err != nil {
 			continue
 		}
@@ -92,17 +95,18 @@ func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
 			ChannelID:  channelID,
 			SenderName: senderName,
 			SenderID:   senderID,
+			Type:       _type,
 			Content:    message,
-		}, client, true)
+		}, client, false)
 	}
 	rows.Close()
 	w.WriteHeader(200)
 }
-func SendTo(message *Message, client *Client, isGet bool) {
+func SendTo(message *Message, client *Client, isNew bool) {
 	if message == nil {
 		return
 	}
-	err := client.Conn.WriteMessage(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString(ToJSON(*message, isGet))))
+	err := client.Conn.WriteMessage(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString(ToJSON(*message, isNew))))
 	if err != nil {
 		return
 	}

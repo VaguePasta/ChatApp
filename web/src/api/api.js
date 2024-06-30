@@ -1,4 +1,5 @@
 import {username} from "../auth/login";
+import {CurrentChannel, SetChannel} from "../conversation/conversation";
 const pako= require('pako');
 export let token = "0";
 export let socket;
@@ -160,6 +161,7 @@ export async function SearchUser(_username) {
 }
 export function LogOut() {
      token = "0"
+     SetChannel(0)
      socket.close()
 }
 export async function ChangeChannelName(_channel, _name) {

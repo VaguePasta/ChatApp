@@ -13,7 +13,7 @@ export function Dashboard() {
     const [channelHistory,update] = useState({Current: 0, Channels: [], Content: [], LoadOldMessage: false})
     function onMessage(message) {
         SaveMessage(message)
-        if (message.Type === false) {
+        if (message.isNew === true) {
             updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel))
             if (message.Channel === CurrentChannel) {
                 handler(false)
