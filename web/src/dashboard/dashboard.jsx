@@ -3,9 +3,10 @@ import {channels, channelsMap, Decompress, LogOut, RequestChannelList, SaveMessa
 import {Navigate, useNavigate} from "react-router-dom";
 import {User} from "./user"
 import "./dashboard.scss"
-import {createContext, useEffect, useRef, useState} from "react";
+import React, {createContext, useEffect, useRef, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
 import Popup from "reactjs-popup";
+import {ToastContainer} from "react-toastify";
 export const CurrentChatContext = createContext({Current:0, Channels: [], Content: [], LoadOldMessage: false})
 export function Dashboard() {
     const ref = useRef()
@@ -73,6 +74,7 @@ export function Dashboard() {
                     <ChatHistory handler={handler}/>
                 </div>
             </CurrentChatContext.Provider>
+            <ToastContainer autoClose={3500} limit={5}/>
         </div>
     )
 }

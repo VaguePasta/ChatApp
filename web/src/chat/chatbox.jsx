@@ -4,6 +4,7 @@ import {send} from "../api/api"
 import {CurrentChannel} from "../conversation/conversation";
 import autosize from "autosize/dist/autosize";
 import Popup from "reactjs-popup";
+import {ErrorNotification} from "../dashboard/notifications";
 export function ChatBox() {
     let chat = document.querySelector('textarea')
     let chatBoxRef = createRef()
@@ -32,6 +33,9 @@ export function ChatBox() {
             if (await ImageExists(e.target.value)) {
                 send(JSON.stringify({channel:CurrentChannel,type:'image',content:e.target.value}))
             }
+            else {
+                ErrorNotification("image-error", "Invalid link.")
+            }
         }
     }
     async function ImageExists(url) {
@@ -48,9 +52,11 @@ export function ChatBox() {
             const regex = '^.*(?:(?:youtu.be/|v/|vi/|u/w/|embed/)|(?:(?:watch)??v(?:i)?=|&v(?:i)?=))([^#&?]+).*';
             const match = e.target.value.match(regex);
             if (match === null) {
+                ErrorNotification("video-error", "Not a Youtube video.")
                 return
             }
             send(JSON.stringify({channel:CurrentChannel,type:'video',content:match[1]}))
+            e.target.value = ''
         }
     }
 

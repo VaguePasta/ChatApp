@@ -10,6 +10,7 @@ import {
     RequestChatMember,
 } from "../api/api";
 import Popup from "reactjs-popup";
+import {ErrorNotification} from "../dashboard/notifications";
 export function ChatInfo(props) {
     const currentChat = useContext(CurrentChatContext)
     const [channelName, changeName] = useState("")
@@ -39,6 +40,9 @@ export function ChatInfo(props) {
                         }
                     )
                 }
+                else {
+                    ErrorNotification("no-privilege", "Admin privilege required.")
+                }
             }
         )
     }
@@ -64,8 +68,11 @@ export function ChatInfo(props) {
             if (await ChangeChannelName(CurrentChannel, e.target.value) === true) {
                 changeName(e.target.value)
                 await RequestChannelList()
+                props.handler()
             }
-            props.handler()
+            else {
+                ErrorNotification("no-privilege", "Admin privilege required.")
+            }
         }
     }
 
