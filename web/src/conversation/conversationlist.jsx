@@ -5,6 +5,7 @@ import "./conversation.scss"
 import {useContext, useEffect, useRef, useState} from "react";
 import Popup from "reactjs-popup";
 import {CurrentChatContext} from "../dashboard/dashboard";
+import {ErrorNotification} from "../dashboard/notifications";
 export function ConversationList(props) {
     const list = useContext(CurrentChatContext)
     const ref = useRef()
@@ -21,6 +22,9 @@ export function ConversationList(props) {
                     changeUserList([...userList, e.target.value])
                     e.target.value = ''
                 }
+            }
+            else {
+                ErrorNotification(null, e.target.value + ": User does not exist.")
             }
         }
     }
