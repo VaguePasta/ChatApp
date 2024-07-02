@@ -63,7 +63,7 @@ func setupRoutes() *mux.Router {
 	router.HandleFunc("/auth/login", system.LogIn)
 	router.HandleFunc("/auth/register", system.Register)
 	router.HandleFunc("/channel/read", system.GetChatData)
-	router.HandleFunc("/message/{channelID}/{lastMessage}", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/message/read/{channelID}/{lastMessage}", func(w http.ResponseWriter, r *http.Request) {
 		websocket.GetChannelMessages(pool, w, r)
 	})
 	router.HandleFunc("/channel/create", system.CreateChannel)
@@ -73,6 +73,9 @@ func setupRoutes() *mux.Router {
 	router.HandleFunc("/user/{username}", system.SearchUser)
 	router.HandleFunc("/ws/{token}", func(w http.ResponseWriter, r *http.Request) {
 		system.ServeWs(pool, w, r)
+	})
+	router.HandleFunc("/message/delete", func(w http.ResponseWriter, r *http.Request) {
+		websocket.DeleteMessage(pool, w, r)
 	})
 	return router
 }

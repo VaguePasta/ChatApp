@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -74,7 +75,7 @@ func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
 		lastMessage = 9223372036854775807
 	}
 	client, _ := pool.Clients.Get(token)
-	rows, _ := db.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message, type from messages where channel_id = $1 and message_id < $2 order by message_id desc limit 16", channel, lastMessage)
+	rows, _ := db.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message, type from messages where channel_id = $1 and message_id < $2 and deleted = false order by message_id desc limit 16", channel, lastMessage)
 	for rows.Next() {
 		var messageID uint64
 		var channelID int
@@ -110,4 +111,30 @@ func SendTo(message *Message, client *Client, isNew bool) {
 	if err != nil {
 		return
 	}
+}
+func DeleteMessage(pool *Pool, w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	token := r.Header.Get("Authorization")
+	if db.CheckToken(token) == -1 {
+		w.WriteHeader(401)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	var requester, _ = pool.Clients.Get(token)
+	commandTag, err := db.DatabaseConn.Exec(context.Background(), "update messages set deleted = true where message_id = $1 and sender_id = $2 and deleted = false", body, requester.ID)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	if commandTag.RowsAffected() == 0 {
+		w.WriteHeader(404)
+		return
+	}
+	w.WriteHeader(200)
 }

@@ -1,5 +1,5 @@
 import {username} from "../auth/login";
-import {CurrentChannel, SetChannel} from "../conversation/conversation";
+import {SetChannel} from "../conversation/conversation";
 const pako= require('pako');
 export let token = "0";
 export let socket;
@@ -7,6 +7,11 @@ export let server = "://localhost:8080/"
 export let userid;
 export let channelsMap = new Map()
 export let channels = []
+export function removeMessage(channelID, messageID) {
+     channelsMap[channelID] = channelsMap[channelID].filter((element) => {
+          return element.ID !== messageID
+     })
+}
 export function makeRequest(request, body) {
      return new Promise(function(resolve, reject) {
           request.onload = () => {
@@ -103,7 +108,7 @@ export function RequestChat(CurrentChannel) {
      if (channelsMap[CurrentChannel].length !== 0) {
           lastMessage = channelsMap[CurrentChannel][0].ID
      }
-     log.open("GET", "http" + server + "message/" + CurrentChannel + "/" + lastMessage, true)
+     log.open("GET", "http" + server + "message/read/" + CurrentChannel + "/" + lastMessage, true)
      log.withCredentials = true;
      log.setRequestHeader('Authorization', token)
      log.send()
@@ -170,6 +175,20 @@ export async function ChangeChannelName(_channel, _name) {
      log.withCredentials = true
      log.setRequestHeader('Authorization', token)
      return await makeRequest(log, JSON.stringify([String(userid), String(_channel), _name])).then(
+         () => {
+              return true
+         },
+         () => {
+              return false
+         }
+     )
+}
+export async function DeleteMessage(id) {
+     let log = new XMLHttpRequest()
+     log.open("POST", "http" + server + "message/delete")
+     log.withCredentials = true
+     log.setRequestHeader('Authorization', token)
+     return await makeRequest(log, id).then(
          () => {
               return true
          },

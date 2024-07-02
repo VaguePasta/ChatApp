@@ -30,7 +30,7 @@ export function ChatHistory(props) {
             <ChatInfo handler={props.handler}></ChatInfo>
             <div className="ChatHistory" onScroll={ScrollHandler}>
                 {isOnTop && <button onClick={LoadChat} className="LoadMore"/>}
-                {history.Content.map(msg => <Message message={msg}/>)}
+                {history.Content.map(msg => <Message message={msg} handler={props.handler}/>)}
                 <div ref={refs} style={{clear: "both"}}/>
             </div>
             {CurrentChannel !== 0 && <ChatBox/>}
