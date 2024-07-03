@@ -41,7 +41,7 @@
     background-image: url('../../static/icons/image.png');
 }
 .VideoButton {
-    background-image: url('../../static/icons/video.png');;
+    background-image: url('../../static/icons/video.png');
 }
 .FunctionButton:hover {
     border-width: 1px;
@@ -49,4 +49,20 @@
 }
 .Input {
     padding: 2px 3px;
+}
+.RemoveButton {
+    margin: 0 10px 0 auto;
+    background-image: url('../../static/icons/remove.png');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    border: none;
+    flex-shrink: 0;
+    box-shadow: none;
+}
+.RemoveButton:hover {
+    border: 2px solid black;
 }

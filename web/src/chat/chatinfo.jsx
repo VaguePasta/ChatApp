@@ -4,9 +4,9 @@ import {CurrentChannel, SetChannel} from "../conversation/conversation";
 import {CurrentChatContext} from "../dashboard/dashboard";
 import {
     ChangeChannelName,
-    channels,
+    channels, channelsMap,
     DeleteChannel,
-    RequestChannelList,
+    RequestChannelList, RequestChat,
     RequestChatMember,
 } from "../api/api";
 import Popup from "reactjs-popup";
@@ -75,20 +75,46 @@ export function ChatInfo(props) {
             }
         }
     }
-
+    async function reload() {
+        channelsMap[CurrentChannel] = []
+        await RequestChat(CurrentChannel)
+        props.handler()
+    }
     return (
         <div className="ChatInfo">
-            {channelName}
-            <Popup position="bottom right" className="tooltip-popup" ref={ref} trigger={<button style={{height:"70%", aspectRatio:"1/1", marginLeft:"auto"}}>X</button>}>
+            <div style={{marginRight: "auto"}}>{channelName}</div>
+            <button onClick={reload} className="ChatInfoButton Reload"/>
+            <Popup position="bottom right" className="tooltip-popup" ref={ref}
+                   trigger={<button className="ChatInfoButton MenuBar"/>}>
                 <div>
                     <Popup trigger={<button className="popup-button">Change Channel Name</button>}>
                         <input onKeyDown={ChangeName}/>
                     </Popup>
-                    <Popup className="tooltip-popup" onOpen={GetChatMember} trigger={<button style={{borderWidth:"1px 0"}} className="popup-button">Chat member(s)...</button>} nested position="left top">
+                    <Popup className="tooltip-popup" onOpen={GetChatMember}
+                           trigger={<button style={{borderWidth: "1px 0"}} className="popup-button">Chat
+                               member(s)...</button>} nested position="left top">
                         {channelUsers.UserList.map(user =>
-                            <div style={{display:"flex", flexFlow:"column", borderStyle:"solid" ,borderWidth:"0 0 1px 0"}}>
-                                <div style={{whiteSpace:"nowrap", fontSize:"16px",margin:"0px 5px", padding:"2px 1px", maxWidth:"200px", overflow:"clip"}}>{user[0]}</div>
-                                <div style={{fontSize:"12px", margin:"0px 5px", padding:"2px 1px", color:"#248a92", textTransform:"capitalize"}}>{user[1]}</div>
+                            <div style={{
+                                display: "flex",
+                                flexFlow: "column",
+                                borderStyle: "solid",
+                                borderWidth: "0 0 1px 0"
+                            }}>
+                                <div style={{
+                                    whiteSpace: "nowrap",
+                                    fontSize: "16px",
+                                    margin: "0px 5px",
+                                    padding: "2px 1px",
+                                    maxWidth: "200px",
+                                    overflow: "clip"
+                                }}>{user[0]}</div>
+                                <div style={{
+                                    fontSize: "12px",
+                                    margin: "0px 5px",
+                                    padding: "2px 1px",
+                                    color: "#248a92",
+                                    textTransform: "capitalize"
+                                }}>{user[1]}</div>
                             </div>)}
                     </Popup>
                     <button onClick={DeleteChannelClick} className="popup-button">Delete Channel</button>

@@ -8,12 +8,12 @@ export function Message(props) {
     const deleteButton = useRef(null)
     const replyButton = useRef(null)
     const [isDeleted, deleteMessage] = useState(false)
-    function showOptions() {
-        deleteButton.current.style.visibility = 'visible'
+    function showOptions(isSelf) {
+        if (isSelf) deleteButton.current.style.visibility = 'visible'
         replyButton.current.style.visibility = 'visible'
     }
-    function hideOptions() {
-        deleteButton.current.style.visibility = 'hidden'
+    function hideOptions(isSelf) {
+        if (isSelf) deleteButton.current.style.visibility = 'hidden'
         replyButton.current.style.visibility = 'hidden'
     }
 
@@ -25,6 +25,7 @@ export function Message(props) {
     }
     async function ReplyMessage() {
         props.reply(props.message.ID)
+        console.log(props.reply)
     }
     if (isDeleted && props.message.SenderID === userid) {
         return (
@@ -63,13 +64,13 @@ export function Message(props) {
                     margin: "5px 10px",
                     alignItems: "center"
                 }}
-                     onMouseEnter={showOptions}
-                     onMouseLeave={hideOptions}>
-                    <button ref={deleteButton} onClick={Delete} className="DeleteButton"/>
-                    <button ref={replyButton} onClick={ReplyMessage} className="ReplyButton"/>
+                     onMouseEnter={() => showOptions(true)}
+                     onMouseLeave={() => hideOptions(true)}>
+                    <button ref={deleteButton} onClick={Delete} className="Button DeleteButton"/>
+                    <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
                     <div style={{display: "flex", flexDirection: "column"}}>
                         {props.message.ReplyTo !== 0 &&
-                            <Reply margin={"0 0 0 auto"} ID={props.message.ReplyTo}/>}
+                            <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo}/>}
                         <div style={{background: "#007aff", color: "white", marginLeft: "auto"}} className="Message">
                             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                             <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
@@ -96,34 +97,43 @@ export function Message(props) {
                     margin: "5px 10px",
                     alignItems: "center"
                 }}
-                     onMouseEnter={showOptions}
-                     onMouseLeave={hideOptions}>
-                    <button ref={deleteButton} onClick={Delete} className="DeleteButton"/>
-                    <button ref={replyButton} onClick={ReplyMessage} className="ReplyButton"/>
-                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                    <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
-                       data-tooltip-place='left' data-tooltip-delay-show={700}>
-                        <img alt={props.message.ID} src={props.message.Text} style={{width: "100%"}}/>
-                    </a>
-                    <Tooltip id="message"/>
+                     onMouseEnter={() => showOptions(true)}
+                     onMouseLeave={() => hideOptions(true)}>
+                    <button ref={deleteButton} onClick={Delete} className="Button DeleteButton"/>
+                    <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
+                    <div style={{display: "flex", flexDirection: "column"}}>
+                        {props.message.ReplyTo !== 0 &&
+                            <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo}/>}
+                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                        <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
+                           data-tooltip-place='left' data-tooltip-delay-show={700}
+                           style={{zIndex:"2"}}>
+                            <img alt={props.message.ID} src={props.message.Text} style={{width: "100%"}}/>
+                        </a>
+                        <Tooltip id="message"/>
+                    </div>
                 </div>
             )
         } else if (props.message.Type === 'video') {
             let src = "https://www.youtube.com/embed/" + props.message.Text
             return (
                 <div style={{float: "right", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center"}}
-                     onMouseEnter={showOptions}
-                     onMouseLeave={hideOptions}>
-                    <button ref={deleteButton} onClick={Delete} className="DeleteButton"/>
-                    <button ref={replyButton} onClick={ReplyMessage} className="ReplyButton"/>
-                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                    <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
-                       data-tooltip-place='left' data-tooltip-delay-show={700}>
-                        <iframe src={src} width="560px" height="315px"
-                                title="YouTube video player"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
-                    </a>
+                     onMouseEnter={() => showOptions(true)}
+                     onMouseLeave={() => hideOptions(true)}>
+                    <button ref={deleteButton} onClick={Delete} className="Button DeleteButton"/>
+                    <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
+                    <div style={{display: "flex", flexDirection: "column"}}>
+                        {props.message.ReplyTo !== 0 &&
+                            <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo}/>}
+                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                        <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
+                           data-tooltip-place='left' data-tooltip-delay-show={700} style={{zIndex:"2"}}>
+                            <iframe src={src} width="560px" height="315px"
+                                    title="YouTube video player"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+                        </a>
+                    </div>
                 </div>
             )
         }
@@ -137,60 +147,76 @@ export function Message(props) {
                         maxWidth: "55%",
                         margin: "5px 10px",
                         alignItems: "center"
-                    }}>
-                        <div style={{background: "#f2f2f7", color: "black", float: "left"}} className="Message">
+                    }}
+                         onMouseEnter={() => showOptions(false)}
+                         onMouseLeave={() => hideOptions(false)}>
+                        <div style={{display: "flex", flexDirection: "column"}}>
                             <div style={{color: "#8f8f92", fontSize: "14px"}}>{props.message.SenderName}</div>
-                            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                            <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
-                               data-tooltip-place='right' data-tooltip-delay-show={700}>
-                                <Linkify componentDecorator={(decoratedHref, decoratedText, key) => (
-                                    <a target="blank" href={decoratedHref} key={key}>
-                                        {decoratedText}
-                                    </a>
-                                )}>
-                                    {props.message.Text}
-                                </Linkify></a>
-                            <Tooltip id="message"/>
+                            {props.message.ReplyTo !== 0 &&
+                                <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo}/>}
+                            <div style={{background: "#f2f2f7", color: "black", float: "left"}} className="Message">
+                                {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                                <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
+                                   data-tooltip-place='right' data-tooltip-delay-show={700} style={{zIndex: "2"}}>
+                                    <Linkify componentDecorator={(decoratedHref, decoratedText, key) => (
+                                        <a target="blank" href={decoratedHref} key={key}>
+                                            {decoratedText}
+                                        </a>
+                                    )}>
+                                        {props.message.Text}
+                                    </Linkify></a>
+                                <Tooltip id="message"/>
+                            </div>
                         </div>
+                        <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
                     </div>
                 )
-            } else if (props.message.Type === 'image') {
-                return (
-                    <div style={{
-                        float: "left",
-                        display: "flex",
-                        maxWidth: "35%",
-                        clear: "both",
-                        margin: "5px 10px",
-                        alignItems: "center"
-                    }}>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                        <div>
-                            <div style={{color: "#8f8f92", fontSize: "14px"}}>{props.message.SenderName}</div>
+        } else if (props.message.Type === 'image') {
+            return (
+                <div style={{
+                    float: "left",
+                    display: "flex",
+                    maxWidth: "35%",
+                    clear: "both",
+                    margin: "5px 10px",
+                    alignItems: "center"
+                }}
+                     onMouseEnter={() => showOptions(false)}
+                     onMouseLeave={() => hideOptions(false)}>
+                    <div style={{display: "flex", flexDirection: "column"}}>
+                        <div style={{color: "#8f8f92", fontSize: "14px"}}>{props.message.SenderName}</div>
+                        {props.message.ReplyTo !== 0 &&
+                            <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo}/>}
                             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                             <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
-                               data-tooltip-place='left' data-tooltip-delay-show={700}>
+                               data-tooltip-place='left' data-tooltip-delay-show={700} style={{zIndex: "2"}}>
                                 <img alt={props.message.ID} src={props.message.Text} style={{width: "100%"}}/>
                             </a>
                             <Tooltip id="message"/>
-                        </div>
                     </div>
-                )
-            } else if (props.message.Type === 'video') {
-                let src = "https://www.youtube.com/embed/" + props.message.Text
+                    <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
+                </div>
+            )
+        } else if (props.message.Type === 'video') {
+            let src = "https://www.youtube.com/embed/" + props.message.Text
             return (
-                <div style={{float: "left", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center"}}>
-                    <div>
+                <div style={{float: "left", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center"}}
+                     onMouseEnter={() => showOptions(false)}
+                     onMouseLeave={() => hideOptions(false)}>
+                    <div style={{display: "flex", flexDirection: "column"}}>
                         <div style={{color: "#8f8f92", fontSize: "14px"}}>{props.message.SenderName}</div>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                        <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
-                           data-tooltip-place='left' data-tooltip-delay-show={700}>
-                            <iframe src={src} width="560px" height="315px"
-                                    title="YouTube video player"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                    referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
-                        </a>
+                        {props.message.ReplyTo !== 0 &&
+                            <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo}/>}
+                            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                            <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
+                               data-tooltip-place='left' data-tooltip-delay-show={700} style={{zIndex: "2"}}>
+                                <iframe src={src} width="560px" height="315px"
+                                        title="YouTube video player"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                        referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+                            </a>
                     </div>
+                    <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
                 </div>
             )
         }

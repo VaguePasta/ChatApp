@@ -10,13 +10,15 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"sync"
 )
 
 type Client struct {
-	ID    int
-	Name  string
-	Token string
-	Conn  *websocket.Conn
+	ID          int
+	Name        string
+	Token       string
+	Conn        *websocket.Conn
+	ClientMutex sync.Mutex
 }
 type Result struct {
 	Channel int    `json:"channel"`
@@ -114,6 +116,8 @@ func SendTo(message *Message, client *Client, isNew bool) {
 	if message == nil {
 		return
 	}
+	client.ClientMutex.Lock()
+	defer client.ClientMutex.Unlock()
 	err := client.Conn.WriteMessage(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString(ToJSON(*message, isNew))))
 	if err != nil {
 		return

@@ -14,6 +14,8 @@
   font-style: normal;
   flex: 1;
   display: flex;
+  justify-content: end;
+  align-content: center;
 }
 .tooltip-popup-content {
   position: absolute;
@@ -53,4 +55,26 @@
 .popup-button:hover {
   background: lightslategrey;
   color:white;
+}
+.ChatInfoButton {
+  aspect-ratio: 1/1;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  border: none;
+  flex-shrink: 0;
+  height: 85%;
+  background-position: center;
+}
+.ChatInfoButton:hover {
+  background-color: lightgray;
+}
+.MenuBar {
+  background-image: url('../../static/icons/bars.png');
+  background-size: 120%;
+}
+.Reload {
+  background-image: url('../../static/icons/reload.png');
+  border-radius: 50%;
+  margin-right: 5px;
+  background-size: 80%;
 }

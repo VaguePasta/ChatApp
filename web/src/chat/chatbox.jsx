@@ -64,18 +64,81 @@ export function ChatBox(props) {
         textReply = channelsMap[CurrentChannel].find(e => e.ID === props.replyingTo)
     }
     return (
-        <div style={{background:"white", height:"max-content", width:"100%", display:"flex", alignItems:"center"}}>
-            {props.replyingTo !== 0 && textReply !== undefined && <div>{textReply.Text}</div>}
-            <textarea ref={chatBoxRef} className="ChatBox" onKeyDown={keyDownHandler}>
-            </textarea>
-            <Popup position="top right" trigger={<button className="FunctionButton ImageButton"></button>}>
-                <input className="Input" onKeyDown={SendImage}/>
-            </Popup>
-            <Popup position="top right" trigger={<button className="FunctionButton VideoButton"></button>}>
-                <input className="Input" onKeyDown={SendVideo}/>
-            </Popup>
-            <button className="SendButton" onClick={sendHandler}/>
+        <div style={{borderTop: props.replyingTo !== 0 ? "1px solid black" : "none"}}>{props.replyingTo !== 0 && textReply !== undefined &&
+            <ReplyingTo message={textReply} removeReply={props.reply}/>}
+            <div style={{background:"white", height:"max-content", width:"100%", display:"flex", alignItems:"center"}}>
+                <textarea ref={chatBoxRef} className="ChatBox" onKeyDown={keyDownHandler}>
+                </textarea>
+                <Popup position="top right" trigger={<button className="FunctionButton ImageButton"></button>}>
+                    <input className="Input" onKeyDown={SendImage}/>
+                </Popup>
+                <Popup position="top right" trigger={<button className="FunctionButton VideoButton"></button>}>
+                    <input className="Input" onKeyDown={SendVideo}/>
+                </Popup>
+                <button className="SendButton" onClick={sendHandler}/>
+            </div>
         </div>
     )
 }
+function ReplyingTo(props) {
+    if (props.message.Type === 'text') {
+        return (
+            <div style={{display: "flex", alignItems:"center"}}>
+                <div style={{
+                    margin: "2px 5px 0 5px",
+                    display: '-webkit-box',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 2,
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                }}>Replying to {props.message.SenderName}
+                    <div style={{color: "gray"}}>
+                        {props.message.Text}
+                    </div>
+                </div>
+                <button onClick={() => props.removeReply(0)} className="RemoveButton"/>
+            </div>
+        )
+    } else if (props.message.Type === 'image') {
+        return (
+            <div style={{display: "flex", alignItems: "center"}}>
+                <div style={{
+                    margin: "2px 5px 0 5px",
+                    display: '-webkit-box',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 2,
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    whiteSpace: "pre",
+                }}>Replying to {props.message.SenderName}
+                    <div style={{color: "gray"}}>
+                        Image: <a href={props.message.Text} target="_blank" rel="noreferrer"> {props.message.Text}</a>
+                    </div>
+                </div>
+                <button onClick={() => props.removeReply(0)} className="RemoveButton"/>
+            </div>
+        )
+    } else if (props.message.Type === 'video') {
+        return (
+            <div style={{display: "flex", alignItems: "center"}}>
+                <div style={{
+                    margin: "2px 5px 0 5px",
+                    display: '-webkit-box',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 2,
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    whiteSpace: "pre",
+                }}>Replying to {props.message.SenderName}
+                    <div style={{color: "gray"}}>
+                        Video: <a target="_blank" href={"https://www.youtube.com/watch?v=" + props.message.Text}
+                                  rel="noreferrer">{"https://www.youtube.com/watch?v=" + props.message.Text}</a>
+                    </div>
+                </div>
+                <button onClick={() => props.removeReply(0)} className="RemoveButton"/>
+            </div>
+        )
+    }
+}
+
 export default ChatBox;

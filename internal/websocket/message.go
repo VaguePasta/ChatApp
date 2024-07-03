@@ -122,7 +122,11 @@ func GetMessage(pool *Pool, w http.ResponseWriter, r *http.Request) {
 		var senderName string
 		var _type string
 		var message string
-		err = db.DatabaseConn.QueryRow(context.Background(), "select message_id, channel_id, sender_id, message, type from messages where message_id = $1", body).Scan(&messageID, &channelID, &senderID, &message, &_type)
+		err = db.DatabaseConn.QueryRow(context.Background(), "select message_id, channel_id, sender_id, message, type from messages where message_id = $1 and deleted = false", body).Scan(&messageID, &channelID, &senderID, &message, &_type)
+		if err != nil {
+			w.WriteHeader(403)
+			return
+		}
 		err = db.DatabaseConn.QueryRow(context.Background(), "select username from users where user_id = $1", senderID).Scan(&senderName)
 		SendTo(&Message{
 			ID:         messageID,

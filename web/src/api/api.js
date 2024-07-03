@@ -198,17 +198,23 @@ export async function DeleteMessage(id) {
          }
      )
 }
-export async function GetMessage(id) {
+export async function GetMessage(id, channel) {
      let log = new XMLHttpRequest()
      log.open("POST", "http" + server + "message/get")
      log.withCredentials = true
      log.setRequestHeader('Authorization', token)
      return await makeRequest(log, id).then(
-         () => {
-              return true
+         (success) => {
+              return success.Status
          },
-         () => {
-              return false
+         (error) => {
+              if (error.Status === 403) {
+                   SaveMessage({
+                        ID: id,
+                        Type: null,
+                        Channel: channel,
+                   })
+              }
          }
      )
 }
