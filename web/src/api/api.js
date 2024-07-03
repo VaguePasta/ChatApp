@@ -70,6 +70,7 @@ export let send = msg => {
      socket.send(msg);
 };
 export function SaveMessage(message) {
+     if (channelsMap[message.Channel].some(e => e.ID === message.ID)) return
      let insertPos = channelsMap[message.Channel].findIndex((element) => element.ID > message.ID);
      if (insertPos === -1) {
           channelsMap[message.Channel].push(message)
@@ -186,6 +187,20 @@ export async function ChangeChannelName(_channel, _name) {
 export async function DeleteMessage(id) {
      let log = new XMLHttpRequest()
      log.open("POST", "http" + server + "message/delete")
+     log.withCredentials = true
+     log.setRequestHeader('Authorization', token)
+     return await makeRequest(log, id).then(
+         () => {
+              return true
+         },
+         () => {
+              return false
+         }
+     )
+}
+export async function GetMessage(id) {
+     let log = new XMLHttpRequest()
+     log.open("POST", "http" + server + "message/get")
      log.withCredentials = true
      log.setRequestHeader('Authorization', token)
      return await makeRequest(log, id).then(

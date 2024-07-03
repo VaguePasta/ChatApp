@@ -62,7 +62,7 @@ export function ConversationList(props) {
                     </div>
                 <button onClick={CreateClick}>Create Channel</button>
             </Popup>
-            {channelList.map(channel => <Conversation handler={props.handler} ChannelID={channel.ChannelID} Title={channel.Title}/>)}
+            {channelList.map(channel => <Conversation key={channel.ChannelID} handler={props.handler} ChannelID={channel.ChannelID} Title={channel.Title}/>)}
         </div>
     )
 }

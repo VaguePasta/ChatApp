@@ -17,19 +17,19 @@ type Client struct {
 	Name  string
 	Token string
 	Conn  *websocket.Conn
-	Pool  *Pool
 }
 type Result struct {
 	Channel int    `json:"channel"`
 	Type    string `json:"type"`
 	Content string `json:"content"`
+	ReplyTo uint64 `json:"reply"`
 }
 
 var ClientOrigin []string
 
-func (client *Client) Read() {
+func (client *Client) Read(pool *Pool) {
 	defer func() {
-		client.Unregister(client.Pool)
+		client.Unregister(pool)
 		err := client.Conn.Close()
 		_, err = db.DatabaseConn.Exec(context.Background(), "delete from sessions where session_key = $1", client.Token)
 		if err != nil {
@@ -53,11 +53,12 @@ func (client *Client) Read() {
 			ID:         ID,
 			ChannelID:  message.Channel,
 			Type:       message.Type,
+			ReplyTo:    message.ReplyTo,
 			Content:    message.Content,
 			SenderName: client.Name,
 			SenderID:   client.ID,
 		}
-		SendToChannel(client, &textMessage)
+		SendToChannel(pool, &textMessage)
 	}
 }
 func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
@@ -81,11 +82,16 @@ func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
 		var channelID int
 		var senderID int
 		var senderName string
+		var replyTo uint64
 		var _type string
 		var message string
 		err := rows.Scan(&messageID, &channelID, &senderID, &message, &_type)
 		if err != nil {
 			continue
+		}
+		err = db.DatabaseConn.QueryRow(context.Background(), "select reply_to from replies where reply = $1", messageID).Scan(&replyTo)
+		if err != nil {
+			replyTo = 0
 		}
 		err = db.DatabaseConn.QueryRow(context.Background(), "select username from users where user_id = $1", senderID).Scan(&senderName)
 		if err != nil {
@@ -96,6 +102,7 @@ func GetChannelMessages(pool *Pool, w http.ResponseWriter, r *http.Request) {
 			ChannelID:  channelID,
 			SenderName: senderName,
 			SenderID:   senderID,
+			ReplyTo:    replyTo,
 			Type:       _type,
 			Content:    message,
 		}, client, false)

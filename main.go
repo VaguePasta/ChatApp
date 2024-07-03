@@ -77,6 +77,9 @@ func setupRoutes() *mux.Router {
 	router.HandleFunc("/message/delete", func(w http.ResponseWriter, r *http.Request) {
 		websocket.DeleteMessage(pool, w, r)
 	})
+	router.HandleFunc("/message/get", func(w http.ResponseWriter, r *http.Request) {
+		websocket.GetMessage(pool, w, r)
+	})
 	return router
 }
 func main() {

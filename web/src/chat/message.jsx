@@ -3,14 +3,18 @@ import {Tooltip} from "react-tooltip";
 import {DeleteMessage, removeMessage, userid} from "../api/api";
 import Linkify from "react-linkify";
 import {useRef, useState} from "react";
+import {Reply} from "./reply";
 export function Message(props) {
-    const messageRef = useRef(null)
+    const deleteButton = useRef(null)
+    const replyButton = useRef(null)
     const [isDeleted, deleteMessage] = useState(false)
     function showOptions() {
-        messageRef.current.style.visibility = 'visible'
+        deleteButton.current.style.visibility = 'visible'
+        replyButton.current.style.visibility = 'visible'
     }
     function hideOptions() {
-        messageRef.current.style.visibility = 'hidden'
+        deleteButton.current.style.visibility = 'hidden'
+        replyButton.current.style.visibility = 'hidden'
     }
 
     async function Delete() {
@@ -18,6 +22,9 @@ export function Message(props) {
             removeMessage(props.message.Channel, props.message.ID)
             deleteMessage(true)
         }
+    }
+    async function ReplyMessage() {
+        props.reply(props.message.ID)
     }
     if (isDeleted && props.message.SenderID === userid) {
         return (
@@ -58,28 +65,41 @@ export function Message(props) {
                 }}
                      onMouseEnter={showOptions}
                      onMouseLeave={hideOptions}>
-                    <button ref={messageRef} onClick={Delete} className="DeleteButton"/>
-                    <div style={{background: "#007aff", color: "white"}} className="Message">
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                        <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
-                           data-tooltip-place='left' data-tooltip-delay-show={700}>
-                            <Linkify componentDecorator={(decoratedHref, decoratedText, key) => (
-                                <a target="blank" href={decoratedHref} key={key} style={{color: "#FFFF80"}}>
-                                    {decoratedText}
-                                </a>
-                            )}>
-                                {props.message.Text}
-                            </Linkify></a>
-                        <Tooltip id="message"/>
+                    <button ref={deleteButton} onClick={Delete} className="DeleteButton"/>
+                    <button ref={replyButton} onClick={ReplyMessage} className="ReplyButton"/>
+                    <div style={{display: "flex", flexDirection: "column"}}>
+                        {props.message.ReplyTo !== 0 &&
+                            <Reply margin={"0 0 0 auto"} ID={props.message.ReplyTo}/>}
+                        <div style={{background: "#007aff", color: "white", marginLeft: "auto"}} className="Message">
+                            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                            <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
+                               data-tooltip-place='left' data-tooltip-delay-show={700}>
+                                <Linkify componentDecorator={(decoratedHref, decoratedText, key) => (
+                                    <a target="blank" href={decoratedHref} key={key} style={{color: "#FFFF80"}}>
+                                        {decoratedText}
+                                    </a>
+                                )}>
+                                    {props.message.Text}
+                                </Linkify></a>
+                            <Tooltip id="message"/>
+                        </div>
                     </div>
                 </div>
             )
         } else if (props.message.Type === 'image') {
             return (
-                <div style={{float: "right", display: "flex", maxWidth: "35%", clear: "both", margin: "5px 10px", alignItems:"center"}}
+                <div style={{
+                    float: "right",
+                    display: "flex",
+                    maxWidth: "35%",
+                    clear: "both",
+                    margin: "5px 10px",
+                    alignItems: "center"
+                }}
                      onMouseEnter={showOptions}
                      onMouseLeave={hideOptions}>
-                    <button ref={messageRef} onClick={Delete} className="DeleteButton"/>
+                    <button ref={deleteButton} onClick={Delete} className="DeleteButton"/>
+                    <button ref={replyButton} onClick={ReplyMessage} className="ReplyButton"/>
                     {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                     <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
                        data-tooltip-place='left' data-tooltip-delay-show={700}>
@@ -88,14 +108,14 @@ export function Message(props) {
                     <Tooltip id="message"/>
                 </div>
             )
-        }
-        else if (props.message.Type === 'video') {
+        } else if (props.message.Type === 'video') {
             let src = "https://www.youtube.com/embed/" + props.message.Text
             return (
                 <div style={{float: "right", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center"}}
                      onMouseEnter={showOptions}
                      onMouseLeave={hideOptions}>
-                    <button ref={messageRef} onClick={Delete} className="DeleteButton"/>
+                    <button ref={deleteButton} onClick={Delete} className="DeleteButton"/>
+                    <button ref={replyButton} onClick={ReplyMessage} className="ReplyButton"/>
                     {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                     <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
                        data-tooltip-place='left' data-tooltip-delay-show={700}>

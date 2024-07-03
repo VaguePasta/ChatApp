@@ -1,16 +1,16 @@
 import {createRef} from "react";
 import "./chatbox.scss"
-import {send} from "../api/api"
+import {channelsMap, send} from "../api/api"
 import {CurrentChannel} from "../conversation/conversation";
 import autosize from "autosize/dist/autosize";
 import Popup from "reactjs-popup";
 import {ErrorNotification} from "../dashboard/notifications";
-export function ChatBox() {
+export function ChatBox(props) {
     let chat = document.querySelector('textarea')
     let chatBoxRef = createRef()
     function sendHandler() {
         if (chatBoxRef.current.value !== '') {
-            send(JSON.stringify({channel:CurrentChannel,type:'text',content:chatBoxRef.current.value}))
+            send(JSON.stringify({channel:CurrentChannel,type:'text',content:chatBoxRef.current.value, reply: props.replyingTo}))
             chatBoxRef.current.value = ''
             chatBoxRef.current.focus()
             autosize.update(chat)
@@ -20,7 +20,7 @@ export function ChatBox() {
         if (e.key === 'Enter' && !e.shiftKey && chatBoxRef.current.value !== '') {
             e.preventDefault()
             e.stopPropagation()
-            send(JSON.stringify({channel:CurrentChannel,type:'text',content:chatBoxRef.current.value}))
+            send(JSON.stringify({channel:CurrentChannel,type:'text',content:chatBoxRef.current.value, reply: props.replyingTo}))
             e.target.value = ''
             chatBoxRef.current.focus()
             autosize.update(chat)
@@ -31,7 +31,7 @@ export function ChatBox() {
     async function SendImage(e) {
         if (e.key === 'Enter' && e.target.value !== "") {
             if (await ImageExists(e.target.value)) {
-                send(JSON.stringify({channel:CurrentChannel,type:'image',content:e.target.value}))
+                send(JSON.stringify({channel:CurrentChannel,type:'image',content:e.target.value, reply: props.replyingTo}))
             }
             else {
                 ErrorNotification("image-error", "Invalid link.")
@@ -55,13 +55,17 @@ export function ChatBox() {
                 ErrorNotification("video-error", "Not a Youtube video.")
                 return
             }
-            send(JSON.stringify({channel:CurrentChannel,type:'video',content:match[1]}))
+            send(JSON.stringify({channel:CurrentChannel,type:'video',content:match[1], reply: props.replyingTo}))
             e.target.value = ''
         }
     }
-
+    let textReply
+    if (props.replyingTo !== 0) {
+        textReply = channelsMap[CurrentChannel].find(e => e.ID === props.replyingTo)
+    }
     return (
         <div style={{background:"white", height:"max-content", width:"100%", display:"flex", alignItems:"center"}}>
+            {props.replyingTo !== 0 && textReply !== undefined && <div>{textReply.Text}</div>}
             <textarea ref={chatBoxRef} className="ChatBox" onKeyDown={keyDownHandler}>
             </textarea>
             <Popup position="top right" trigger={<button className="FunctionButton ImageButton"></button>}>

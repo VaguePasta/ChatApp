@@ -47,8 +47,7 @@ func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 		Name:  username,
 		Token: token,
 		Conn:  conn,
-		Pool:  pool,
 	}
 	client.Register(pool)
-	client.Read()
+	client.Read(pool)
 }
