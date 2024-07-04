@@ -1,12 +1,11 @@
 .ChatBox {
     width: 94%;
-    height: 35px;
+    height: 30px;
     max-height: 200px;
-    padding: 4px 5px 4px 5px;
-    border: 2px solid #ccc;
+    padding: 4px 5px;
+    border: 2px solid darkgrey;
     border-radius: 12px;
-    background: #f3f3f5;
-    font-size: 17px;
+    font-size: 16px;
     resize: none;
     margin: 10px 5px;
     overflow-x: hidden;
@@ -14,18 +13,12 @@
     scroll-behavior: smooth;
     scrollbar-width: thin;
 }
-.SendButton {
-    width: 40px;
-    height: 40px;
-    border-width: 0 0 0 0;
-    background-color: transparent;
-    background-image: url('../../static/icons/send-button.png');
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    margin-right: 2px;
+.ChatBox:focus {
+    border-color: black;
+    outline: none;
 }
-.SendButton:hover {
-    background-color: lightslategrey;
+.SendButton {
+    background-image: url('../../static/icons/send-button.png');
 }
 .FunctionButton {
     width: 40px;

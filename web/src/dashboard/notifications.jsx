@@ -11,3 +11,14 @@ export const ErrorNotification = (id, error) => {
         })
     }
 }
+export const SuccessNotification = (id, notification) => {
+    if (toast.isActive(id)) {
+        toast.update(id)
+    }
+    else {
+        toast.success(notification, {
+            toastId: id,
+            position: "bottom-left",
+        })
+    }
+}

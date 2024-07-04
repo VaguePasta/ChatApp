@@ -1,6 +1,6 @@
 import {createRef} from "react";
 import "./chatbox.scss"
-import {channelsMap, send} from "../api/api"
+import {channelsMap, send, userid} from "../api/api"
 import {CurrentChannel} from "../conversation/conversation";
 import autosize from "autosize/dist/autosize";
 import Popup from "reactjs-popup";
@@ -67,15 +67,14 @@ export function ChatBox(props) {
         <div style={{borderTop: props.replyingTo !== 0 ? "1px solid black" : "none"}}>{props.replyingTo !== 0 && textReply !== undefined &&
             <ReplyingTo message={textReply} removeReply={props.reply}/>}
             <div style={{background:"white", height:"max-content", width:"100%", display:"flex", alignItems:"center"}}>
-                <textarea ref={chatBoxRef} className="ChatBox" onKeyDown={keyDownHandler}>
-                </textarea>
+                <textarea placeholder="Aa" ref={chatBoxRef} className="ChatBox" onKeyDown={keyDownHandler}/>
                 <Popup position="top right" trigger={<button className="FunctionButton ImageButton"></button>}>
                     <input className="Input" onKeyDown={SendImage}/>
                 </Popup>
                 <Popup position="top right" trigger={<button className="FunctionButton VideoButton"></button>}>
                     <input className="Input" onKeyDown={SendVideo}/>
                 </Popup>
-                <button className="SendButton" onClick={sendHandler}/>
+                <button className="FunctionButton SendButton" onClick={sendHandler}/>
             </div>
         </div>
     )
@@ -91,7 +90,7 @@ function ReplyingTo(props) {
                     WebkitLineClamp: 2,
                     textOverflow: "ellipsis",
                     overflow: "hidden",
-                }}>Replying to {props.message.SenderName}
+                }}>Replying to {props.message.SenderID === userid ? 'myself' : props.message.SenderName}
                     <div style={{color: "gray"}}>
                         {props.message.Text}
                     </div>
@@ -110,7 +109,7 @@ function ReplyingTo(props) {
                     textOverflow: "ellipsis",
                     overflow: "hidden",
                     whiteSpace: "pre",
-                }}>Replying to {props.message.SenderName}
+                }}>Replying to {props.message.SenderID === userid ? 'myself' : props.message.SenderName}
                     <div style={{color: "gray"}}>
                         Image: <a href={props.message.Text} target="_blank" rel="noreferrer"> {props.message.Text}</a>
                     </div>
@@ -129,7 +128,7 @@ function ReplyingTo(props) {
                     textOverflow: "ellipsis",
                     overflow: "hidden",
                     whiteSpace: "pre",
-                }}>Replying to {props.message.SenderName}
+                }}>Replying to {props.message.SenderID === userid ? 'myself' : props.message.SenderName}
                     <div style={{color: "gray"}}>
                         Video: <a target="_blank" href={"https://www.youtube.com/watch?v=" + props.message.Text}
                                   rel="noreferrer">{"https://www.youtube.com/watch?v=" + props.message.Text}</a>

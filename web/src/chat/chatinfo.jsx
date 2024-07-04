@@ -80,13 +80,17 @@ export function ChatInfo(props) {
         await RequestChat(CurrentChannel)
         props.handler()
     }
+    if (CurrentChannel === 0) {
+        return (
+            <div className="ChatInfo"/>
+        )
+    }
     return (
         <div className="ChatInfo">
             <div style={{marginRight: "auto"}}>{channelName}</div>
             <button onClick={reload} className="ChatInfoButton Reload"/>
             <Popup position="bottom right" className="tooltip-popup" ref={ref}
                    trigger={<button className="ChatInfoButton MenuBar"/>}>
-                <div>
                     <Popup trigger={<button className="popup-button">Change Channel Name</button>}>
                         <input onKeyDown={ChangeName}/>
                     </Popup>
@@ -118,7 +122,6 @@ export function ChatInfo(props) {
                             </div>)}
                     </Popup>
                     <button onClick={DeleteChannelClick} className="popup-button">Delete Channel</button>
-                </div>
             </Popup>
         </div>
     )

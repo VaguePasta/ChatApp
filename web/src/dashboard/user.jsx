@@ -10,11 +10,19 @@ export function User(props) {
         LogOut()
         history("/login", {replace: true})
     }
+
+    function Profile() {
+        history("/profile")
+    }
+
     return (
         <div style={{width:"10%", display:"flex", flexFlow:"column"}}>
             <div style={{padding:" 5px 3px", fontSize:"20px", alignContent:"center", alignItems:"center"}}>{username}
                 <Popup trigger={<button className="User-Button"/>} nested position="bottom center">
-                    <button onClick={Logout}>Log out</button>
+                    <div style={{display:"flex", flexDirection:"column"}}>
+                        <button onClick={Profile}>Profile</button>
+                        <button onClick={Logout}>Log out</button>
+                    </div>
                 </Popup>
             </div>
             <ConversationList handler={props.handler}/>

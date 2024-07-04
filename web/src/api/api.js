@@ -218,3 +218,17 @@ export async function GetMessage(id, channel) {
          }
      )
 }
+export async function ChangePassword(oldPassword, newPassword) {
+     let log = new XMLHttpRequest()
+     log.open("POST", "http" + server + "auth/password")
+     log.withCredentials = true
+     log.setRequestHeader('Authorization', token)
+     return await makeRequest(log, JSON.stringify([oldPassword, newPassword])).then(
+         () => {
+              return 200
+         },
+         (error) => {
+              return error.Status
+         }
+     )
+}

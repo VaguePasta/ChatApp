@@ -1,4 +1,4 @@
-package db
+package connections
 
 import (
 	"context"
@@ -13,6 +13,18 @@ var Setting sonyflake.Settings
 var IdGenerator *sonyflake.Sonyflake
 var DatabaseConn *pgxpool.Pool
 
+func CheckPassword(userid int, password string) (bool, string) {
+	var _password string
+	err := DatabaseConn.QueryRow(context.Background(), "select password from users where user_id=$1", userid).Scan(&_password)
+	if err != nil {
+		return false, _password
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(_password), []byte(password))
+	if err != nil {
+		return false, _password
+	}
+	return true, _password
+}
 func CheckCredentials(username string, password string) string {
 	var userid, _username, _password string
 	err := DatabaseConn.QueryRow(context.Background(), "select user_id, username, password from users where username=$1", username).Scan(&userid, &_username, &_password)
@@ -33,12 +45,4 @@ func CheckCredentials(username string, password string) string {
 		return ""
 	}
 	return userid + "/" + token
-}
-func CheckToken(token string) int {
-	var userid int
-	err := DatabaseConn.QueryRow(context.Background(), "select user_id from sessions where session_key=$1", token).Scan(&userid)
-	if err != nil {
-		return -1
-	}
-	return userid
 }

@@ -25,7 +25,6 @@ export function Message(props) {
     }
     async function ReplyMessage() {
         props.reply(props.message.ID)
-        console.log(props.reply)
     }
     if (isDeleted && props.message.SenderID === userid) {
         return (
@@ -92,7 +91,7 @@ export function Message(props) {
                 <div style={{
                     float: "right",
                     display: "flex",
-                    maxWidth: "35%",
+                    maxWidth: "45%",
                     clear: "both",
                     margin: "5px 10px",
                     alignItems: "center"
@@ -117,7 +116,7 @@ export function Message(props) {
         } else if (props.message.Type === 'video') {
             let src = "https://www.youtube.com/embed/" + props.message.Text
             return (
-                <div style={{float: "right", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center"}}
+                <div style={{float: "right", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center", maxHeight:"fit-content"}}
                      onMouseEnter={() => showOptions(true)}
                      onMouseLeave={() => hideOptions(true)}>
                     <button ref={deleteButton} onClick={Delete} className="Button DeleteButton"/>
@@ -128,7 +127,7 @@ export function Message(props) {
                         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
                            data-tooltip-place='left' data-tooltip-delay-show={700} style={{zIndex:"2"}}>
-                            <iframe src={src} width="560px" height="315px"
+                            <iframe src={src} style={{aspectRatio:"16/9", flexShrink :"0", width:"550px", maxWidth:"550px"}}
                                     title="YouTube video player"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                     referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
@@ -176,7 +175,7 @@ export function Message(props) {
                 <div style={{
                     float: "left",
                     display: "flex",
-                    maxWidth: "35%",
+                    maxWidth: "45%",
                     clear: "both",
                     margin: "5px 10px",
                     alignItems: "center"
@@ -200,7 +199,7 @@ export function Message(props) {
         } else if (props.message.Type === 'video') {
             let src = "https://www.youtube.com/embed/" + props.message.Text
             return (
-                <div style={{float: "left", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center"}}
+                <div style={{float: "left", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center", maxHeight:"fit-content"}}
                      onMouseEnter={() => showOptions(false)}
                      onMouseLeave={() => hideOptions(false)}>
                     <div style={{display: "flex", flexDirection: "column"}}>
@@ -210,7 +209,7 @@ export function Message(props) {
                             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                             <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
                                data-tooltip-place='left' data-tooltip-delay-show={700} style={{zIndex: "2"}}>
-                                <iframe src={src} width="560px" height="315px"
+                                <iframe src={src} style={{aspectRatio:"16/9", flexShrink :"0", width:"550px", maxWidth:"550px"}}
                                         title="YouTube video player"
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                         referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>

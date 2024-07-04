@@ -84,7 +84,7 @@ export function RegisterPrompt() {
                        onChange={InputChangeHandler}/>
             <div style={{flex:"1", marginBottom:5}}>
                 {capslock ? <label className="InfoLabel" style={{fontSize: 14, marginLeft: 5, color: "green"}}>Caps Lock is on.</label> : false}
-                {passwordMismatch ? <label style={{fontSize: 16, marginLeft: 5, color: "red"}}>Password does not match.</label> : null}
+                {passwordMismatch ? <label style={{fontSize: 16, marginLeft: 5, color: "red"}}>Passwords do not match.</label> : null}
                 {(registered && submit) ? <label style={{fontSize: 16, marginLeft: 5, color: "green"}}>Successfully Registered. Redirecting...</label> : null}
                 {(!registered && submit) ? <label style={{fontSize: 16, marginLeft: 5, color: "red"}}>User already existed.</label> : null}
             </div>

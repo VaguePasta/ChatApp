@@ -1,0 +1,27 @@
+.PasswordPrompt {
+  margin: 5px 2px 0 2px;
+  padding: 5px;
+  font-size: 15px;
+  font-family: "Open Sans", sans-serif;
+  outline: none;
+  border: 1px solid gray;
+}
+.PasswordPrompt:focus {
+  outline: 2px solid black;
+}
+.ConfirmButton {
+  background: #CD5C5C;
+  color: white;
+  border: solid 1px #CD5C5C;
+  padding: 5px;
+  font-size: 15px;
+  display: block;
+}
+.ConfirmButton:hover {
+  background: #DC143C;
+  border: solid 1px black;
+}
+.ConfirmButton:active {
+  background: #B22222;
+  border: solid 1px black;
+}

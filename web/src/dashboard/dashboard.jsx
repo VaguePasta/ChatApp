@@ -74,7 +74,6 @@ export function Dashboard() {
                     <ChatHistory handler={handler}/>
                 </div>
             </CurrentChatContext.Provider>
-            <ToastContainer autoClose={3500} limit={5}/>
         </div>
     )
 }

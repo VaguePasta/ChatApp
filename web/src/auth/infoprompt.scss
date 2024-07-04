@@ -31,6 +31,10 @@
   border-radius: 30px;
   margin: 10px auto;
   flex: 1;
+  outline: none;
+}
+.InfoText:focus {
+  border-color: black;
 }
 .SubmitButton {
   font-family: "Open Sans", sans-serif;
@@ -40,10 +44,10 @@
   font-variation-settings: "wdth" 100;
   background-color:#5288f1;
   color: white;
-  margin: 10% auto;
-  padding: 15px 15px 15px 15px;
+  margin: 5% auto;
+  padding: 18px;
   border: none;
-  width:25%;
+  width: fit-content;
   display: block;
   border-radius: 30px;
   font-size: 15px;
