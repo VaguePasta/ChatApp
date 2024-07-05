@@ -17,12 +17,8 @@ var Upgrader = websocket.Upgrader{
 func ServeWs(pool *connections.Pool, w http.ResponseWriter, r *http.Request) {
 	token := mux.Vars(r)["token"]
 	var userid int
-	err := connections.DatabaseConn.QueryRow(context.Background(), "select user_id from sessions where session_key = $1", token).Scan(&userid)
-	if err != nil {
-		return
-	}
 	var username string
-	err = connections.DatabaseConn.QueryRow(context.Background(), "update users set is_active = true where user_id = $1 returning username", userid).Scan(&username)
+	err := connections.DatabaseConn.QueryRow(context.Background(), "select users.user_id, username from sessions inner join users on sessions.user_id = users.user_id where session_key = $1", token).Scan(&userid, &username)
 	if err != nil {
 		return
 	}

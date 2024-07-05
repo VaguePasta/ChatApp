@@ -128,13 +128,17 @@ export async function RequestChatMember(CurrentChannel) {
          }
      )
 }
-export async function CreateChannel(users) {
-     users.unshift(username)
+export async function CreateChannel(channel, users) {
+     users.unshift([username, String(userid)])
+     let userIDList = []
+     users.forEach((user) => userIDList.push(user[1]))
+     userIDList.unshift(channel)
+     console.log(userIDList)
      let log = new XMLHttpRequest()
      log.withCredentials = true;
      log.open("POST", "http" + server + "channel/create", true)
      log.setRequestHeader('Authorization', token)
-     let result = await makeRequest(log, JSON.stringify(users))
+     let result = await makeRequest(log, JSON.stringify(userIDList))
      return result.Status === 201
 }
 export async function DeleteChannel(channel) {
@@ -157,11 +161,11 @@ export async function SearchUser(_username) {
      log.withCredentials = true;
      log.setRequestHeader('Authorization', token)
      return await makeRequest(log,null).then(
-         () => {
-              return true
+         (result) => {
+              return result
          },
-         () => {
-               return false
+         (error) => {
+               return error
          }
      )
 }
@@ -231,4 +235,7 @@ export async function ChangePassword(oldPassword, newPassword) {
               return error.Status
          }
      )
+}
+export async function RequestUserInfo() {
+     return "12/12/2022"
 }

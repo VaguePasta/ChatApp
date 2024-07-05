@@ -21,7 +21,6 @@
 }
 .modal-popup-content {
     position: absolute;
-    margin: auto;
     top: 0;
     right: 0;
     bottom: 0;
@@ -61,6 +60,7 @@
     font-size: 14px;
     border-radius: 10px 10px 0 0;
     background: #eeeff3;
+    flex-shrink: 0;
 }
 .input:focus {
     outline: none;

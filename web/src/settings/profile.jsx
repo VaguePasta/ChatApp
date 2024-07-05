@@ -3,13 +3,15 @@ import Popup from "reactjs-popup";
 import {ErrorNotification, SuccessNotification} from "../dashboard/notifications";
 import React, {useRef, useState} from "react";
 import {Navigate} from "react-router-dom";
-import {ChangePassword, token} from "../api/api";
+import {ChangePassword, RequestUserInfo, token} from "../api/api";
+import {username} from "../auth/login";
 export function Profile() {
     if (token === "0") {
         return <Navigate replace to="/login"/>
     }
     return (
         <div>
+            <UserInfo/>
             <ChangePasswordPrompt/>
         </div>
     )
@@ -118,6 +120,23 @@ function ChangePasswordPrompt() {
                     </div>
                 </div>
             </Popup>
+        </div>
+    )
+}
+function UserInfo() {)
+    async function GetJoinDate() {
+        if (memberSince === "") {
+            let response = await RequestUserInfo()
+            if (response === false) {
+                ErrorNotification("user-info-error", "Some error happened. Please try again.")
+            }
+            else return response
+        }
+    }
+    return (
+        <div style={{display:"flex", height:"50%", width:"40%", border:"1px solid black"}}>
+            {username}
+            {memberSince !== "" && <div>{memberSince}</div>}
         </div>
     )
 }

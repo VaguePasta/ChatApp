@@ -13,6 +13,8 @@ export function ChatHistory(props) {
     const [isNotOnBottom, notOnBottom] = useState(false)
     const [replyTo, reply] = useState(0)
     useEffect(() => {
+        onTop(false)
+        notOnBottom(false)
         reply(0)
         if (!history.LoadOldMessage) setTimeout(() => refs.current.scrollIntoView());
     }, [history]);

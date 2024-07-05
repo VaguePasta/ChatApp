@@ -21,14 +21,13 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
-	var userid int
-	err := connections.DatabaseConn.QueryRow(context.Background(), "select user_id from sessions where session_key=$1", token).Scan(&userid)
-	if err != nil {
+	user, ok := connections.ConnectionPool.Clients.Get(token)
+	if !ok {
 		w.WriteHeader(404)
 		return
 	}
 	var channelIDs []Channel
-	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channel_id, title from channels where channel_id in (select channel_id from participants where user_id = $1) order by last_message", userid)
+	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channel_id, title from channels where channel_id in (select channel_id from participants where user_id = $1) order by last_message", user.ID)
 	for channels.Next() {
 		var channelID int
 		var title string
@@ -64,11 +63,13 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 	}
 	createTime, _ := connections.IdGenerator.NextID()
 	var channelId string
-	err = connections.DatabaseConn.QueryRow(context.Background(), "insert into channels (title, create_date, last_message) values ($1, (select current_date), $2) returning channel_id", arr[0]+"'s chat", createTime).Scan(&channelId)
+	channelName := arr[0]
+	err = connections.DatabaseConn.QueryRow(context.Background(), "insert into channels (title, create_date, last_message) values ($1, (select current_date), $2) returning channel_id", channelName, createTime).Scan(&channelId)
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
+	arr = arr[1:]
 	for index, element := range arr {
 		var privilege string
 		if index == 0 {
@@ -76,12 +77,7 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		} else {
 			privilege = "member"
 		}
-		var userId string
-		err := connections.DatabaseConn.QueryRow(context.Background(), "select user_id from users where username = $1", element).Scan(&userId)
-		if err != nil {
-			continue
-		}
-		_, err = connections.DatabaseConn.Exec(context.Background(), "insert into participants (user_id, channel_id, privilege) values ($1, $2, $3)", userId, channelId, privilege)
+		_, err = connections.DatabaseConn.Exec(context.Background(), "insert into participants (user_id, channel_id, privilege) values ($1, $2, $3)", element, channelId, privilege)
 		if err != nil {
 			continue
 		}

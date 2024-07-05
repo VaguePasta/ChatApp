@@ -4,7 +4,6 @@ import (
 	"ChatApp/internal/connections"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 	"io"
@@ -18,17 +17,16 @@ func SearchUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userName := mux.Vars(r)["username"]
-	var exists bool
-	err := connections.DatabaseConn.QueryRow(context.Background(), "select exists(select 1 from users where username = $1)", userName).Scan(&exists)
+	var userid int
+	err := connections.DatabaseConn.QueryRow(context.Background(), "select user_id from users where username = $1 limit 1", userName).Scan(&userid)
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(404)
 		return
 	}
-	if exists {
-		w.WriteHeader(200)
-		return
-	}
-	w.WriteHeader(404)
+	w.WriteHeader(200)
+	bytes, _ := json.Marshal(userid)
+	_, _ = w.Write(bytes)
+	return
 }
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	SetOrigin(w, r)
@@ -61,7 +59,6 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(arr[1]), bcrypt.DefaultCost)
 	_, err = connections.DatabaseConn.Exec(context.Background(), "update users set password = $1 where user_id = $2", hashedPassword, user.ID)
 	if err != nil {
-		fmt.Println(err)
 		w.WriteHeader(400)
 		return
 	}
