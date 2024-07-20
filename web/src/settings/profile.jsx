@@ -1,16 +1,18 @@
 import "./profile.scss"
 import Popup from "reactjs-popup";
 import {ErrorNotification, SuccessNotification} from "../dashboard/notifications";
-import React, {useRef, useState} from "react";
-import {Navigate} from "react-router-dom";
-import {ChangePassword, RequestUserInfo, token} from "../api/api";
+import React, {useEffect, useRef, useState} from "react";
+import {Navigate, useNavigate} from "react-router-dom";
+import {ChangePassword, channels, RequestUserInfo, token, userid} from "../api/api";
 import {username} from "../auth/login";
 export function Profile() {
+    const navigate = useNavigate()
     if (token === "0") {
         return <Navigate replace to="/login"/>
     }
     return (
         <div>
+            <button onClick={() => {navigate("/dashboard", {replace: true})}} className="BackButton"/>
             <UserInfo/>
             <ChangePasswordPrompt/>
         </div>
@@ -123,20 +125,33 @@ function ChangePasswordPrompt() {
         </div>
     )
 }
-function UserInfo() {)
-    async function GetJoinDate() {
-        if (memberSince === "") {
-            let response = await RequestUserInfo()
-            if (response === false) {
-                ErrorNotification("user-info-error", "Some error happened. Please try again.")
-            }
-            else return response
+function UserInfo() {
+    const [joinDate, setJoinDate] = useState(null)
+    useEffect(() => {
+        if (joinDate === null) {
+            GetJoinDate().then((result) => setJoinDate(result))
         }
+    }, [joinDate]);
+    async function GetJoinDate() {
+        let response = await RequestUserInfo()
+        if (response === false) {
+            ErrorNotification("user-info-error", "Some error happened. Please try again.")
+        }
+        else return response
     }
     return (
-        <div style={{display:"flex", height:"50%", width:"40%", border:"1px solid black"}}>
+        <div style={{
+            display:"flex",
+            width:"20%",
+            border:"1px solid black",
+            flexDirection:"column",
+            marginBottom : "12px",
+            padding: "5px"
+        }}>
             {username}
-            {memberSince !== "" && <div>{memberSince}</div>}
+            <div>#{userid}</div>
+            {joinDate !== null ? <div>Member since: {joinDate}</div> : <div>Member since: N/A<button>Reload</button></div>}
+            <div>Member of {channels.length} {(channels.length <= 1) ? 'channel.' : 'channels.'}</div>
         </div>
     )
 }

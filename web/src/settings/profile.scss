@@ -25,3 +25,18 @@
   background: #B22222;
   border: solid 1px black;
 }
+.BackButton {
+  background-image: url("../../static/icons/back.png");
+  background-repeat: no-repeat;
+  background-size: 80% 80%;
+  background-position: center;
+  background-color: transparent;
+  margin: 5px 0 10px 0;
+  border: none;
+  aspect-ratio: 1/1;
+  width: 2.2%;
+  border-radius: 5px;
+}
+.BackButton:hover {
+  background-color: lightgray;
+}

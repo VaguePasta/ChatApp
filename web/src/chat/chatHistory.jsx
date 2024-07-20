@@ -4,7 +4,7 @@ import {Message} from "./message";
 import {CurrentChatContext} from "../dashboard/dashboard";
 import {ChatInfo} from "./chatinfo";
 import ChatBox from "./chatbox";
-import {RequestChat} from "../api/api";
+import {channelsMap, RequestChat} from "../api/api";
 import {CurrentChannel} from "../conversation/conversation";
 export function ChatHistory(props) {
     const history = useContext(CurrentChatContext)
@@ -16,8 +16,16 @@ export function ChatHistory(props) {
         onTop(false)
         notOnBottom(false)
         reply(0)
+        if (channelsMap[CurrentChannel] === null) {
+            channelsMap[CurrentChannel] = []
+            RequestChat(CurrentChannel).then(props.handler)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [history.Current]);
+    useEffect(() => {
         if (!history.LoadOldMessage) setTimeout(() => refs.current.scrollIntoView());
-    }, [history]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [history.Content]);
     function ScrollHandler(e) {
         if (e.currentTarget.clientHeight < e.currentTarget.scrollHeight) {
             if (e.currentTarget.scrollTop === 0) {
@@ -34,18 +42,16 @@ export function ChatHistory(props) {
         }
     }
     function LoadChat() {
-        RequestChat(CurrentChannel)
-        onTop(false)
+        RequestChat(CurrentChannel).then(() => onTop(false))
     }
 
     function ScrollToBottom() {
         setTimeout(() => refs.current.scrollIntoView());
     }
-
     return (
         <div className="ChatWindow">
-            <ChatInfo handler={props.handler}></ChatInfo>
-            <div className="ChatHistory" onScroll={ScrollHandler}>
+            <ChatInfo handler={props.handler}/>
+            {history.Content !== null ? <div className="ChatHistory" onScroll={ScrollHandler}>
                 {isOnTop && <button onClick={LoadChat} className="UpDownButton LoadMore"/>}
                 {history.Content.map(msg => <Message key={msg.ID} reply={reply} message={msg} handler={props.handler}/>)}
                 <div ref={refs} style={{clear: "both"}}/>
@@ -53,7 +59,7 @@ export function ChatHistory(props) {
                     bottom : (replyTo === 0) ? '8%' : '15%',
                 }}
                 onClick={ScrollToBottom} className={"UpDownButton ScrollToBottom " + (replyTo !== 0 && "Rep")}/>}
-            </div>
+            </div> : <div className="ChatHistory">Loading...</div>}
             {CurrentChannel !== 0 && <ChatBox replyingTo={replyTo} reply={reply}/>}
         </div>
     );

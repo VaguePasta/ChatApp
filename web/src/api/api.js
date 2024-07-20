@@ -51,7 +51,6 @@ export async function LogIn(_username, _password) {
               token = "0"
          }
      )
-     if (token !== "0") await RequestChannelList()
 }
 export async function Register(_username, _password) {
      let log = new XMLHttpRequest();
@@ -67,7 +66,7 @@ export async function Register(_username, _password) {
      )
 }
 export let send = msg => {
-     socket.send(msg);
+          socket.send(msg);
 };
 export function SaveMessage(message) {
      if (channelsMap[message.Channel].some(e => e.ID === message.ID)) return
@@ -96,14 +95,14 @@ export async function RequestChannelList() {
      if (result.Response !== 'null') {
           channels = JSON.parse(result.Response)
           channels.forEach((element) => {
-               channelsMap[element.ChannelID] = []
+               channelsMap[element.ChannelID] = null
           })
      }
      else {
           channels = []
      }
 }
-export function RequestChat(CurrentChannel) {
+export async function RequestChat(CurrentChannel) {
      let log = new XMLHttpRequest()
      let lastMessage = "0"
      if (channelsMap[CurrentChannel].length !== 0) {
@@ -112,7 +111,7 @@ export function RequestChat(CurrentChannel) {
      log.open("GET", "http" + server + "message/read/" + CurrentChannel + "/" + lastMessage, true)
      log.withCredentials = true;
      log.setRequestHeader('Authorization', token)
-     log.send()
+     await makeRequest(log, null)
 }
 export async function RequestChatMember(CurrentChannel) {
      let log = new XMLHttpRequest()
@@ -133,7 +132,6 @@ export async function CreateChannel(channel, users) {
      let userIDList = []
      users.forEach((user) => userIDList.push(user[1]))
      userIDList.unshift(channel)
-     console.log(userIDList)
      let log = new XMLHttpRequest()
      log.withCredentials = true;
      log.open("POST", "http" + server + "channel/create", true)
@@ -237,5 +235,5 @@ export async function ChangePassword(oldPassword, newPassword) {
      )
 }
 export async function RequestUserInfo() {
-     return "12/12/2022"
+     return "2024/7/16"
 }

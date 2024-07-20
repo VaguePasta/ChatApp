@@ -135,8 +135,7 @@ func DeleteMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(200)
 }
 func SendToChannel(pool *connections.Pool, textMessage *system.Message) {
-	query := "INSERT INTO messages(message_id, channel_id, sender_id, type, message) VALUES (@messageID, @channelID, @senderID, @messageType ,@content);" +
-		"update channels set last_message = @messageID where channel_id = @channelID"
+	query := "INSERT INTO messages(message_id, channel_id, sender_id, type, message) VALUES (@messageID, @channelID, @senderID, @messageType ,@content);"
 	args := pgx.NamedArgs{
 		"messageID":   textMessage.ID,
 		"channelID":   textMessage.ChannelID,
@@ -145,14 +144,17 @@ func SendToChannel(pool *connections.Pool, textMessage *system.Message) {
 		"content":     textMessage.Content,
 	}
 	_, err := connections.DatabaseConn.Exec(context.Background(), query, args)
+	query = "update channels set last_message = @messageID where channel_id = @channelID"
+	_, err = connections.DatabaseConn.Exec(context.Background(), query, args)
 	if err != nil {
 		return
 	}
 	if textMessage.ReplyTo != 0 {
-		_, err := connections.DatabaseConn.Exec(context.Background(), "insert into replies values($1, $2); update channels set last_message = $3 where channel_id = $4", textMessage.ReplyTo, textMessage.ID)
+		_, err := connections.DatabaseConn.Exec(context.Background(), "insert into replies values($1, $2); ", textMessage.ReplyTo, textMessage.ID)
 		if err != nil {
 			return
 		}
+		_, err = connections.DatabaseConn.Exec(context.Background(), "update channels set last_message = $1 where channel_id = $2", textMessage.ID, textMessage.ChannelID)
 	}
 	onlineUsers, err := connections.DatabaseConn.Query(context.Background(), "select session_key from sessions inner join participants on sessions.user_id = participants.user_id where participants.channel_id = $1", textMessage.ChannelID)
 	defer onlineUsers.Close()

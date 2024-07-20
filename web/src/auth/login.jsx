@@ -27,7 +27,7 @@ export function LogInPrompt() {
             LogIn(Username.current.value,Password.current.value).then(() => {
                 if (token !== "0") {
                     username = Username.current.value
-                    history("/dashboard")
+                    history("/dashboard", {replace: true})
                 }
                 else credential(true)
             })
@@ -39,7 +39,7 @@ export function LogInPrompt() {
             LogIn(Username.current.value,Password.current.value).then(() => {
                 if (token !== "0") {
                     username = Username.current.value
-                    history("/dashboard")
+                    history("/dashboard", {replace: true})
                 }
                 else credential(true)
             })

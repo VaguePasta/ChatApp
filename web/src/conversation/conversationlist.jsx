@@ -13,7 +13,6 @@ export function ConversationList(props) {
     const ChannelName = useRef(null)
     const [channelList, updateList] = useState(channels)
     const [userList, changeUserList] = useState([])
-
     async function keyDownHandler(e) {
         if (e.key === 'Enter' && e.target.value !== "") {
             e.preventDefault()
@@ -31,7 +30,6 @@ export function ConversationList(props) {
             let response = await SearchUser(e.target.value)
             if (response.Status === 200) {
                 let user_id = response.Response
-                console.log(user_id)
                 changeUserList([...userList, [e.target.value, user_id]])
                 e.target.value = ''
             } else {

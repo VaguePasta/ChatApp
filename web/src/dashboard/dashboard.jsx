@@ -6,13 +6,15 @@ import "./dashboard.scss"
 import React, {createContext, useEffect, useRef, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
 import Popup from "reactjs-popup";
-import {ToastContainer} from "react-toastify";
 export const CurrentChatContext = createContext({Current:0, Channels: [], Content: [], LoadOldMessage: false})
 export function Dashboard() {
     const ref = useRef()
     let history = useNavigate()
     const [channelHistory,update] = useState({Current: 0, Channels: [], Content: [], LoadOldMessage: false})
     function onMessage(message) {
+        if (channelsMap[message.Channel] === null) {
+            channelsMap[message.Channel] = []
+        }
         SaveMessage(message)
         if (message.isNew === true) {
             updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel))

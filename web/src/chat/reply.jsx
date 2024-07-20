@@ -3,12 +3,11 @@ import {channelsMap, GetMessage} from "../api/api";
 import {useState} from "react";
 
 export function Reply(props) {
+    const [loaded, load] = useState(false)
     const [message, replyTo] = useState(channelsMap[CurrentChannel].find(element => element.ID === props.ID))
-    async function GetMissingMessage() {
-        await GetMessage(props.ID, CurrentChannel)
-    }
-    if (message === undefined) {
-        GetMissingMessage().then(() => replyTo(channelsMap[CurrentChannel].find(element => element.ID === props.ID)))
+    if (message === undefined && !loaded) {
+        GetMessage(props.ID, CurrentChannel).then(() => replyTo(channelsMap[CurrentChannel].find(element => element.ID === props.ID)))
+        if (!loaded) load(true)
     }
     return (
         <div style={{

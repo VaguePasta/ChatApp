@@ -77,8 +77,7 @@ export function ChatInfo(props) {
     }
     async function reload() {
         channelsMap[CurrentChannel] = []
-        await RequestChat(CurrentChannel)
-        props.handler()
+        RequestChat(CurrentChannel).then(() => props.handler())
     }
     if (CurrentChannel === 0) {
         return (
