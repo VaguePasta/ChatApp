@@ -1,6 +1,6 @@
 import "./message.scss"
 import {Tooltip} from "react-tooltip";
-import {DeleteMessage, removeMessage, userid} from "../api/api";
+import {DeleteMessage, removeMessage, user} from "../api/api";
 import Linkify from "react-linkify";
 import {useRef, useState} from "react";
 import {Reply} from "./reply";
@@ -26,7 +26,7 @@ export function Message(props) {
     async function ReplyMessage() {
         props.reply(props.message.ID)
     }
-    if (isDeleted && props.message.SenderID === userid) {
+    if (isDeleted && props.message.SenderID === user.userid) {
         return (
             <div style={{
                 float: "right",
@@ -52,7 +52,7 @@ export function Message(props) {
             </div>
         )
     }
-    if (props.message.SenderID === userid) {
+    if (props.message.SenderID === user.userid) {
         if (props.message.Type === 'text') {
             return (
                 <div style={{

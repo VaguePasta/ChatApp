@@ -1,12 +1,11 @@
-import {channels, CreateChannel, RequestChannelList, SearchUser} from "../api/api";
+import {channels, CreateChannel, RequestChannelList, SearchUser, user} from "../api/api";
 import {Conversation} from "./conversation";
 import "./conversationlist.scss"
 import "./conversation.scss"
 import {useContext, useEffect, useRef, useState} from "react";
 import Popup from "reactjs-popup";
-import {CurrentChatContext} from "../dashboard/dashboard";
 import {ErrorNotification} from "../dashboard/notifications";
-import {username} from "../auth/login";
+import {CurrentChatContext} from "../dashboard/dashboard";
 export function ConversationList(props) {
     const list = useContext(CurrentChatContext)
     const ref = useRef()
@@ -17,7 +16,7 @@ export function ConversationList(props) {
         if (e.key === 'Enter' && e.target.value !== "") {
             e.preventDefault()
             e.stopPropagation()
-            if (e.target.value === username) {
+            if (e.target.value === user.username) {
                 ErrorNotification("error-already-in", "You are already in the channel.")
                 return
             }
@@ -45,7 +44,7 @@ export function ConversationList(props) {
         CreateChannel(ChannelName.current.value, userList).then(
             () => {
                 RequestChannelList().then(
-                    () => props.handler()
+                    () => props.handler(false, true, true, false)
                 )
                 ref.current.close()
             }
@@ -56,8 +55,8 @@ export function ConversationList(props) {
         changeUserList(userList.filter((_user) => _user !== user))
     }
     useEffect(() => {
-        updateList(channels)
-    }, [list]);
+        updateList([...channels])
+    }, [list.Channels]);
     return (
         <div className="ConversationList">
             <Popup position="right center" className="modal-popup"

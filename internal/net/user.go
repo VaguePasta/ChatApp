@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"net/http"
@@ -63,4 +64,22 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(200)
+}
+func GetUserInfo(w http.ResponseWriter, r *http.Request) {
+	SetOrigin(w, r)
+	if CheckToken(r.Header.Get("Authorization")) == -1 {
+		w.WriteHeader(401)
+		return
+	}
+	userID := mux.Vars(r)["userid"]
+	var joinDate pgtype.Date
+	err := connections.DatabaseConn.QueryRow(context.Background(), "select register_at from users where user_id = $1", userID).Scan(&joinDate)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	_, err = w.Write([]byte(joinDate.Time.Format("02/01/2006")))
+	if err != nil {
+		return
+	}
 }

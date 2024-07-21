@@ -68,7 +68,7 @@ export function ChatInfo(props) {
             if (await ChangeChannelName(CurrentChannel, e.target.value) === true) {
                 changeName(e.target.value)
                 await RequestChannelList()
-                props.handler()
+                props.handler(false, true, false, false)
             }
             else {
                 ErrorNotification("no-privilege", "Admin privilege required.")
@@ -77,7 +77,7 @@ export function ChatInfo(props) {
     }
     async function reload() {
         channelsMap[CurrentChannel] = []
-        RequestChat(CurrentChannel).then(() => props.handler())
+        RequestChat(CurrentChannel).then(() => props.handler(false, false, false, false))
     }
     if (CurrentChannel === 0) {
         return (

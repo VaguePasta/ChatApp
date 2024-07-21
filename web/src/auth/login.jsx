@@ -1,8 +1,7 @@
 import {createRef, useState} from "react";
 import "./infoprompt.scss"
-import {LogIn, token} from "../api/api";
+import {LogIn, UpdateUsername, user} from "../api/api";
 import {Navigate, useNavigate} from "react-router-dom";
-export let username = ''
 export function LogInPrompt() {
     let history = useNavigate()
     let Username = createRef()
@@ -25,8 +24,8 @@ export function LogInPrompt() {
     function PasswordHandler(e) {
         if (e.key === 'Enter' && Password.current.value !== '' && Username.current.value !== '') {
             LogIn(Username.current.value,Password.current.value).then(() => {
-                if (token !== "0") {
-                    username = Username.current.value
+                if (user.token !== "0") {
+                    user.username = Username.current.value
                     history("/dashboard", {replace: true})
                 }
                 else credential(true)
@@ -37,8 +36,8 @@ export function LogInPrompt() {
     function LoginClick() {
         if (Username.current.value !== '' && Password.current.value !== '') {
             LogIn(Username.current.value,Password.current.value).then(() => {
-                if (token !== "0") {
-                    username = Username.current.value
+                if (user.token !== "0") {
+                    UpdateUsername(Username.current.value)
                     history("/dashboard", {replace: true})
                 }
                 else credential(true)
@@ -48,7 +47,7 @@ export function LogInPrompt() {
     function InputChangeHandler() {
         if (wrongCredential) credential(false)
     }
-    if (token !== "0") {
+    if (user.token !== "0") {
         return (
              <Navigate replace to="/dashboard"/>
         )

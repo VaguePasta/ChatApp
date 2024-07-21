@@ -41,7 +41,7 @@ func (client *Client) Read(pool *connections.Pool) {
 		var message Result
 		err = json.Unmarshal(content, &message)
 		if err != nil {
-			continue
+			return
 		}
 		ID, _ := connections.IdGenerator.NextID()
 		textMessage := system.Message{
@@ -144,8 +144,7 @@ func SendToChannel(pool *connections.Pool, textMessage *system.Message) {
 		"content":     textMessage.Content,
 	}
 	_, err := connections.DatabaseConn.Exec(context.Background(), query, args)
-	query = "update channels set last_message = @messageID where channel_id = @channelID"
-	_, err = connections.DatabaseConn.Exec(context.Background(), query, args)
+	_, err = connections.DatabaseConn.Exec(context.Background(), "update channels set last_message = $1 where channel_id = $2", textMessage.ID, textMessage.ChannelID)
 	if err != nil {
 		return
 	}

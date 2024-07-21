@@ -18,12 +18,12 @@ export function ChatHistory(props) {
         reply(0)
         if (channelsMap[CurrentChannel] === null) {
             channelsMap[CurrentChannel] = []
-            RequestChat(CurrentChannel).then(props.handler)
+            RequestChat(CurrentChannel).then(() => props.handler(false, true, true, true))
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [history.Current]);
     useEffect(() => {
-        if (!history.LoadOldMessage) setTimeout(() => refs.current.scrollIntoView());
+        if (history.NewMessage) setTimeout(() => refs.current.scrollIntoView());
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [history.Content]);
     function ScrollHandler(e) {
@@ -42,7 +42,10 @@ export function ChatHistory(props) {
         }
     }
     function LoadChat() {
-        RequestChat(CurrentChannel).then(() => onTop(false))
+        RequestChat(CurrentChannel).then(() => {
+            onTop(false)
+            props.handler(false, false, true, false)
+        })
     }
 
     function ScrollToBottom() {
@@ -59,7 +62,11 @@ export function ChatHistory(props) {
                     bottom : (replyTo === 0) ? '8%' : '15%',
                 }}
                 onClick={ScrollToBottom} className={"UpDownButton ScrollToBottom " + (replyTo !== 0 && "Rep")}/>}
-            </div> : <div className="ChatHistory">Loading...</div>}
+            </div> :
+                <div className="ChatHistory">
+                    Loading...
+                    <div ref={refs} style={{clear: "both"}}/>
+                </div>}
             {CurrentChannel !== 0 && <ChatBox replyingTo={replyTo} reply={reply}/>}
         </div>
     );

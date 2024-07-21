@@ -8,7 +8,7 @@ export function Conversation(props) {
     let thisButton = createRef()
     function ChooseChannel() {
         CurrentChannel = props.ChannelID
-        props.handler()
+        props.handler(true, false, true, false)
     }
     return (
         CurrentChannel === props.ChannelID ?

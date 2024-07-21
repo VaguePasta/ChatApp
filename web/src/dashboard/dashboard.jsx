@@ -1,29 +1,28 @@
 import {ChatHistory} from "../chat/chatHistory";
-import {channels, channelsMap, Decompress, LogOut, RequestChannelList, SaveMessage, socket, token} from "../api/api";
+import {channels, channelsMap, Decompress, LogOut, RequestChannelList, SaveMessage, socket, user} from "../api/api";
 import {Navigate, useNavigate} from "react-router-dom";
 import {User} from "./user"
 import "./dashboard.scss"
 import React, {createContext, useEffect, useRef, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
 import Popup from "reactjs-popup";
-export const CurrentChatContext = createContext({Current:0, Channels: [], Content: [], LoadOldMessage: false})
+export const CurrentChatContext = createContext({Current:0, Channels: [], Content: [], NewMessage: false})
 export function Dashboard() {
     const ref = useRef()
     let history = useNavigate()
-    const [channelHistory,update] = useState({Current: 0, Channels: [], Content: [], LoadOldMessage: false})
+    const [channelHistory,update] = useState({Current: 0, Channels: [], Content: [], NewMessage: false})
     function onMessage(message) {
         if (channelsMap[message.Channel] === null) {
             channelsMap[message.Channel] = []
         }
         SaveMessage(message)
-        if (message.isNew === true) {
+        if (message.IsNew === true) {
             updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel))
-            if (message.Channel === CurrentChannel) {
-                handler(false)
-            }
+            if (message.Channel === CurrentChannel) handler(false, true, true, true)
+            else handler(false, true, false, false)
         }
         else if (message.Channel === CurrentChannel) {
-            handler(true)
+            handler(false, true, true, false)
         }
     }
     useEffect(() => {
@@ -41,7 +40,7 @@ export function Dashboard() {
             }
         }
         socket.onerror = () => {
-            if (token !== "0") {
+            if (user.token !== "0") {
                 ref.current.open()
             }
         }
@@ -53,15 +52,15 @@ export function Dashboard() {
         LogOut()
         history("/login", {replace: true})
     }
-    function handler(load) {
+    function handler(c_channel, l_channel, cnt_channel, load) {
         update({
-            Current: CurrentChannel,
-            Channels: channels,
-            Content: channelsMap[CurrentChannel],
-            LoadOldMessage: load,
+            Current: c_channel !== false ? CurrentChannel : channelHistory.Current,
+            Channels: l_channel !== false ? [...channels] : channelHistory.Channels,
+            Content: cnt_channel !== false ? (channelsMap[CurrentChannel] !== null ? [...channelsMap[CurrentChannel]] : null) : channelHistory.Content,
+            NewMessage: load,
         })
     }
-    if (token === "0") {
+    if (user.token === "0") {
         return <Navigate replace to="/login"/>
     }
     return (

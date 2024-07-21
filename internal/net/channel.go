@@ -27,7 +27,7 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var channelIDs []Channel
-	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channel_id, title from channels where channel_id in (select channel_id from participants where user_id = $1) order by last_message", user.ID)
+	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channel_id, title from channels where channel_id in (select channel_id from participants where user_id = $1) order by last_message desc", user.ID)
 	for channels.Next() {
 		var channelID int
 		var title string

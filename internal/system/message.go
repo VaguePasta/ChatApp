@@ -18,7 +18,7 @@ type Message struct {
 	ReplyTo    uint64
 }
 type SendMessage struct {
-	isNew      bool
+	IsNew      bool
 	ID         uint64
 	TimeStamp  string
 	Type       string
@@ -44,7 +44,7 @@ func Compress(src []byte) []byte {
 }
 func ToJSON(message Message, _isNew bool) []byte {
 	jsonified, _ := json.Marshal(SendMessage{
-		isNew:      _isNew,
+		IsNew:      _isNew,
 		ID:         message.ID,
 		SenderID:   message.SenderID,
 		SenderName: message.SenderName,

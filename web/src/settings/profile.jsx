@@ -3,11 +3,10 @@ import Popup from "reactjs-popup";
 import {ErrorNotification, SuccessNotification} from "../dashboard/notifications";
 import React, {useEffect, useRef, useState} from "react";
 import {Navigate, useNavigate} from "react-router-dom";
-import {ChangePassword, channels, RequestUserInfo, token, userid} from "../api/api";
-import {username} from "../auth/login";
+import {ChangePassword, channels, RequestUserInfo, user} from "../api/api";
 export function Profile() {
     const navigate = useNavigate()
-    if (token === "0") {
+    if (user.token === "0") {
         return <Navigate replace to="/login"/>
     }
     return (
@@ -126,18 +125,21 @@ function ChangePasswordPrompt() {
     )
 }
 function UserInfo() {
-    const [joinDate, setJoinDate] = useState(null)
+    const [joinDate, setJoinDate] = useState(user.joinDate)
     useEffect(() => {
-        if (joinDate === null) {
-            GetJoinDate().then((result) => setJoinDate(result))
+        if (user.joinDate === null) {
+            GetJoinDate().then((result) => {
+                if (result) setJoinDate(user.joinDate)
+            })
         }
-    }, [joinDate]);
+    }, []);
     async function GetJoinDate() {
-        let response = await RequestUserInfo()
+        let response = await RequestUserInfo(user.userid)
         if (response === false) {
             ErrorNotification("user-info-error", "Some error happened. Please try again.")
+            return false
         }
-        else return response
+        return true
     }
     return (
         <div style={{
@@ -148,8 +150,8 @@ function UserInfo() {
             marginBottom : "12px",
             padding: "5px"
         }}>
-            {username}
-            <div>#{userid}</div>
+            {user.username}
+            <div>#{user.userid}</div>
             {joinDate !== null ? <div>Member since: {joinDate}</div> : <div>Member since: N/A<button>Reload</button></div>}
             <div>Member of {channels.length} {(channels.length <= 1) ? 'channel.' : 'channels.'}</div>
         </div>
