@@ -14,6 +14,7 @@ export function ChatBox(props) {
             chatBoxRef.current.value = ''
             chatBoxRef.current.focus()
             autosize.update(chat)
+            if (props.replyingTo !== 0) props.reply(0)
         }
     }
     function keyDownHandler(e) {
@@ -24,6 +25,7 @@ export function ChatBox(props) {
             e.target.value = ''
             chatBoxRef.current.focus()
             autosize.update(chat)
+            if (props.replyingTo !== 0) props.reply(0)
         }
     }
     autosize(chat)

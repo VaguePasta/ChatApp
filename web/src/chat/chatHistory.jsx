@@ -4,8 +4,9 @@ import {Message} from "./message";
 import {CurrentChatContext} from "../dashboard/dashboard";
 import {ChatInfo} from "./chatinfo";
 import ChatBox from "./chatbox";
-import {channelsMap, RequestChat} from "../api/api";
+import {channels, channelsMap, RequestChat} from "../api/api";
 import {CurrentChannel} from "../conversation/conversation";
+import {ErrorNotification} from "../dashboard/notifications";
 export function ChatHistory(props) {
     const history = useContext(CurrentChatContext)
     const refs = useRef(null)
@@ -18,7 +19,14 @@ export function ChatHistory(props) {
         reply(0)
         if (channelsMap[CurrentChannel] === null) {
             channelsMap[CurrentChannel] = []
-            RequestChat(CurrentChannel).then(() => props.handler(false, true, true, true))
+            RequestChat(CurrentChannel).then(
+                () => {
+                    props.handler(false, true, true, true)
+                },
+                () => {
+                    ErrorNotification("fetch-message-error", "Cannot connect to server.")
+                }
+            )
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [history.Current]);
@@ -42,10 +50,15 @@ export function ChatHistory(props) {
         }
     }
     function LoadChat() {
-        RequestChat(CurrentChannel).then(() => {
-            onTop(false)
-            props.handler(false, false, true, false)
-        })
+        RequestChat(CurrentChannel).then(
+            () => {
+                onTop(false)
+                props.handler(false, false, true, false)
+            },
+            () => {
+                ErrorNotification("fetch-message-error", "Cannot connect to server.")
+            }
+        )
     }
 
     function ScrollToBottom() {
@@ -56,7 +69,7 @@ export function ChatHistory(props) {
             <ChatInfo handler={props.handler}/>
             {history.Content !== null ? <div className="ChatHistory" onScroll={ScrollHandler}>
                 {isOnTop && <button onClick={LoadChat} className="UpDownButton LoadMore"/>}
-                {history.Content.map(msg => <Message key={msg.ID} reply={reply} message={msg} handler={props.handler}/>)}
+                {history.Content.map(msg => msg.Fetch !== true && <Message key={msg.ID} reply={reply} message={msg} replyTo={replyTo} handler={props.handler}/>)}
                 <div ref={refs} style={{clear: "both"}}/>
                 {isNotOnBottom && <button style={{
                     bottom : (replyTo === 0) ? '8%' : '15%',

@@ -18,7 +18,7 @@ type Result struct {
 	Channel int    `json:"channel"`
 	Type    string `json:"type"`
 	Content string `json:"content"`
-	ReplyTo uint64 `json:"reply"`
+	ReplyTo int64  `json:"reply"`
 }
 
 var ClientOrigin []string
@@ -75,7 +75,7 @@ func GetChannelMessages(pool *connections.Pool, w http.ResponseWriter, r *http.R
 		var channelID int
 		var senderID int
 		var senderName string
-		var replyTo *uint64
+		var replyTo *int64
 		var _type string
 		var message string
 		err := rows.Scan(&messageID, &channelID, &senderID, &message, &_type, &replyTo, &senderName)
@@ -83,7 +83,7 @@ func GetChannelMessages(pool *connections.Pool, w http.ResponseWriter, r *http.R
 			continue
 		}
 		if replyTo == nil {
-			replyTo = new(uint64)
+			replyTo = new(int64)
 			*replyTo = 0
 		}
 		SendTo(&system.Message{
@@ -197,15 +197,25 @@ func GetMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Request) 
 			w.WriteHeader(403)
 			return
 		}
-		SendTo(&system.Message{
+		messageFetch := struct {
+			ID         uint64
+			Channel    int
+			SenderName string
+			Type       string
+			Text       string
+			Fetch      bool
+		}{
 			ID:         messageID,
-			ChannelID:  channelID,
+			Channel:    channelID,
 			SenderName: senderName,
-			SenderID:   senderID,
-			ReplyTo:    0,
 			Type:       _type,
-			Content:    message,
-		}, requester, false)
-		w.WriteHeader(200)
+			Text:       message,
+			Fetch:      true,
+		}
+		marshaled, _ := json.Marshal(messageFetch)
+		_, err := w.Write([]byte(base64.StdEncoding.EncodeToString(system.Compress(marshaled))))
+		if err != nil {
+			w.WriteHeader(500)
+		}
 	}
 }

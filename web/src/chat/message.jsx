@@ -19,6 +19,9 @@ export function Message(props) {
 
     async function Delete() {
         if (await DeleteMessage(props.message.ID)) {
+            if (props.replyTo === props.message.ID) {
+                props.reply(0)
+            }
             removeMessage(props.message.Channel, props.message.ID)
             deleteMessage(true)
         }

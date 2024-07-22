@@ -1,21 +1,36 @@
 import {CurrentChannel} from "../conversation/conversation";
 import {channelsMap, GetMessage} from "../api/api";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 export function Reply(props) {
     const [loaded, load] = useState(false)
-    const [message, replyTo] = useState(null)
-    if (message === null && !loaded) {
-        GetMessage(props.ID, CurrentChannel).then(() => {
-            replyTo(channelsMap[CurrentChannel].find(element => element.ID === props.ID))
-            load(true)
-        })
-    }
-    if (message === null) {
-        return (
-            <div style={{color: "gray", fontStyle: "italic"}}>Loading.....</div>
-        )
-    }
+    const [message, replyTo] = useState(undefined)
+    useEffect(() => {
+        if (props.ID === -1) {
+            replyTo(undefined)
+        }
+        else {
+            if (message === undefined && !loaded) {
+                let _message = channelsMap[CurrentChannel].find(element => element.ID === props.ID)
+                if (_message === undefined) {
+                    GetMessage(props.ID, CurrentChannel).then(() => {
+                        replyTo(channelsMap[CurrentChannel].find(element => element.ID === props.ID))
+                        load(true)
+                    })
+                }
+                else {
+                    replyTo(_message)
+                    load(true)
+                }
+            }
+            if (message === undefined && loaded) {
+                return (
+                    <div style={{color: "gray", fontStyle: "italic"}}>Loading.....</div>
+                )
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     return (
         <div style={{
             background: "transparent",

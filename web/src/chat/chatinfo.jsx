@@ -12,14 +12,23 @@ import {
 import Popup from "reactjs-popup";
 import {ErrorNotification} from "../dashboard/notifications";
 export function ChatInfo(props) {
+    const [privilege, p] = useState(null)
     const currentChat = useContext(CurrentChatContext)
     const [channelName, changeName] = useState("")
+    const [reloading, reloadChat] = useState(false)
     const [channelUsers, updateUser] = useState({
         CurrentList: 0,
         UserList: [],
     })
     const ref = useRef()
     useEffect(() => {
+        let _privilege = channels.find(obj => {
+            return obj.ChannelID === CurrentChannel
+        }) || null
+        if (_privilege !== null) {
+            p(_privilege.Privilege)
+        }
+        else p(null)
         if (CurrentChannel === 0) {
             changeName("")
             return
@@ -27,7 +36,7 @@ export function ChatInfo(props) {
         changeName(channels.find(obj => {
             return obj.ChannelID === CurrentChannel
         }).Title)
-    }, [currentChat]);
+    }, [currentChat.Current]);
     async function DeleteChannelClick() {
         ref.current.close()
         DeleteChannel(CurrentChannel).then(
@@ -77,7 +86,18 @@ export function ChatInfo(props) {
     }
     async function reload() {
         channelsMap[CurrentChannel] = []
-        RequestChat(CurrentChannel).then(() => props.handler(false, false, false, false))
+        if (reloading === false) {
+            reloadChat(true)
+            setTimeout(() => reloadChat(false), 1000)
+        }
+        RequestChat(CurrentChannel).then(
+            () => {
+                props.handler(false, false, false, false)
+            },
+            () => {
+                ErrorNotification("fetch-message-error", "Cannot connect to server.")
+            }
+        )
     }
     if (CurrentChannel === 0) {
         return (
@@ -86,13 +106,14 @@ export function ChatInfo(props) {
     }
     return (
         <div className="ChatInfo">
-            <div style={{marginRight: "auto"}}>{channelName}</div>
-            <button onClick={reload} className="ChatInfoButton Reload"/>
-            <Popup position="bottom right" className="tooltip-popup" ref={ref}
+            <div style={{marginLeft: "0", flex: "1", textOverflow:"ellipsis", overflow: "hidden"}}>{channelName}</div>
+            {reloading ? <button onClick={reload} className="ChatInfoButton Reload Reloading"/> :
+                <button onClick={reload} className="ChatInfoButton Reload"/>}
+                <Popup position="bottom right" className="tooltip-popup" ref={ref}
                    trigger={<button className="ChatInfoButton MenuBar"/>}>
-                    <Popup trigger={<button className="popup-button">Change Channel Name</button>}>
+                    {privilege === 'admin' && <Popup trigger={<button className="popup-button">Change Channel Name</button>}>
                         <input onKeyDown={ChangeName}/>
-                    </Popup>
+                    </Popup>}
                     <Popup className="tooltip-popup" onOpen={GetChatMember}
                            trigger={<button style={{borderWidth: "1px 0"}} className="popup-button">Chat
                                member(s)...</button>} nested position="left top">
@@ -120,7 +141,7 @@ export function ChatInfo(props) {
                                 }}>{user[1]}</div>
                             </div>)}
                     </Popup>
-                    <button onClick={DeleteChannelClick} className="popup-button">Delete Channel</button>
+                    {privilege === 'admin' && <button onClick={DeleteChannelClick} className="popup-button">Delete Channel</button>}
             </Popup>
         </div>
     )

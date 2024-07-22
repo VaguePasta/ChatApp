@@ -7,16 +7,21 @@
     background: white;
     border-color: black;
     border-style: hidden;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 .Conversation:hover {
     background: #f0f0f0;
 }
 .ActiveConversation {
     font-size: 15px;
-    display: block;
     height: 10%;
     width:100%;
     text-align: center;
     background: #f0f0f0;
     border-style: hidden;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }

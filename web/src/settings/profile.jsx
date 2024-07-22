@@ -3,14 +3,31 @@ import Popup from "reactjs-popup";
 import {ErrorNotification, SuccessNotification} from "../dashboard/notifications";
 import React, {useEffect, useRef, useState} from "react";
 import {Navigate, useNavigate} from "react-router-dom";
-import {ChangePassword, channels, RequestUserInfo, user} from "../api/api";
+import {ChangePassword, channels, LogOut, RequestUserInfo, socket, user} from "../api/api";
 export function Profile() {
+    const ref = useRef()
+    const history = useNavigate()
     const navigate = useNavigate()
+    function connectionLost() {
+        LogOut()
+        history("/login", {replace: true})
+    }
+    useEffect(() => {
+        socket.onerror = () => {
+            if (user.token !== "0") {
+                ref.current.open()
+            }
+        }
+    },[])
     if (user.token === "0") {
         return <Navigate replace to="/login"/>
     }
     return (
         <div>
+            <Popup ref={ref} modal onClose={connectionLost} className="error-popup">
+                Connection to server lost. Please log in again.
+                <button style={{flex:"1", minWidth:"40%", margin:"5px"}} onClick={()=>ref.current.close()}>OK</button>
+            </Popup>
             <button onClick={() => {navigate("/dashboard", {replace: true})}} className="BackButton"/>
             <UserInfo/>
             <ChangePasswordPrompt/>
@@ -50,6 +67,10 @@ function ChangePasswordPrompt() {
         ConfirmPopup.current.close()
         if (newPassword1.current.value !== newPassword2.current.value) {
             pMismatch(true)
+            return
+        }
+        if (oldPassword.current.value === "" || newPassword1.current.value === "" || newPassword2.current.value === "") {
+            ErrorNotification("blank-field", "No password fields are allowed to be blank.")
             return
         }
         let response = await ChangePassword(oldPassword.current.value, newPassword1.current.value)
@@ -136,7 +157,7 @@ function UserInfo() {
     async function GetJoinDate() {
         let response = await RequestUserInfo(user.userid)
         if (response === false) {
-            ErrorNotification("user-info-error", "Some error happened. Please try again.")
+            ErrorNotification("user-info-error", "Some error occurred. Please try again.")
             return false
         }
         return true
@@ -152,7 +173,12 @@ function UserInfo() {
         }}>
             {user.username}
             <div>#{user.userid}</div>
-            {joinDate !== null ? <div>Member since: {joinDate}</div> : <div>Member since: N/A<button>Reload</button></div>}
+            {joinDate !== null ? <div>Member since: {joinDate}</div> : <div>Member since: N/A<button onClick={() => {
+                GetJoinDate().then((result) => {
+                        if (result) setJoinDate(user.joinDate)
+                    }
+                )}
+            }>Reload</button></div>}
             <div>Member of {channels.length} {(channels.length <= 1) ? 'channel.' : 'channels.'}</div>
         </div>
     )

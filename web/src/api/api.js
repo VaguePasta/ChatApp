@@ -34,6 +34,12 @@ export function makeRequest(request, body) {
                     Response: request.responseText,
                })
           }
+          request.ontimeout = () => {
+              reject({
+                  Status: 408,
+                  Response: null,
+              })
+          }
           request.send(body)
      })
 }
@@ -70,7 +76,13 @@ export let send = msg => {
           socket.send(msg);
 };
 export function SaveMessage(message) {
-     if (channelsMap[message.Channel].some(e => e.ID === message.ID)) return
+     if (channelsMap[message.Channel].some(e => e.ID === message.ID)) {
+         let message_index = channelsMap[message.Channel].findIndex(e => e.ID === message.ID)
+         if (channelsMap[message.Channel][message_index].Fetch === true) {
+             removeMessage(message.Channel, message.ID)
+         }
+         else return
+     }
      let insertPos = channelsMap[message.Channel].findIndex((element) => element.ID > message.ID);
      if (insertPos === -1) {
           channelsMap[message.Channel].push(message)
@@ -108,12 +120,19 @@ export async function RequestChat(CurrentChannel) {
      let log = new XMLHttpRequest()
      let lastMessage = "0"
      if (channelsMap[CurrentChannel].length !== 0) {
-          lastMessage = channelsMap[CurrentChannel][0].ID
+          lastMessage = channelsMap[CurrentChannel].find((e) => e.Fetch !== true).ID
      }
      log.open("GET", "http" + server + "message/read/" + CurrentChannel + "/" + lastMessage, true)
      log.withCredentials = true;
      log.setRequestHeader('Authorization', user.token)
-     await makeRequest(log, null)
+     await makeRequest(log, null).then(
+         () => {
+              return true
+         },
+         () => {
+              return false
+         }
+)
 }
 export async function RequestChatMember(CurrentChannel) {
      let log = new XMLHttpRequest()
@@ -213,7 +232,7 @@ export async function GetMessage(id, channel) {
      log.setRequestHeader('Authorization', user.token)
      return await makeRequest(log, id).then(
          (success) => {
-              return success.Status
+              SaveMessage(JSON.parse(Decompress(success.Response)))
          },
          (error) => {
               if (error.Status === 403) {

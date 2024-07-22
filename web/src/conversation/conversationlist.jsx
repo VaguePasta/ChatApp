@@ -47,6 +47,9 @@ export function ConversationList(props) {
                     () => props.handler(false, true, true, false)
                 )
                 ref.current.close()
+            },
+            () => {
+                ErrorNotification("create-channel-failed", "Cannot create channel. Please try again.")
             }
         )
     }
@@ -58,7 +61,7 @@ export function ConversationList(props) {
         updateList([...channels])
     }, [list.Channels]);
     return (
-        <div className="ConversationList">
+        <div style={{display: "flex", flexDirection: "column", width: "100%", height: "100%"}}>
             <Popup position="right center" className="modal-popup"
                    trigger={<button className="Conversation" style={{
                        top: "0",
@@ -109,8 +112,10 @@ export function ConversationList(props) {
                     <button style={{position:"absolute", top:"100%"}} onClick={CreateClick}>Create Channel</button>
                 </div>
             </Popup>
-            {channelList.map(channel => <Conversation key={channel.ChannelID} handler={props.handler}
-              ChannelID={channel.ChannelID} Title={channel.Title}/>)}
+            <div className="ConversationList">
+                {channelList.map(channel => <Conversation key={channel.ChannelID} handler={props.handler}
+                  ChannelID={channel.ChannelID} Title={channel.Title}/>)}
+            </div>
         </div>
     )
 }

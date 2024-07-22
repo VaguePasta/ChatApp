@@ -12,6 +12,7 @@ import (
 type Channel struct {
 	ChannelID int
 	Title     string
+	Privilege string
 }
 
 func GetChannelList(w http.ResponseWriter, r *http.Request) {
@@ -27,15 +28,16 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var channelIDs []Channel
-	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channel_id, title from channels where channel_id in (select channel_id from participants where user_id = $1) order by last_message desc", user.ID)
+	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channels.channel_id, title, privilege from channels inner join participants on channels.channel_id = participants.channel_id where user_id = $1 order by last_message desc", user.ID)
 	for channels.Next() {
 		var channelID int
 		var title string
-		err := channels.Scan(&channelID, &title)
+		var privilege string
+		err := channels.Scan(&channelID, &title, &privilege)
 		if err != nil {
 			return
 		}
-		channelIDs = append(channelIDs, Channel{ChannelID: channelID, Title: title})
+		channelIDs = append(channelIDs, Channel{ChannelID: channelID, Title: title, Privilege: privilege})
 	}
 	channels.Close()
 	bytes, err := json.Marshal(channelIDs)

@@ -15,7 +15,7 @@ type Message struct {
 	SenderName string
 	Type       string
 	Content    string
-	ReplyTo    uint64
+	ReplyTo    int64
 }
 type SendMessage struct {
 	IsNew      bool
@@ -23,7 +23,7 @@ type SendMessage struct {
 	TimeStamp  string
 	Type       string
 	Text       string
-	ReplyTo    uint64
+	ReplyTo    int64
 	SenderID   int
 	SenderName string
 	Channel    int

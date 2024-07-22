@@ -26,22 +26,23 @@ export function Dashboard() {
         }
     }
     useEffect(() => {
-        socket.onmessage = data => {
-            let message = JSON.parse(Decompress(data.data))
-            if (channelsMap[message.Channel] === undefined) {
-                RequestChannelList().then(
-                    () => {
-                        onMessage(message)
-                    }
-                )
+        if (socket !== undefined) {
+            socket.onmessage = data => {
+                let message = JSON.parse(Decompress(data.data))
+                if (channelsMap[message.Channel] === undefined) {
+                    RequestChannelList().then(
+                        () => {
+                            onMessage(message)
+                        }
+                    )
+                } else {
+                    onMessage(message)
+                }
             }
-            else {
-                onMessage(message)
-            }
-        }
-        socket.onerror = () => {
-            if (user.token !== "0") {
-                ref.current.open()
+            socket.onerror = () => {
+                if (user.token !== "0") {
+                    ref.current.open()
+                }
             }
         }
     })
