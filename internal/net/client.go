@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/jackc/pgx/v5"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 )
@@ -66,7 +67,7 @@ func GetChannelMessages(pool *connections.Pool, w http.ResponseWriter, r *http.R
 	channel := mux.Vars(r)["channelID"]
 	lastMessage, _ := strconv.ParseInt(mux.Vars(r)["lastMessage"], 10, 64)
 	if lastMessage == 0 {
-		lastMessage = 9223372036854775807
+		lastMessage = math.MaxInt64
 	}
 	client, _ := pool.Clients.Get(token)
 	rows, _ := connections.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message, type, reply_to, username from (messages inner join users on messages.sender_id = users.user_id) left join replies on messages.message_id = replies.reply where channel_id = $1 and message_id < $2 and deleted = false order by message_id desc limit 16 ", channel, lastMessage)

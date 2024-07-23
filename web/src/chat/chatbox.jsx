@@ -92,7 +92,7 @@ function ReplyingTo(props) {
                     WebkitLineClamp: 2,
                     textOverflow: "ellipsis",
                     overflow: "hidden",
-                }}>Replying to {props.message.SenderID === user.userid ? 'myself' : props.message.SenderName}
+                }}>Replying to {props.message.SenderID.valueOf() === user.userid ? 'myself' : props.message.SenderName}
                     <div style={{color: "gray"}}>
                         {props.message.Text}
                     </div>
@@ -111,7 +111,7 @@ function ReplyingTo(props) {
                     textOverflow: "ellipsis",
                     overflow: "hidden",
                     whiteSpace: "pre",
-                }}>Replying to {props.message.SenderID === user.userid ? 'myself' : props.message.SenderName}
+                }}>Replying to {props.message.SenderID.valueOf() === user.userid ? 'myself' : props.message.SenderName}
                     <div style={{color: "gray"}}>
                         Image: <a href={props.message.Text} target="_blank" rel="noreferrer"> {props.message.Text}</a>
                     </div>
@@ -130,7 +130,7 @@ function ReplyingTo(props) {
                     textOverflow: "ellipsis",
                     overflow: "hidden",
                     whiteSpace: "pre",
-                }}>Replying to {props.message.SenderID === user.userid ? 'myself' : props.message.SenderName}
+                }}>Replying to {props.message.SenderID.valueOf() === user.userid ? 'myself' : props.message.SenderName}
                     <div style={{color: "gray"}}>
                         Video: <a target="_blank" href={"https://www.youtube.com/watch?v=" + props.message.Text}
                                   rel="noreferrer">{"https://www.youtube.com/watch?v=" + props.message.Text}</a>

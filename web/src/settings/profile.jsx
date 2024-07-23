@@ -14,9 +14,7 @@ export function Profile() {
     }
     useEffect(() => {
         socket.onerror = () => {
-            if (user.token !== "0") {
-                ref.current.open()
-            }
+            ref.current.open()
         }
     },[])
     if (user.token === "0") {

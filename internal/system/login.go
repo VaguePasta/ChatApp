@@ -2,7 +2,10 @@ package system
 
 import (
 	"ChatApp/internal/connections"
+	"context"
 	"net/http"
+	"strings"
+	"time"
 )
 
 func LogIn(w http.ResponseWriter, r *http.Request) {
@@ -17,8 +20,18 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 	} else {
 		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(200)
 		_, err := w.Write([]byte(credentials))
+		if err != nil {
+			return
+		}
+		go waitToRemove(strings.Split(credentials, "/")[1])
+	}
+}
+func waitToRemove(token string) {
+	time.Sleep(15 * time.Second)
+	_, exists := connections.ConnectionPool.Clients.Get(token)
+	if !exists {
+		_, err := connections.DatabaseConn.Exec(context.Background(), "delete from sessions where session_key = $1", token)
 		if err != nil {
 			return
 		}

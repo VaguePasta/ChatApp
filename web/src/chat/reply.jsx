@@ -66,7 +66,7 @@ function ReplyContent(props) {
     }
     else if (props.message.Type === 'image') {
         return (
-                <img alt={props.message.ID} src={props.message.Text} style={{margin: "3px -3px -6px -3px", maxWidth: "300px"}}/>
+                <img alt={props.message.ID.valueOf()} src={props.message.Text} style={{margin: "3px -3px -6px -3px", maxWidth: "300px"}}/>
         )
     }
     else if (props.message.Type === 'video') {

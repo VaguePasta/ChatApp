@@ -43,13 +43,34 @@
 [data-popup='tooltip'].modal-popup-overlay {
   background: transparent;
 }
-/* HTML: <div class="loader"></div> */
 .loader {
   width: 50px;
+  margin: auto;
   aspect-ratio: 1;
+  display: grid;
+  border-style: solid;
+  border-width: 4px;
   border-radius: 50%;
-  border: 8px solid lightblue;
-  border-right-color: orange;
-  animation: l2 1s infinite linear;
+  border-color: #ccc #0000;
+  animation: l16 1s infinite linear;
 }
-@keyframes l2 {to{transform: rotate(1turn)}}
+.loader::before,
+.loader::after {
+  content: "";
+  grid-area: 1/1;
+  margin: 2px;
+  border: inherit;
+  border-radius: 50%;
+}
+.loader::before {
+  border-color: #f03355 #0000;
+  animation: inherit;
+  animation-duration: .5s;
+  animation-direction: reverse;
+}
+.loader::after {
+  margin: 8px;
+}
+@keyframes l16 {
+  100%{transform: rotate(1turn)}
+}

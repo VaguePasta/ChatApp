@@ -18,18 +18,19 @@ export function Message(props) {
     }
 
     async function Delete() {
-        if (await DeleteMessage(props.message.ID)) {
-            if (props.replyTo === props.message.ID) {
+        console.log(props.message.ID.valueOf())
+        if (await DeleteMessage(props.message.ID.valueOf())) {
+            if (props.replyTo === props.message.ID.valueOf()) {
                 props.reply(0)
             }
-            removeMessage(props.message.Channel, props.message.ID)
+            removeMessage(props.message.Channel.valueOf(), props.message.ID.valueOf())
             deleteMessage(true)
         }
     }
     async function ReplyMessage() {
-        props.reply(props.message.ID)
+        props.reply(props.message.ID.valueOf())
     }
-    if (isDeleted && props.message.SenderID === user.userid) {
+    if (isDeleted && props.message.SenderID.valueOf() === user.userid) {
         return (
             <div style={{
                 float: "right",
@@ -55,7 +56,7 @@ export function Message(props) {
             </div>
         )
     }
-    if (props.message.SenderID === user.userid) {
+    if (props.message.SenderID.valueOf() === user.userid) {
         if (props.message.Type === 'text') {
             return (
                 <div style={{
@@ -71,8 +72,8 @@ export function Message(props) {
                     <button ref={deleteButton} onClick={Delete} className="Button DeleteButton"/>
                     <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
                     <div style={{display: "flex", flexDirection: "column"}}>
-                        {props.message.ReplyTo !== 0 &&
-                            <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo}/>}
+                        {props.message.ReplyTo.valueOf() !== 0 &&
+                            <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo.valueOf()}/>}
                         <div style={{background: "#007aff", color: "white", marginLeft: "auto"}} className="Message">
                             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                             <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
@@ -104,13 +105,13 @@ export function Message(props) {
                     <button ref={deleteButton} onClick={Delete} className="Button DeleteButton"/>
                     <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
                     <div style={{display: "flex", flexDirection: "column"}}>
-                        {props.message.ReplyTo !== 0 &&
-                            <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo}/>}
+                        {props.message.ReplyTo.valueOf() !== 0 &&
+                            <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo.valueOf()}/>}
                         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
                            data-tooltip-place='left' data-tooltip-delay-show={700}
                            style={{zIndex:"2"}}>
-                            <img alt={props.message.ID} src={props.message.Text} style={{width: "100%"}}/>
+                            <img alt={props.message.ID.valueOf()} src={props.message.Text} style={{width: "100%"}}/>
                         </a>
                         <Tooltip id="message"/>
                     </div>
@@ -119,18 +120,18 @@ export function Message(props) {
         } else if (props.message.Type === 'video') {
             let src = "https://www.youtube.com/embed/" + props.message.Text
             return (
-                <div style={{float: "right", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center", maxHeight:"fit-content"}}
+                <div style={{float: "right", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center", maxHeight:"fit-content", maxWidth: "55%"}}
                      onMouseEnter={() => showOptions(true)}
                      onMouseLeave={() => hideOptions(true)}>
                     <button ref={deleteButton} onClick={Delete} className="Button DeleteButton"/>
                     <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
                     <div style={{display: "flex", flexDirection: "column"}}>
-                        {props.message.ReplyTo !== 0 &&
-                            <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo}/>}
+                        {props.message.ReplyTo.valueOf() !== 0 &&
+                            <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo.valueOf()}/>}
                         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
                            data-tooltip-place='left' data-tooltip-delay-show={700} style={{zIndex:"2"}}>
-                            <iframe src={src} style={{aspectRatio:"16/9", flexShrink :"0", width:"550px", maxWidth:"550px"}}
+                            <iframe src={src} style={{aspectRatio:"16/9", flexShrink :"0", width:"550px", maxWidth:"550px", float: "right"}}
                                     title="YouTube video player"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                     referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
@@ -154,8 +155,8 @@ export function Message(props) {
                          onMouseLeave={() => hideOptions(false)}>
                         <div style={{display: "flex", flexDirection: "column"}}>
                             <div style={{color: "#8f8f92", fontSize: "14px"}}>{props.message.SenderName}</div>
-                            {props.message.ReplyTo !== 0 &&
-                                <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo}/>}
+                            {props.message.ReplyTo.valueOf() !== 0 &&
+                                <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo.valueOf()}/>}
                             <div style={{background: "#f2f2f7", color: "black", float: "left"}} className="Message">
                                 {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                                 <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
@@ -187,12 +188,12 @@ export function Message(props) {
                      onMouseLeave={() => hideOptions(false)}>
                     <div style={{display: "flex", flexDirection: "column"}}>
                         <div style={{color: "#8f8f92", fontSize: "14px"}}>{props.message.SenderName}</div>
-                        {props.message.ReplyTo !== 0 &&
-                            <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo}/>}
+                        {props.message.ReplyTo.valueOf() !== 0 &&
+                            <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo.valueOf()}/>}
                             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                             <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
                                data-tooltip-place='left' data-tooltip-delay-show={700} style={{zIndex: "2"}}>
-                                <img alt={props.message.ID} src={props.message.Text} style={{width: "100%"}}/>
+                                <img alt={props.message.ID.valueOf()} src={props.message.Text} style={{width: "100%"}}/>
                             </a>
                             <Tooltip id="message"/>
                     </div>
@@ -202,13 +203,13 @@ export function Message(props) {
         } else if (props.message.Type === 'video') {
             let src = "https://www.youtube.com/embed/" + props.message.Text
             return (
-                <div style={{float: "left", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center", maxHeight:"fit-content"}}
+                <div style={{float: "left", display: "flex", clear: "both", margin: "5px 10px", alignItems: "center", maxHeight:"fit-content", maxWidth: "55%"}}
                      onMouseEnter={() => showOptions(false)}
                      onMouseLeave={() => hideOptions(false)}>
                     <div style={{display: "flex", flexDirection: "column"}}>
                         <div style={{color: "#8f8f92", fontSize: "14px"}}>{props.message.SenderName}</div>
-                        {props.message.ReplyTo !== 0 &&
-                            <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo}/>}
+                        {props.message.ReplyTo.valueOf() !== 0 &&
+                            <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo.valueOf()}/>}
                             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                             <a data-tooltip-id="message" data-tooltip-content={props.message.TimeStamp}
                                data-tooltip-place='left' data-tooltip-delay-show={700} style={{zIndex: "2"}}>

@@ -2,9 +2,10 @@ import {useContext, useEffect, useRef, useState} from "react";
 import "./chatHistory.scss"
 import {Message} from "./message";
 import {CurrentChatContext} from "../dashboard/dashboard";
+import "../dashboard/dashboard.scss"
 import {ChatInfo} from "./chatinfo";
 import ChatBox from "./chatbox";
-import {channels, channelsMap, RequestChat} from "../api/api";
+import { channelsMap, RequestChat} from "../api/api";
 import {CurrentChannel} from "../conversation/conversation";
 import {ErrorNotification} from "../dashboard/notifications";
 export function ChatHistory(props) {
@@ -77,8 +78,8 @@ export function ChatHistory(props) {
                 onClick={ScrollToBottom} className={"UpDownButton ScrollToBottom " + (replyTo !== 0 && "Rep")}/>}
             </div> :
                 <div className="ChatHistory">
-                    Loading...
-                    <div ref={refs} style={{clear: "both"}}/>
+                    <div className="loader"/>
+                    <div ref={refs} style={{clear: "both", bottom:"0"}}/>
                 </div>}
             {CurrentChannel !== 0 && <ChatBox replyingTo={replyTo} reply={reply}/>}
         </div>

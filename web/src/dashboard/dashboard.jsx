@@ -1,35 +1,56 @@
 import {ChatHistory} from "../chat/chatHistory";
-import {channels, channelsMap, Decompress, LogOut, RequestChannelList, SaveMessage, socket, user} from "../api/api";
+import {
+    channels,
+    channelsMap,
+    Decompress,
+    LogOut,
+    RequestChannelList,
+    RequestChat,
+    SaveMessage,
+    socket,
+    user
+} from "../api/api";
 import {Navigate, useNavigate} from "react-router-dom";
 import {User} from "./user"
 import "./dashboard.scss"
 import React, {createContext, useEffect, useRef, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
 import Popup from "reactjs-popup";
+import {new_message} from "../audio/audio";
+import {parse} from "lossless-json";
 export const CurrentChatContext = createContext({Current:0, Channels: [], Content: [], NewMessage: false})
+const notification_sound = new Audio()
+notification_sound.src = new_message
 export function Dashboard() {
     const ref = useRef()
     let history = useNavigate()
     const [channelHistory,update] = useState({Current: 0, Channels: [], Content: [], NewMessage: false})
     function onMessage(message) {
-        if (channelsMap[message.Channel] === null) {
-            channelsMap[message.Channel] = []
+        if (channelsMap[message.Channel.valueOf()] === null) {
+            channelsMap[message.Channel.valueOf()] = []
+            RequestChat(message.Channel.valueOf()).then()
         }
         SaveMessage(message)
         if (message.IsNew === true) {
-            updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel))
-            if (message.Channel === CurrentChannel) handler(false, true, true, true)
+            updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel.valueOf()))
+            if (message.SenderID.valueOf() !== user.userid) {
+                document.title = "ChatApp (•)"
+                notification_sound.play().then(setTimeout(() => {document.title = "ChatApp"}, 2500))
+            }
+            if (message.Channel.valueOf() === CurrentChannel) {
+                handler(false, true, true, true)
+            }
             else handler(false, true, false, false)
         }
-        else if (message.Channel === CurrentChannel) {
+        else if (message.Channel.valueOf() === CurrentChannel) {
             handler(false, true, true, false)
         }
     }
     useEffect(() => {
         if (socket !== undefined) {
             socket.onmessage = data => {
-                let message = JSON.parse(Decompress(data.data))
-                if (channelsMap[message.Channel] === undefined) {
+                let message = parse(Decompress(data.data))
+                if (channelsMap[message.Channel.valueOf()] === undefined) {
                     RequestChannelList().then(
                         () => {
                             onMessage(message)
@@ -40,9 +61,7 @@ export function Dashboard() {
                 }
             }
             socket.onerror = () => {
-                if (user.token !== "0") {
-                    ref.current.open()
-                }
+                ref.current.open()
             }
         }
     })
@@ -68,14 +87,16 @@ export function Dashboard() {
         <div>
             <Popup ref={ref} modal onClose={connectionLost} className="error-popup">
                 Connection to server lost. Please log in again.
-                <button style={{flex:"1", minWidth:"40%", margin:"5px"}} onClick={()=>ref.current.close()}>OK</button>
+                <button style={{flex: "1", minWidth: "40%", margin: "5px"}}
+                        onClick={() => ref.current.close()}>OK</button>
             </Popup>
-            <CurrentChatContext.Provider value = {channelHistory}>
+            <CurrentChatContext.Provider value={channelHistory}>
                 <div className="Chat">
                     <User handler={handler}/>
                     <ChatHistory handler={handler}/>
                 </div>
             </CurrentChatContext.Provider>
+
         </div>
     )
 }
