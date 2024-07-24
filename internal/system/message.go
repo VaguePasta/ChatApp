@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
-	"fmt"
 	"github.com/sony/sonyflake"
 )
 
@@ -44,8 +43,7 @@ func Compress(src []byte) []byte {
 	return buf.Bytes()
 }
 func ToJSON(message Message, _isNew bool) []byte {
-	fmt.Println(message.ID)
-	jsonified, _ := json.Marshal(SendMessage{
+	jsonified, err := json.Marshal(SendMessage{
 		IsNew:      _isNew,
 		ID:         message.ID,
 		SenderID:   message.SenderID,
@@ -56,5 +54,8 @@ func ToJSON(message Message, _isNew bool) []byte {
 		Type:       message.Type,
 		Text:       message.Content,
 	})
+	if err != nil {
+		return nil
+	}
 	return Compress(jsonified)
 }

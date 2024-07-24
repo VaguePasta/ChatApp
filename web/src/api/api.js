@@ -1,17 +1,18 @@
 import {SetChannel} from "../conversation/conversation";
+import {parse, stringify} from "lossless-json";
 const pako= require('pako');
-export let user = {token: "0", userid: "0", username: "", joinDate: null}
+export let User = {token: "0", userid: "0", username: "", joinDate: null}
 export let socket;
 export let server = "http://localhost:8080/"
 export let channelsMap = new Map()
 export let channels = null
 export function removeMessage(channelID, messageID) {
      channelsMap[channelID] = channelsMap[channelID].filter((element) => {
-          return element.ID !== messageID
+          return element.ID.valueOf() !== messageID
      })
 }
 export function UpdateUsername(_username) {
-     user.username = _username
+     User.username = _username
 }
 export function makeRequest(request, body) {
      return new Promise(function(resolve, reject) {
@@ -50,16 +51,16 @@ export async function LogIn(_username, _password) {
      await makeRequest(log, 'username=' + _username + '&password=' + _password).then(
           (_result) => {
               let response = _result.Response.split("/")
-              user.userid = parseInt(response[0])
-              user.token = response[1]
+              User.userid = parseInt(response[0])
+              User.token = response[1]
          },
          () => {
-              user.token = "0"
+              User.token = "0"
          }
      )
 }
 export function OpenSocket() {
-    socket = new WebSocket("ws://" + server.slice(server.indexOf("//") + 2) + "ws/" + user.token)
+    socket = new WebSocket("ws://" + server.slice(server.indexOf("//") + 2) + "ws/" + User.token)
     setTimeout(() => {
         if (socket.readyState !== WebSocket.OPEN) {
             socket.close()
@@ -83,14 +84,14 @@ export let send = msg => {
           socket.send(msg);
 };
 export function SaveMessage(message) {
-     if (channelsMap[message.Channel.valueOf()].some(e => e.ID === message.ID.valueOf())) {
-         let message_index = channelsMap[message.Channel.valueOf()].findIndex(e => e.ID === message.ID.valueOf())
+     if (channelsMap[message.Channel.valueOf()].some(e => e.ID.valueOf() === message.ID.valueOf())) {
+         let message_index = channelsMap[message.Channel.valueOf()].findIndex(e => e.ID.valueOf() === message.ID.valueOf())
          if (channelsMap[message.Channel.valueOf()][message_index].Fetch === true) {
              removeMessage(message.Channel.valueOf(), message.ID.valueOf())
          }
          else return
      }
-     let insertPos = channelsMap[message.Channel.valueOf()].findIndex((element) => element.ID > message.ID.valueOf());
+     let insertPos = channelsMap[message.Channel.valueOf()].findIndex((element) => element.ID.valueOf() > message.ID.valueOf());
      if (insertPos === -1) {
           channelsMap[message.Channel.valueOf()].push(message)
      }
@@ -108,15 +109,15 @@ export async function RequestChannelList() {
      let log = new XMLHttpRequest()
      log.open("GET",server + "channel/read",true)
      log.withCredentials = true;
-     log.setRequestHeader('Authorization', user.token)
+     log.setRequestHeader('Authorization', User.token)
      channelsMap = new Map()
      channelsMap[0] = []
      channels = []
      let result = await makeRequest(log,null)
      if (result.Response !== 'null') {
-          channels = JSON.parse(result.Response)
+          channels = parse(result.Response)
           channels.forEach((element) => {
-               channelsMap[element.ChannelID] = null
+               channelsMap[element.ChannelID.valueOf()] = null
           })
      }
      else {
@@ -127,11 +128,11 @@ export async function RequestChat(CurrentChannel) {
      let log = new XMLHttpRequest()
      let lastMessage = "0"
      if (channelsMap[CurrentChannel].length !== 0) {
-          lastMessage = channelsMap[CurrentChannel].find((e) => e.Fetch !== true).ID
+          lastMessage = channelsMap[CurrentChannel].find((e) => e.Fetch !== true).ID.valueOf()
      }
      log.open("GET", server + "message/read/" + CurrentChannel + "/" + lastMessage, true)
      log.withCredentials = true;
-     log.setRequestHeader('Authorization', user.token)
+     log.setRequestHeader('Authorization', User.token)
      await makeRequest(log, null).then(
          () => {
               return true
@@ -145,10 +146,10 @@ export async function RequestChatMember(CurrentChannel) {
      let log = new XMLHttpRequest()
      log.open("GET", server + "channel/member/" + CurrentChannel, true)
      log.withCredentials = true;
-     log.setRequestHeader('Authorization', user.token)
+     log.setRequestHeader('Authorization', User.token)
      return await makeRequest(log, null).then(
          (result) => {
-              return JSON.parse(result.Response)
+              return parse(result.Response)
          },
          () => {
               return null
@@ -156,23 +157,25 @@ export async function RequestChatMember(CurrentChannel) {
      )
 }
 export async function CreateChannel(channel, users) {
-     users.unshift([user.username, String(user.userid)])
-     let userIDList = []
-     users.forEach((user) => userIDList.push(user[1]))
-     userIDList.unshift(channel)
-     let log = new XMLHttpRequest()
-     log.withCredentials = true;
-     log.open("POST", server + "channel/create", true)
-     log.setRequestHeader('Authorization', user.token)
-     let result = await makeRequest(log, JSON.stringify(userIDList))
-     return result.Status === 201
+    let userList = []
+    users.forEach((e) => {
+        userList.push([e[0], e[2]])
+    })
+    userList.unshift(channel,[String(User.userid), 'admin'])
+    console.log(userList)
+    let log = new XMLHttpRequest()
+    log.withCredentials = true;
+    log.open("POST", server + "channel/create", true)
+    log.setRequestHeader('Authorization', User.token)
+    let result = await makeRequest(log, stringify(userList))
+    return result.Status === 201
 }
 export async function DeleteChannel(channel) {
      let log = new XMLHttpRequest()
      log.open("POST", server + "channel/delete", true)
      log.withCredentials = true;
-     log.setRequestHeader('Authorization', user.token)
-     return await makeRequest(log, JSON.stringify([String(user.userid), String(channel)])).then(
+     log.setRequestHeader('Authorization', User.token)
+     return await makeRequest(log, stringify([String(User.userid), String(channel)])).then(
          () => {
               return true
          },
@@ -185,7 +188,7 @@ export async function SearchUser(_username) {
      let log = new XMLHttpRequest()
      log.open("GET", server + "user/search/" + _username, true)
      log.withCredentials = true;
-     log.setRequestHeader('Authorization', user.token)
+     log.setRequestHeader('Authorization', User.token)
      return await makeRequest(log,null).then(
          (result) => {
               return result
@@ -196,9 +199,9 @@ export async function SearchUser(_username) {
      )
 }
 export function LogOut() {
-     user.token = "0"
-     user.userid = "0"
-     user.joinDate = null
+     User.token = "0"
+     User.userid = "0"
+     User.joinDate = null
      channels = null
      channelsMap = new Map()
      SetChannel(0)
@@ -208,8 +211,8 @@ export async function ChangeChannelName(_channel, _name) {
      let log = new XMLHttpRequest()
      log.open("POST", server + "channel/rename", true)
      log.withCredentials = true
-     log.setRequestHeader('Authorization', user.token)
-     return await makeRequest(log, JSON.stringify([String(user.userid), String(_channel), _name])).then(
+     log.setRequestHeader('Authorization', User.token)
+     return await makeRequest(log, stringify([String(User.userid), String(_channel), _name])).then(
          () => {
               return true
          },
@@ -222,7 +225,7 @@ export async function DeleteMessage(id) {
      let log = new XMLHttpRequest()
      log.open("POST", server + "message/delete")
      log.withCredentials = true
-     log.setRequestHeader('Authorization', user.token)
+     log.setRequestHeader('Authorization', User.token)
      return await makeRequest(log, id).then(
          () => {
               return true
@@ -236,10 +239,10 @@ export async function GetMessage(id, channel) {
      let log = new XMLHttpRequest()
      log.open("POST", server + "message/get")
      log.withCredentials = true
-     log.setRequestHeader('Authorization', user.token)
+     log.setRequestHeader('Authorization', User.token)
      return await makeRequest(log, id).then(
          (success) => {
-              SaveMessage(JSON.parse(Decompress(success.Response)))
+              SaveMessage(parse(Decompress(success.Response)))
          },
          (error) => {
               if (error.Status === 403) {
@@ -256,8 +259,8 @@ export async function ChangePassword(oldPassword, newPassword) {
      let log = new XMLHttpRequest()
      log.open("POST", server + "auth/password")
      log.withCredentials = true
-     log.setRequestHeader('Authorization', user.token)
-     return await makeRequest(log, JSON.stringify([oldPassword, newPassword])).then(
+     log.setRequestHeader('Authorization', User.token)
+     return await makeRequest(log, stringify([oldPassword, newPassword])).then(
          () => {
               return 200
          },
@@ -270,10 +273,10 @@ export async function RequestUserInfo(user_id) {
      let log = new XMLHttpRequest()
      log.open("GET", server + "user/get/" + user_id, true)
      log.withCredentials = true;
-     log.setRequestHeader('Authorization', user.token)
+     log.setRequestHeader('Authorization', User.token)
      return await makeRequest(log,null).then(
          (result) => {
-              user.joinDate = result.Response
+              User.joinDate = result.Response
               return true
          },
          () => {

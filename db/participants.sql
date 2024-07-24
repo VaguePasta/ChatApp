@@ -1,6 +1,6 @@
 DO $$ 
 BEGIN
-    CREATE TYPE privileges AS ENUM('admin','member','viewer');
+    CREATE TYPE privileges AS ENUM('admin','moderator','member','viewer');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;

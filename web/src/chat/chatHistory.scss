@@ -3,14 +3,13 @@
   overflow-x: hidden;
   scroll-behavior: smooth;
   flex: 1;
-  position: relative;
   min-height: 0;
   min-width: 0;
   scrollbar-width: thin;
 }
 .ChatWindow {
   border-style: solid;
-  border-width: 0 0 0 2px;
+  border-width: 0 1px 0 2px;
   border-color: darkgray;
   min-height: 100%;
   height: 100%;
@@ -20,20 +19,21 @@
   flex: 1;
 }
 @keyframes slideInDown {
-  from {top:-50px}
-  to {top:0}
+  from {top:0}
+  to {top:7%}
 }
 .UpDownButton {
   left: 50%;
   background-repeat: no-repeat;
   background-size: 95% 95%;
+  background-position: center;
   width: 30px;
   height: 30px;
   border-radius: 50%;
   border: solid 3px;
   background-color: white;
-  z-index: 999;
   background-image: url('../../static/icons/up-arrow.png');
+  position: absolute;
 }
 .UpDownButton:hover {
   background-color: lightgray;
@@ -45,20 +45,21 @@
 }
 .LoadMore {
   transform: translate(-50%, 0);
-  margin-top: 5px;
+  top: 7%;
   animation: slideInDown 0.3s;
-  position: absolute;
+  z-index: 2;
 }
 .ScrollToBottom {
   margin-bottom: 5px;
   animation: slideInUp 0.3s;
-  transform: scaleY(-1) translate(190%, 0);
-  position: fixed;
+  transform: scaleY(-1) translate(-50%, 0);
+  bottom: 8%;
+  z-index: 2;
 }
 .Rep {
-  @keyframes slideInUpRep {
-    from {bottom: 8%}
-    to {bottom: 15%}
-  }
-  animation: slideInUpRep 0.3s;
+  bottom: 15%;
+}
+@keyframes slideInUp {
+  from {bottom: 0}
+  to {bottom: 8%}
 }

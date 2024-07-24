@@ -106,9 +106,12 @@ func SendTo(message *system.Message, client *connections.Client, isNew bool) {
 	}
 	client.ClientMutex.Lock()
 	defer client.ClientMutex.Unlock()
-	err := client.Conn.WriteMessage(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString(system.ToJSON(*message, isNew))))
-	if err != nil {
-		return
+	jsonified := system.ToJSON(*message, isNew)
+	if jsonified != nil {
+		err := client.Conn.WriteMessage(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString(jsonified)))
+		if err != nil {
+			return
+		}
 	}
 }
 func DeleteMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Request) {

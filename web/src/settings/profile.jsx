@@ -3,7 +3,18 @@ import Popup from "reactjs-popup";
 import {ErrorNotification, SuccessNotification} from "../dashboard/notifications";
 import React, {useEffect, useRef, useState} from "react";
 import {Navigate, useNavigate} from "react-router-dom";
-import {ChangePassword, channels, LogOut, RequestUserInfo, socket, user} from "../api/api";
+import {
+    ChangePassword,
+    channels,
+    channelsMap,
+    Decompress,
+    LogOut,
+    RequestChannelList,
+    RequestUserInfo, SaveMessage,
+    socket,
+    User
+} from "../api/api";
+import {parse} from "lossless-json";
 export function Profile() {
     const ref = useRef()
     const history = useNavigate()
@@ -16,8 +27,20 @@ export function Profile() {
         socket.onerror = () => {
             ref.current.open()
         }
+        socket.onmessage = data => {
+            let message = parse(Decompress(data.data))
+            if (channelsMap[message.Channel.valueOf()] === undefined) {
+                RequestChannelList().then(
+                    () => {
+                        SaveMessage(message)
+                    }
+                )
+            } else {
+                SaveMessage(message)
+            }
+        }
     },[])
-    if (user.token === "0") {
+    if (User.token === "0") {
         return <Navigate replace to="/login"/>
     }
     return (
@@ -144,16 +167,16 @@ function ChangePasswordPrompt() {
     )
 }
 function UserInfo() {
-    const [joinDate, setJoinDate] = useState(user.joinDate)
+    const [joinDate, setJoinDate] = useState(User.joinDate)
     useEffect(() => {
-        if (user.joinDate === null) {
+        if (User.joinDate === null) {
             GetJoinDate().then((result) => {
-                if (result) setJoinDate(user.joinDate)
+                if (result) setJoinDate(User.joinDate)
             })
         }
     }, []);
     async function GetJoinDate() {
-        let response = await RequestUserInfo(user.userid)
+        let response = await RequestUserInfo(User.userid)
         if (response === false) {
             ErrorNotification("user-info-error", "Some error occurred. Please try again.")
             return false
@@ -169,11 +192,11 @@ function UserInfo() {
             marginBottom : "12px",
             padding: "5px"
         }}>
-            {user.username}
-            <div>#{user.userid}</div>
+            {User.username}
+            <div>#{User.userid}</div>
             {joinDate !== null ? <div>Member since: {joinDate}</div> : <div>Member since: N/A<button onClick={() => {
                 GetJoinDate().then((result) => {
-                        if (result) setJoinDate(user.joinDate)
+                        if (result) setJoinDate(User.joinDate)
                     }
                 )}
             }>Reload</button></div>}

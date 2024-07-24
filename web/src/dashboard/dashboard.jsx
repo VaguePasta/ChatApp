@@ -7,11 +7,10 @@ import {
     RequestChannelList,
     RequestChat,
     SaveMessage,
-    socket,
-    user
+    socket, User,
 } from "../api/api";
 import {Navigate, useNavigate} from "react-router-dom";
-import {User} from "./user"
+import {Channel} from "./channel"
 import "./dashboard.scss"
 import React, {createContext, useEffect, useRef, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
@@ -32,8 +31,8 @@ export function Dashboard() {
         }
         SaveMessage(message)
         if (message.IsNew === true) {
-            updateList(channels.findIndex((channel) => channel.ChannelID === message.Channel.valueOf()))
-            if (message.SenderID.valueOf() !== user.userid) {
+            updateList(channels.findIndex((channel) => channel.ChannelID.valueOf() === message.Channel.valueOf()))
+            if (message.SenderID.valueOf() !== User.userid) {
                 document.title = "ChatApp (•)"
                 notification_sound.play().then(setTimeout(() => {document.title = "ChatApp"}, 2500))
             }
@@ -80,7 +79,7 @@ export function Dashboard() {
             NewMessage: load,
         })
     }
-    if (user.token === "0") {
+    if (User.token === "0") {
         return <Navigate replace to="/login"/>
     }
     return (
@@ -92,7 +91,7 @@ export function Dashboard() {
             </Popup>
             <CurrentChatContext.Provider value={channelHistory}>
                 <div className="Chat">
-                    <User handler={handler}/>
+                    <Channel handler={handler}/>
                     <ChatHistory handler={handler}/>
                 </div>
             </CurrentChatContext.Provider>

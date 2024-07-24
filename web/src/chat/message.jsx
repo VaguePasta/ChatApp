@@ -1,6 +1,6 @@
 import "./message.scss"
 import {Tooltip} from "react-tooltip";
-import {DeleteMessage, removeMessage, user} from "../api/api";
+import {DeleteMessage, removeMessage, User} from "../api/api";
 import Linkify from "react-linkify";
 import {useRef, useState} from "react";
 import {Reply} from "./reply";
@@ -18,7 +18,6 @@ export function Message(props) {
     }
 
     async function Delete() {
-        console.log(props.message.ID.valueOf())
         if (await DeleteMessage(props.message.ID.valueOf())) {
             if (props.replyTo === props.message.ID.valueOf()) {
                 props.reply(0)
@@ -30,7 +29,7 @@ export function Message(props) {
     async function ReplyMessage() {
         props.reply(props.message.ID.valueOf())
     }
-    if (isDeleted && props.message.SenderID.valueOf() === user.userid) {
+    if (isDeleted && props.message.SenderID.valueOf() === User.userid) {
         return (
             <div style={{
                 float: "right",
@@ -56,7 +55,7 @@ export function Message(props) {
             </div>
         )
     }
-    if (props.message.SenderID.valueOf() === user.userid) {
+    if (props.message.SenderID.valueOf() === User.userid) {
         if (props.message.Type === 'text') {
             return (
                 <div style={{

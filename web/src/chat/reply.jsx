@@ -11,10 +11,10 @@ export function Reply(props) {
         }
         else {
             if (message === undefined && !loaded) {
-                let _message = channelsMap[CurrentChannel].find(element => element.ID === props.ID)
+                let _message = channelsMap[CurrentChannel].find(element => element.ID.valueOf() === props.ID)
                 if (_message === undefined) {
                     GetMessage(props.ID, CurrentChannel).then(() => {
-                        replyTo(channelsMap[CurrentChannel].find(element => element.ID === props.ID))
+                        replyTo(channelsMap[CurrentChannel].find(element => element.ID.valueOf() === props.ID))
                         load(true)
                     })
                 }

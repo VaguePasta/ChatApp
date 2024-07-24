@@ -57,7 +57,7 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	body, err := io.ReadAll(r.Body)
-	var arr []string
+	var arr []json.RawMessage
 	err = json.Unmarshal(body, &arr)
 	if err != nil {
 		w.WriteHeader(400)
@@ -65,21 +65,26 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 	}
 	createTime, _ := connections.IdGenerator.NextID()
 	var channelId string
-	channelName := arr[0]
+	var channelName string
+	err = json.Unmarshal(arr[0], &channelName)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
 	err = connections.DatabaseConn.QueryRow(context.Background(), "insert into channels (title, create_date, last_message) values ($1, (select current_date), $2) returning channel_id", channelName, createTime).Scan(&channelId)
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
 	arr = arr[1:]
-	for index, element := range arr {
-		var privilege string
-		if index == 0 {
-			privilege = "admin"
-		} else {
-			privilege = "member"
+	for _, element := range arr {
+		var user []string
+		err = json.Unmarshal(element, &user)
+		if err != nil {
+			w.WriteHeader(500)
+			return
 		}
-		_, err = connections.DatabaseConn.Exec(context.Background(), "insert into participants (user_id, channel_id, privilege) values ($1, $2, $3)", element, channelId, privilege)
+		_, err = connections.DatabaseConn.Exec(context.Background(), "insert into participants (user_id, channel_id, privilege) values ($1, $2, $3)", user[0], channelId, user[1])
 		if err != nil {
 			continue
 		}

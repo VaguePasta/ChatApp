@@ -7,7 +7,6 @@ import {
     channels, channelsMap,
     DeleteChannel,
     RequestChannelList, RequestChat,
-    RequestChatMember,
 } from "../api/api";
 import Popup from "reactjs-popup";
 import {ErrorNotification} from "../dashboard/notifications";
@@ -16,14 +15,10 @@ export function ChatInfo(props) {
     const currentChat = useContext(CurrentChatContext)
     const [channelName, changeName] = useState("")
     const [reloading, reloadChat] = useState(false)
-    const [channelUsers, updateUser] = useState({
-        CurrentList: 0,
-        UserList: [],
-    })
     const ref = useRef()
     useEffect(() => {
         let _privilege = channels.find(obj => {
-            return obj.ChannelID === CurrentChannel
+            return obj.ChannelID.valueOf() === CurrentChannel
         }) || null
         if (_privilege !== null) {
             p(_privilege.Privilege)
@@ -34,7 +29,7 @@ export function ChatInfo(props) {
             return
         }
         changeName(channels.find(obj => {
-            return obj.ChannelID === CurrentChannel
+            return obj.ChannelID.valueOf() === CurrentChannel
         }).Title)
     }, [currentChat.Current]);
     async function DeleteChannelClick() {
@@ -55,20 +50,6 @@ export function ChatInfo(props) {
             }
         )
     }
-    async function GetChatMember() {
-        if (CurrentChannel !== channelUsers.CurrentList) {
-            let list = await RequestChatMember(CurrentChannel)
-            if (list === null) {
-                ref.current.close()
-                return
-            }
-            updateUser({
-                CurrentList: CurrentChannel,
-                UserList: list,
-            })
-        }
-    }
-
     async function ChangeName(e) {
         if (e.key === 'Enter' && e.target.value !== "") {
             ref.current.close()
@@ -114,33 +95,10 @@ export function ChatInfo(props) {
                     {privilege === 'admin' && <Popup trigger={<button className="popup-button">Change Channel Name</button>}>
                         <input onKeyDown={ChangeName}/>
                     </Popup>}
-                    <Popup className="tooltip-popup" onOpen={GetChatMember}
-                           trigger={<button style={{borderWidth: "1px 0"}} className="popup-button">Chat
-                               member(s)...</button>} nested position="left top">
-                        {channelUsers.UserList.map(user =>
-                            <div style={{
-                                display: "flex",
-                                flexFlow: "column",
-                                borderStyle: "solid",
-                                borderWidth: "0 0 1px 0"
-                            }}>
-                                <div style={{
-                                    whiteSpace: "nowrap",
-                                    fontSize: "16px",
-                                    margin: "0px 5px",
-                                    padding: "2px 1px",
-                                    maxWidth: "200px",
-                                    overflow: "clip"
-                                }}>{user[0]}</div>
-                                <div style={{
-                                    fontSize: "12px",
-                                    margin: "0px 5px",
-                                    padding: "2px 1px",
-                                    color: "#248a92",
-                                    textTransform: "capitalize"
-                                }}>{user[1]}</div>
-                            </div>)}
-                    </Popup>
+                    <button onClick={() => {
+                        if (!props.showingMem) props.showMem(true)
+                        ref.current.close()
+                    }} style={{borderWidth: "1px 0"}} className="popup-button">Chat member(s)...</button>
                     {privilege === 'admin' && <button onClick={DeleteChannelClick} className="popup-button">Delete Channel</button>}
             </Popup>
         </div>

@@ -1,16 +1,23 @@
-import {createRef} from "react";
+import {createRef, useEffect, useState} from "react";
 import "./chatbox.scss"
-import {channelsMap, send, user} from "../api/api"
+import {channelsMap, send, User} from "../api/api"
 import {CurrentChannel} from "../conversation/conversation";
 import autosize from "autosize/dist/autosize";
 import Popup from "reactjs-popup";
 import {ErrorNotification} from "../dashboard/notifications";
+import {stringify} from "lossless-json";
 export function ChatBox(props) {
     let chat = document.querySelector('textarea')
     let chatBoxRef = createRef()
+    const [textReply, textRep] = useState(undefined)
+    useEffect(() => {
+        if (props.replyingTo !== 0 && channelsMap[CurrentChannel] !== null) {
+            textRep(channelsMap[CurrentChannel].find(e => e.ID.valueOf() === props.replyingTo))
+        }
+    }, [props]);
     function sendHandler() {
         if (chatBoxRef.current.value !== '') {
-            send(JSON.stringify({channel:CurrentChannel,type:'text',content:chatBoxRef.current.value, reply: props.replyingTo}))
+            send(stringify({channel:CurrentChannel,type:'text',content:chatBoxRef.current.value, reply: props.replyingTo}))
             chatBoxRef.current.value = ''
             chatBoxRef.current.focus()
             autosize.update(chat)
@@ -21,7 +28,7 @@ export function ChatBox(props) {
         if (e.key === 'Enter' && !e.shiftKey && chatBoxRef.current.value !== '') {
             e.preventDefault()
             e.stopPropagation()
-            send(JSON.stringify({channel:CurrentChannel,type:'text',content:chatBoxRef.current.value, reply: props.replyingTo}))
+            send(stringify({channel:CurrentChannel,type:'text',content:chatBoxRef.current.value, reply: props.replyingTo}))
             e.target.value = ''
             chatBoxRef.current.focus()
             autosize.update(chat)
@@ -29,11 +36,10 @@ export function ChatBox(props) {
         }
     }
     autosize(chat)
-
     async function SendImage(e) {
         if (e.key === 'Enter' && e.target.value !== "") {
             if (await ImageExists(e.target.value)) {
-                send(JSON.stringify({channel:CurrentChannel,type:'image',content:e.target.value, reply: props.replyingTo}))
+                send(stringify({channel:CurrentChannel,type:'image',content:e.target.value, reply: props.replyingTo}))
             }
             else {
                 ErrorNotification("image-error", "Invalid link.")
@@ -57,16 +63,12 @@ export function ChatBox(props) {
                 ErrorNotification("video-error", "Not a Youtube video.")
                 return
             }
-            send(JSON.stringify({channel:CurrentChannel,type:'video',content:match[1], reply: props.replyingTo}))
+            send(stringify({channel:CurrentChannel,type:'video',content:match[1], reply: props.replyingTo}))
             e.target.value = ''
         }
     }
-    let textReply
-    if (props.replyingTo !== 0) {
-        textReply = channelsMap[CurrentChannel].find(e => e.ID === props.replyingTo)
-    }
     return (
-        <div style={{borderTop: props.replyingTo !== 0 ? "1px solid black" : "none"}}>{props.replyingTo !== 0 && textReply !== undefined &&
+        <div style={{zIndex: "3", borderTop: props.replyingTo !== 0 ? "1px solid black" : "none"}}>{props.replyingTo !== 0 && textReply !== undefined &&
             <ReplyingTo message={textReply} removeReply={props.reply}/>}
             <div style={{background:"white", height:"max-content", width:"100%", display:"flex", alignItems:"center"}}>
                 <textarea placeholder="Aa" ref={chatBoxRef} className="ChatBox" onKeyDown={keyDownHandler}/>
@@ -92,7 +94,7 @@ function ReplyingTo(props) {
                     WebkitLineClamp: 2,
                     textOverflow: "ellipsis",
                     overflow: "hidden",
-                }}>Replying to {props.message.SenderID.valueOf() === user.userid ? 'myself' : props.message.SenderName}
+                }}>Replying to {props.message.SenderID.valueOf() === User.userid ? 'myself' : props.message.SenderName}
                     <div style={{color: "gray"}}>
                         {props.message.Text}
                     </div>
@@ -111,7 +113,7 @@ function ReplyingTo(props) {
                     textOverflow: "ellipsis",
                     overflow: "hidden",
                     whiteSpace: "pre",
-                }}>Replying to {props.message.SenderID.valueOf() === user.userid ? 'myself' : props.message.SenderName}
+                }}>Replying to {props.message.SenderID.valueOf() === User.userid ? 'myself' : props.message.SenderName}
                     <div style={{color: "gray"}}>
                         Image: <a href={props.message.Text} target="_blank" rel="noreferrer"> {props.message.Text}</a>
                     </div>
@@ -130,7 +132,7 @@ function ReplyingTo(props) {
                     textOverflow: "ellipsis",
                     overflow: "hidden",
                     whiteSpace: "pre",
-                }}>Replying to {props.message.SenderID.valueOf() === user.userid ? 'myself' : props.message.SenderName}
+                }}>Replying to {props.message.SenderID.valueOf() === User.userid ? 'myself' : props.message.SenderName}
                     <div style={{color: "gray"}}>
                         Video: <a target="_blank" href={"https://www.youtube.com/watch?v=" + props.message.Text}
                                   rel="noreferrer">{"https://www.youtube.com/watch?v=" + props.message.Text}</a>
@@ -141,5 +143,3 @@ function ReplyingTo(props) {
         )
     }
 }
-
-export default ChatBox;

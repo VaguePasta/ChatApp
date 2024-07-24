@@ -1,6 +1,6 @@
 import {createRef, useState} from "react";
 import "./infoprompt.scss"
-import {LogIn, OpenSocket, socket, UpdateUsername, user} from "../api/api";
+import {LogIn, OpenSocket, socket, UpdateUsername, User} from "../api/api";
 import {Navigate, useNavigate} from "react-router-dom";
 import {ErrorNotification} from "../dashboard/notifications";
 export function LogInPrompt() {
@@ -33,7 +33,7 @@ export function LogInPrompt() {
         else if (e.key === "CapsLock") CheckCaps(e)
     }
     function Proceed(username) {
-        if (user.token !== "0") {
+        if (User.token !== "0") {
             OpenSocket()
             socket.onopen = () => {
                 signingIn(false)
@@ -62,7 +62,7 @@ export function LogInPrompt() {
     function InputChangeHandler() {
         if (wrongCredential) credential(false)
     }
-    if (user.token !== "0" && socket.readyState === WebSocket.OPEN) {
+    if (User.token !== "0" && socket.readyState === WebSocket.OPEN) {
         return (
              <Navigate replace to="/dashboard"/>
         )

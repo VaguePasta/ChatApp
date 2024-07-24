@@ -4,16 +4,22 @@ import {Message} from "./message";
 import {CurrentChatContext} from "../dashboard/dashboard";
 import "../dashboard/dashboard.scss"
 import {ChatInfo} from "./chatinfo";
-import ChatBox from "./chatbox";
+import {ChatBox} from "./chatbox";
 import { channelsMap, RequestChat} from "../api/api";
 import {CurrentChannel} from "../conversation/conversation";
 import {ErrorNotification} from "../dashboard/notifications";
+import {Members} from "../chatmenu/members";
+import {AnimatePresence, motion} from "framer-motion";
 export function ChatHistory(props) {
     const history = useContext(CurrentChatContext)
     const refs = useRef(null)
     const [isOnTop, onTop] = useState(false)
     const [isNotOnBottom, notOnBottom] = useState(false)
     const [replyTo, reply] = useState(0)
+    const [showingMember, showMember] = useState(false)
+    function showMem(show) {
+        showMember(show)
+    }
     useEffect(() => {
         onTop(false)
         notOnBottom(false)
@@ -66,22 +72,42 @@ export function ChatHistory(props) {
         setTimeout(() => refs.current.scrollIntoView());
     }
     return (
-        <div className="ChatWindow">
-            <ChatInfo handler={props.handler}/>
-            {history.Content !== null ? <div className="ChatHistory" onScroll={ScrollHandler}>
-                {isOnTop && <button onClick={LoadChat} className="UpDownButton LoadMore"/>}
-                {history.Content.map(msg => msg.Fetch !== true && <Message key={msg.ID} reply={reply} message={msg} replyTo={replyTo} handler={props.handler}/>)}
-                <div ref={refs} style={{clear: "both"}}/>
-                {isNotOnBottom && <button style={{
-                    bottom : (replyTo === 0) ? '8%' : '15%',
-                }}
-                onClick={ScrollToBottom} className={"UpDownButton ScrollToBottom " + (replyTo !== 0 && "Rep")}/>}
-            </div> :
-                <div className="ChatHistory">
-                    <div className="loader"/>
-                    <div ref={refs} style={{clear: "both", bottom:"0"}}/>
-                </div>}
-            {CurrentChannel !== 0 && <ChatBox replyingTo={replyTo} reply={reply}/>}
+        <div style={{
+            display: "flex",
+            flex: "1",
+        }}>
+            <div className="ChatWindow">
+                <ChatInfo showingMem={showingMember} showMem={showMem} handler={props.handler}/>
+                <AnimatePresence>
+                    {isOnTop && (<motion.button
+                        className="UpDownButton LoadMore"
+                        onClick={LoadChat}
+                        exit = {{top: 0}}
+                        />
+                    )}
+                </AnimatePresence>
+                {history.Content !== null ? <div className="ChatHistory" onScroll={ScrollHandler}>
+                        {history.Content.map(msg => msg.Fetch !== true &&
+                            <Message key={msg.ID.valueOf()} reply={reply} message={msg} replyTo={replyTo} handler={props.handler}/>)}
+                        <div ref={refs} style={{clear: "both"}}/>
+                    </div> :
+                    <div className="ChatHistory">
+                        <div className="loader"/>
+                        <div ref={refs} style={{clear: "both", bottom: "0"}}/>
+                    </div>}
+                <AnimatePresence>
+                    {isNotOnBottom && (<motion.button
+                        style={{bottom: (replyTo === 0) ? '8%' : '15%'}}
+                        onClick = {ScrollToBottom}
+                        exit = {{bottom: 0}}
+                        transition = {{duration: 0.3}}
+                        className={"UpDownButton ScrollToBottom" + (replyTo !== 0 ? " Rep" : ""
+                        )}
+                    />)}
+                </AnimatePresence>
+                {CurrentChannel !== 0 && <ChatBox replyingTo={replyTo} reply={reply}/>}
+            </div>
+            {showingMember && <Members showMem={showMem}/>}
         </div>
     );
 }
