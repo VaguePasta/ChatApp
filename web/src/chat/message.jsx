@@ -1,9 +1,10 @@
 import "./message.scss"
 import {Tooltip} from "react-tooltip";
-import {DeleteMessage, removeMessage, User} from "../api/api";
 import Linkify from "react-linkify";
 import {useRef, useState} from "react";
 import {Reply} from "./reply";
+import {DeleteMessage, removeMessage} from "../api/message";
+import {User} from "../api/auth";
 export function Message(props) {
     const deleteButton = useRef(null)
     const replyButton = useRef(null)

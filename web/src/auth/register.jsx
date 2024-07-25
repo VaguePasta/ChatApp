@@ -1,7 +1,7 @@
 import {createRef, useState} from "react";
 import "./infoprompt.scss"
-import {Register} from "../api/api";
 import {useNavigate} from "react-router-dom";
+import {Register} from "../api/auth";
 export function RegisterPrompt() {
     let login = useNavigate()
     let Username = createRef()

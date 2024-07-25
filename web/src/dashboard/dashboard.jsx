@@ -1,14 +1,4 @@
 import {ChatHistory} from "../chat/chatHistory";
-import {
-    channels,
-    channelsMap,
-    Decompress,
-    LogOut,
-    RequestChannelList,
-    RequestChat,
-    SaveMessage,
-    socket, User,
-} from "../api/api";
 import {Navigate, useNavigate} from "react-router-dom";
 import {Channel} from "./channel"
 import "./dashboard.scss"
@@ -17,6 +7,9 @@ import {CurrentChannel} from "../conversation/conversation";
 import Popup from "reactjs-popup";
 import {new_message} from "../audio/audio";
 import {parse} from "lossless-json";
+import {LogOut, socket, User} from "../api/auth";
+import {Decompress, SaveMessage} from "../api/message";
+import {channels, channelsMap, RequestChannelList, RequestChat} from "../api/channel";
 export const CurrentChatContext = createContext({Current:0, Channels: [], Content: [], NewMessage: false})
 const notification_sound = new Audio()
 notification_sound.src = new_message

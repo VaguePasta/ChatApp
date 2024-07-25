@@ -8,3 +8,18 @@
   font-variation-settings: "wdth" 100;
   font-size: 12px;
 }
+.reload {
+  width :25px;
+  height: 25px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 80%;
+  background-color: transparent;
+  border: none;
+  margin-Left: auto;
+  background-image: url('../../static/icons/reload.png');
+  border-radius: 50%;
+}
+.reload:hover {
+  background-color: lightgray;
+}

@@ -1,5 +1,7 @@
 .idea/
 web/node_modules/
 web/.idea
+web/build
 credentials.txt
 *.txt
+*.env

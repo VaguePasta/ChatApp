@@ -3,18 +3,11 @@ import Popup from "reactjs-popup";
 import {ErrorNotification, SuccessNotification} from "../dashboard/notifications";
 import React, {useEffect, useRef, useState} from "react";
 import {Navigate, useNavigate} from "react-router-dom";
-import {
-    ChangePassword,
-    channels,
-    channelsMap,
-    Decompress,
-    LogOut,
-    RequestChannelList,
-    RequestUserInfo, SaveMessage,
-    socket,
-    User
-} from "../api/api";
 import {parse} from "lossless-json";
+import {LogOut, socket, User} from "../api/auth";
+import {Decompress, SaveMessage} from "../api/message";
+import {channels, channelsMap, RequestChannelList} from "../api/channel";
+import {ChangePassword, RequestUserInfo} from "../api/user";
 export function Profile() {
     const ref = useRef()
     const history = useNavigate()

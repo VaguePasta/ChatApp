@@ -136,16 +136,18 @@ func GetChannelMember(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
-	var members [][2]string
+	var members []interface{}
 	channel := mux.Vars(r)["channelID"]
-	rows, _ := connections.DatabaseConn.Query(context.Background(), "select username, privilege from participants inner join users on participants.user_id = users.user_id where channel_id = $1 order by privilege, username", channel)
+	rows, _ := connections.DatabaseConn.Query(context.Background(), "select users.user_id, username, privilege from participants inner join users on participants.user_id = users.user_id where channel_id = $1 order by privilege, username", channel)
 	for rows.Next() {
+		var userId int
 		var user [2]string
-		err := rows.Scan(&user[0], &user[1])
+		err := rows.Scan(&userId, &user[0], &user[1])
 		if err != nil {
 			continue
 		}
-		members = append(members, user)
+		userInfo := []interface{}{userId, user[0], user[1]}
+		members = append(members, userInfo)
 	}
 	memberList, err := json.Marshal(members)
 	if err != nil {

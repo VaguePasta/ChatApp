@@ -1,11 +1,12 @@
 import {ConversationList} from "../conversation/conversationlist";
 import Popup from "reactjs-popup";
-import {channels, LogOut, RequestChannelList, User} from "../api/api";
 import {useNavigate} from "react-router-dom";
 import "./dashboard.scss"
 import "../chat/chatinfo.scss"
 import {useEffect, useState} from "react";
 import {SetChannel} from "../conversation/conversation";
+import {LogOut, User} from "../api/auth";
+import {channels, RequestChannelList} from "../api/channel";
 export function Channel(props) {
     const [loaded, load] = useState(() => {return channels !== null})
     useEffect(() => {

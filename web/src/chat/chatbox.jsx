@@ -1,11 +1,13 @@
 import {createRef, useEffect, useState} from "react";
 import "./chatbox.scss"
-import {channelsMap, send, User} from "../api/api"
 import {CurrentChannel} from "../conversation/conversation";
 import autosize from "autosize/dist/autosize";
 import Popup from "reactjs-popup";
 import {ErrorNotification} from "../dashboard/notifications";
 import {stringify} from "lossless-json";
+import {User} from "../api/auth";
+import {send} from "../api/message";
+import {channelsMap} from "../api/channel";
 export function ChatBox(props) {
     let chat = document.querySelector('textarea')
     let chatBoxRef = createRef()

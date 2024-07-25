@@ -70,6 +70,7 @@ func setupRoutes() *mux.Router {
 	router.HandleFunc("/channel/delete", net.DeleteChannel)
 	router.HandleFunc("/channel/member/{channelID}", net.GetChannelMember)
 	router.HandleFunc("/channel/rename", net.ChangeChannelName)
+	router.HandleFunc("/channel/privilege", net.ChangeUserPrivilege)
 	router.HandleFunc("/user/search/{username}", net.SearchUser)
 	router.HandleFunc("/user/get/{userid}", net.GetUserInfo)
 	router.HandleFunc("/ws/{token}", func(w http.ResponseWriter, r *http.Request) {

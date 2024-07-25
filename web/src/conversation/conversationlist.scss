@@ -3,6 +3,7 @@
     overflow: scroll;
     scrollbar-width: thin;
     flex: 1;
+    overflow-x: hidden;
 }
 .ConversationList::-webkit-scrollbar {
     width: 0;

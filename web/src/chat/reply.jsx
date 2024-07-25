@@ -1,6 +1,7 @@
 import {CurrentChannel} from "../conversation/conversation";
-import {channelsMap, GetMessage} from "../api/api";
 import {useEffect, useState} from "react";
+import {GetMessage} from "../api/message";
+import {channelsMap} from "../api/channel";
 
 export function Reply(props) {
     const [loaded, load] = useState(false)

@@ -1,6 +1,8 @@
 import {ErrorNotification} from "../dashboard/notifications";
-import {CreateChannel, RequestChannelList, SearchUser, User} from "../api/api";
 import {useRef} from "react";
+import {User} from "../api/auth";
+import {SearchUser} from "../api/user";
+import {CreateChannel, RequestChannelList} from "../api/channel";
 
 export function CreateChat(props) {
     const ChannelName = useRef(null)

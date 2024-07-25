@@ -5,11 +5,11 @@ import {CurrentChatContext} from "../dashboard/dashboard";
 import "../dashboard/dashboard.scss"
 import {ChatInfo} from "./chatinfo";
 import {ChatBox} from "./chatbox";
-import { channelsMap, RequestChat} from "../api/api";
 import {CurrentChannel} from "../conversation/conversation";
 import {ErrorNotification} from "../dashboard/notifications";
 import {Members} from "../chatmenu/members";
 import {AnimatePresence, motion} from "framer-motion";
+import {channelsMap, RequestChat} from "../api/channel";
 export function ChatHistory(props) {
     const history = useContext(CurrentChatContext)
     const refs = useRef(null)
@@ -24,6 +24,7 @@ export function ChatHistory(props) {
         onTop(false)
         notOnBottom(false)
         reply(0)
+        showMem(false)
         if (channelsMap[CurrentChannel] === null) {
             channelsMap[CurrentChannel] = []
             RequestChat(CurrentChannel).then(
@@ -107,7 +108,7 @@ export function ChatHistory(props) {
                 </AnimatePresence>
                 {CurrentChannel !== 0 && <ChatBox replyingTo={replyTo} reply={reply}/>}
             </div>
-            {showingMember && <Members showMem={showMem}/>}
+            {showingMember && <Members showingMember={showingMember} showMem={showMem}/>}
         </div>
     );
 }

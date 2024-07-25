@@ -1,8 +1,9 @@
 import {createRef, useState} from "react";
 import "./infoprompt.scss"
-import {LogIn, OpenSocket, socket, UpdateUsername, User} from "../api/api";
 import {Navigate, useNavigate} from "react-router-dom";
 import {ErrorNotification} from "../dashboard/notifications";
+import {LogIn, OpenSocket, socket, User} from "../api/auth";
+import {UpdateUsername} from "../api/user";
 export function LogInPrompt() {
     let history = useNavigate()
     let Username = createRef()

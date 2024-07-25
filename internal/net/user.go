@@ -83,3 +83,65 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
+	SetOrigin(w, r)
+	if CheckToken(r.Header.Get("Authorization")) == -1 {
+		w.WriteHeader(401)
+		return
+	}
+	user, _ := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	var arr []json.RawMessage
+	err = json.Unmarshal(body, &arr)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	var IDtoChange int
+	var channel int
+	var role string
+	var senderRole string
+	err = json.Unmarshal(arr[0], &IDtoChange)
+	err = json.Unmarshal(arr[1], &channel)
+	err = json.Unmarshal(arr[2], &role)
+	err = connections.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where channel_id = $1 and user_id = $2", channel, user.ID).Scan(&senderRole)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	if senderRole == "admin" {
+		if user.ID == IDtoChange {
+			w.WriteHeader(403)
+			return
+		}
+		_, err := connections.DatabaseConn.Exec(context.Background(), "update participants set privilege = $1 where user_id = $2 and channel_id = $3", role, IDtoChange, channel)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+	} else if senderRole == "moderator" {
+		if role == "admin" || role == "moderator" {
+			w.WriteHeader(403)
+			return
+		}
+		var currentRole string
+		err = connections.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where channel_id = $1 and user_id = $2", channel, IDtoChange).Scan(&currentRole)
+		if err != nil || (currentRole != "member" && currentRole != "viewer") {
+			w.WriteHeader(403)
+			return
+		}
+		_, err := connections.DatabaseConn.Exec(context.Background(), "update participants set privilege = $1 where user_id = $2 and channel_id = $3", role, IDtoChange, channel)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+	} else {
+		w.WriteHeader(403)
+		return
+	}
+	w.WriteHeader(200)
+}

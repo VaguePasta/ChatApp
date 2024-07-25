@@ -2,14 +2,9 @@ import {useContext, useEffect, useRef, useState} from "react";
 import "./chatinfo.scss"
 import {CurrentChannel, SetChannel} from "../conversation/conversation";
 import {CurrentChatContext} from "../dashboard/dashboard";
-import {
-    ChangeChannelName,
-    channels, channelsMap,
-    DeleteChannel,
-    RequestChannelList, RequestChat,
-} from "../api/api";
 import Popup from "reactjs-popup";
 import {ErrorNotification} from "../dashboard/notifications";
+import {ChangeChannelName, channels, channelsMap, DeleteChannel, RequestChannelList, RequestChat} from "../api/channel";
 export function ChatInfo(props) {
     const [privilege, p] = useState(null)
     const currentChat = useContext(CurrentChatContext)

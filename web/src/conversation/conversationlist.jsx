@@ -1,4 +1,3 @@
-import {channels} from "../api/api";
 import {Conversation} from "./conversation";
 import "./conversationlist.scss"
 import "./conversation.scss"
@@ -7,6 +6,7 @@ import {useContext, useEffect, useRef, useState} from "react";
 import Popup from "reactjs-popup";
 import {CurrentChatContext} from "../dashboard/dashboard";
 import {CreateChat} from "../chat/createChat";
+import {channels} from "../api/channel";
 export function ConversationList(props) {
     const list = useContext(CurrentChatContext)
     const ref = useRef()
