@@ -15,7 +15,7 @@ var DatabaseConn *pgxpool.Pool
 
 func CheckPassword(userid int, password string) (bool, string) {
 	var _password string
-	err := DatabaseConn.QueryRow(context.Background(), "select password from users where user_id=$1", userid).Scan(&_password)
+	err := DatabaseConn.QueryRow(context.Background(), "select password from users where user_id = $1", userid).Scan(&_password)
 	if err != nil {
 		return false, _password
 	}

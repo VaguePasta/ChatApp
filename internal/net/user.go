@@ -113,11 +113,11 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
+	if user.ID == IDtoChange {
+		w.WriteHeader(403)
+		return
+	}
 	if senderRole == "admin" {
-		if user.ID == IDtoChange {
-			w.WriteHeader(403)
-			return
-		}
 		_, err := connections.DatabaseConn.Exec(context.Background(), "update participants set privilege = $1 where user_id = $2 and channel_id = $3", role, IDtoChange, channel)
 		if err != nil {
 			w.WriteHeader(500)

@@ -82,12 +82,10 @@ export function RegisterPrompt() {
                        onChange={InputChangeHandler}/>
                 <input placeholder="Re-enter Password" type="password" className="InfoText" ref={SecondPassword} onKeyDown={SecondPasswordHandler}
                        onChange={InputChangeHandler}/>
-            <div style={{flex:"1", marginBottom:5}}>
-                {capslock ? <label className="InfoLabel" style={{fontSize: 14, marginLeft: 5, color: "green"}}>Caps Lock is on.</label> : false}
-                {passwordMismatch ? <label style={{fontSize: 16, marginLeft: 5, color: "red"}}>Passwords do not match.</label> : null}
-                {(registered && submit) ? <label style={{fontSize: 16, marginLeft: 5, color: "green"}}>Successfully Registered. Redirecting...</label> : null}
-                {(!registered && submit) ? <label style={{fontSize: 16, marginLeft: 5, color: "red"}}>User already existed.</label> : null}
-            </div>
+            {capslock ? <label className="InfoLabel" style={{fontSize: 14, color: "green"}}>Caps Lock is on.</label> : false}
+            {passwordMismatch ? <label className="InfoLabel" style={{fontSize: 16, color: "red"}}>Passwords do not match.</label> : null}
+            {(registered && submit) ? <label className="InfoLabel" style={{fontSize: 16, color: "green"}}>Successfully Registered. Redirecting...</label> : null}
+            {(!registered && submit) ? <label className="InfoLabel" style={{fontSize: 16, color: "red"}}>User already existed.</label> : null}
             <label className="InfoLabel" style={{fontSize: 15}}>Already have an
                 account? <a href="/login" className="InfoLabel" style={{fontSize: 15}}>Log In</a></label>
             <button className="SubmitButton" onClick={RegisterClick}>Register</button>

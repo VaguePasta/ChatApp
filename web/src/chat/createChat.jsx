@@ -3,6 +3,7 @@ import {useRef} from "react";
 import {User} from "../api/auth";
 import {SearchUser} from "../api/user";
 import {CreateChannel, RequestChannelList} from "../api/channel";
+import {parseNumberAndBigInt} from "lossless-json";
 
 export function CreateChat(props) {
     const ChannelName = useRef(null)
@@ -32,7 +33,7 @@ export function CreateChat(props) {
             }
             let response = await SearchUser(e.target.value)
             if (response.Status === 200) {
-                let user_id = response.Response
+                let user_id = parseNumberAndBigInt(response.Response)
                 AddUser(user_id, e.target.value, "member")
                 e.target.value = ''
             } else {

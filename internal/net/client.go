@@ -139,7 +139,7 @@ func DeleteMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(200)
 }
 func SendToChannel(pool *connections.Pool, textMessage *system.Message) {
-	query := "INSERT INTO messages(message_id, channel_id, sender_id, type, message) VALUES (@messageID, @channelID, @senderID, @messageType ,@content);"
+	query := "insert into messages(message_id, channel_id, sender_id, type, message) VALUES (@messageID, @channelID, @senderID, @messageType ,@content);"
 	args := pgx.NamedArgs{
 		"messageID":   textMessage.ID,
 		"channelID":   textMessage.ChannelID,

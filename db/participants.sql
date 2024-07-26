@@ -1,9 +1,5 @@
-DO $$ 
-BEGIN
-    CREATE TYPE privileges AS ENUM('admin','moderator','member','viewer');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+DROP TYPE privileges;
+CREATE TYPE privileges AS ENUM('admin','moderator','member','viewer');
 
 CREATE TABLE IF NOT EXISTS participants (
 	user_id int REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,

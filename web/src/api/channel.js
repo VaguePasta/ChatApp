@@ -74,7 +74,7 @@ export async function CreateChannel(channel, users) {
     users.forEach((e) => {
         userList.push([e[0], e[2]])
     })
-    userList.unshift(channel,[String(User.userid), 'admin'])
+    userList.unshift(channel,[User.userid, 'admin'])
     let log = new XMLHttpRequest()
     log.withCredentials = true;
     log.open("POST", server + "channel/create", true)

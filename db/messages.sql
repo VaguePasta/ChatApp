@@ -1,9 +1,5 @@
-DO $$ 
-BEGIN
-    create type messageType as enum('text','image','video');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+drop type messageType;
+create type messageType as enum('text','image','video');
 
 CREATE TABLE IF NOT EXISTS messages (
 	message_id bigint NOT NULL PRIMARY KEY,

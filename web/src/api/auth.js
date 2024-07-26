@@ -1,5 +1,5 @@
 import {makeRequest, server} from "./api";
-import {ChatMember, ResetMember} from "../chatmenu/members";
+import {ResetMember} from "../chatmenu/members";
 import {SetChannel} from "../conversation/conversation";
 import {SetChannelList, SetChannelMap} from "./channel";
 

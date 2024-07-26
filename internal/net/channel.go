@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5"
 	"io"
 	"net/http"
 )
@@ -77,17 +78,24 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	arr = arr[1:]
+	var users [][]interface{}
 	for _, element := range arr {
-		var user []string
+		var user []interface{}
 		err = json.Unmarshal(element, &user)
 		if err != nil {
 			w.WriteHeader(500)
 			return
 		}
-		_, err = connections.DatabaseConn.Exec(context.Background(), "insert into participants (user_id, channel_id, privilege) values ($1, $2, $3)", user[0], channelId, user[1])
-		if err != nil {
-			continue
-		}
+		users = append(users, []interface{}{
+			user[0],
+			channelId,
+			user[1],
+		})
+	}
+	_, err = connections.DatabaseConn.CopyFrom(context.Background(), pgx.Identifier{"participants"}, []string{"user_id", "channel_id", "privilege"}, pgx.CopyFromRows(users))
+	if err != nil {
+		w.WriteHeader(500)
+		return
 	}
 	w.WriteHeader(201)
 }
