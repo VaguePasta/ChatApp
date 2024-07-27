@@ -5,3 +5,6 @@ web/build
 credentials.txt
 *.txt
 *.env
+*.bat
+*.exe
+bin
