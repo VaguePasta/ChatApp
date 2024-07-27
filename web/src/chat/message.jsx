@@ -38,7 +38,8 @@ export function Message(props) {
                 clear: "both",
                 maxWidth: "55%",
                 margin: "5px 10px",
-                alignItems: "center"
+                alignItems: "center",
+
             }}>
                 <div style={{background: "transparent", color: "black", border:"solid 1px"}} className="Message">
                     {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
@@ -149,7 +150,7 @@ export function Message(props) {
                         clear: "both",
                         maxWidth: "55%",
                         margin: "5px 10px",
-                        alignItems: "center"
+                        alignItems: "center",
                     }}
                          onMouseEnter={() => showOptions(false)}
                          onMouseLeave={() => hideOptions(false)}>

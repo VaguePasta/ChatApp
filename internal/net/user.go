@@ -143,5 +143,12 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(403)
 		return
 	}
+	connections.ConnectionPool.Clients.ForEach(func(key string, value *connections.Client) bool {
+		if value.ID != IDtoChange {
+			return true
+		}
+		value.Channels.Set(channel, connections.SaveClientsChannelPrivilege(role))
+		return true
+	})
 	w.WriteHeader(200)
 }

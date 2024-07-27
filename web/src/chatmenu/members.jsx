@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
 import "../chat/chatbox.scss"
-import {ErrorNotification} from "../dashboard/notifications";
+import {ErrorNotification} from "../notifications/notifications";
 import {ChangeUserPrivilege} from "../api/user";
 import {User} from "../api/auth";
 import {channels, RequestChatMember} from "../api/channel";

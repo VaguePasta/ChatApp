@@ -10,6 +10,7 @@ type Client struct {
 	ID          int
 	Name        string
 	Token       string
+	Channels    *haxmap.Map[int, int8]
 	Conn        *websocket.Conn
 	ClientMutex sync.Mutex
 }
@@ -30,3 +31,17 @@ func NewPool() *Pool {
 }
 
 var ConnectionPool = NewPool()
+
+func SaveClientsChannelPrivilege(privilege string) int8 {
+	switch privilege {
+	case "admin":
+		return 0
+	case "moderator":
+		return 1
+	case "member":
+		return 2
+	case "viewer":
+		return 3
+	}
+	return 3
+}

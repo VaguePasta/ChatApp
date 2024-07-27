@@ -10,11 +10,13 @@ import {parse} from "lossless-json";
 import {LogOut, socket, User} from "../api/auth";
 import {Decompress, SaveMessage} from "../api/message";
 import {channels, channelsMap, RequestChannelList, RequestChat} from "../api/channel";
+import {Reconnect} from "../notifications/notifications";
 export const CurrentChatContext = createContext({Current:0, Channels: [], Content: [], NewMessage: false})
 const notification_sound = new Audio()
 notification_sound.src = new_message
 export function Dashboard() {
     const ref = useRef()
+    const [, forceRender] = useState(false)
     let history = useNavigate()
     const [channelHistory,update] = useState({Current: 0, Channels: [], Content: [], NewMessage: false})
     function onMessage(message) {
@@ -53,7 +55,7 @@ export function Dashboard() {
                 }
             }
             socket.onerror = () => {
-                ref.current.open()
+                Reconnect(ref).then((result) => {if (result) forceRender(render => !render)})
             }
         }
     })

@@ -39,6 +39,7 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		channelIDs = append(channelIDs, Channel{ChannelID: channelID, Title: title, Privilege: privilege})
+		user.Channels.Set(channelID, connections.SaveClientsChannelPrivilege(privilege))
 	}
 	channels.Close()
 	bytes, err := json.Marshal(channelIDs)

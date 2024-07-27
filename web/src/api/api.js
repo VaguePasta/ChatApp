@@ -22,10 +22,16 @@ export function makeRequest(request, body) {
                })
           }
           request.ontimeout = () => {
-              reject({
+               reject({
                   Status: 408,
                   Response: null,
               })
+          }
+          request.onabort = () => {
+               reject({
+                    Status: 408,
+                    Response: null,
+               })
           }
           request.send(body)
      })

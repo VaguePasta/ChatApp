@@ -4,37 +4,19 @@ import {GetMessage} from "../api/message";
 import {channelsMap} from "../api/channel";
 
 export function Reply(props) {
-    const [loaded, load] = useState(false)
-    const [message, replyTo] = useState(undefined)
+    const [, forceRender] = useState(false)
+    const [message, replyTo] = useState(channelsMap[CurrentChannel].find((e) => e.ID.valueOf() === props.ID))
     useEffect(() => {
-        if (props.ID === -1) {
-            replyTo(undefined)
+        if (message === undefined) {
+            GetMessage(props.ID, CurrentChannel).then(() => {
+                replyTo(channelsMap[CurrentChannel].find(element => element.ID.valueOf() === props.ID))
+                forceRender(render => !render)
+            })
         }
-        else {
-            if (message === undefined && !loaded) {
-                let _message = channelsMap[CurrentChannel].find(element => element.ID.valueOf() === props.ID)
-                if (_message === undefined) {
-                    GetMessage(props.ID, CurrentChannel).then(() => {
-                        replyTo(channelsMap[CurrentChannel].find(element => element.ID.valueOf() === props.ID))
-                        load(true)
-                    })
-                }
-                else {
-                    replyTo(_message)
-                    load(true)
-                }
-            }
-            if (message === undefined && loaded) {
-                return (
-                    <div style={{color: "gray", fontStyle: "italic"}}>Loading.....</div>
-                )
-            }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    })
     return (
         <div style={{
-            background: "transparent",
+            background: "white",
             display: '-webkit-box',
             WebkitBoxOrient: 'vertical',
             WebkitLineClamp: 3,
@@ -46,7 +28,7 @@ export function Reply(props) {
             margin: `${props.margin}`,
             zIndex: "1",
             maxWidth: "fit-content",
-            borderRadius: "5px 7px"
+            borderRadius: "5px 7px",
         }}>
             {message !== undefined && message.Type !== null && <div style={{fontSize: "14px", color: "#8f8f92"}}>{message.SenderName}</div>}
             {(message !== undefined && message.Type !== null) ?

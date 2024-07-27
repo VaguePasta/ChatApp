@@ -1,21 +1,29 @@
-import {createRef, useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import "./chatbox.scss"
 import {CurrentChannel} from "../conversation/conversation";
 import autosize from "autosize/dist/autosize";
 import Popup from "reactjs-popup";
-import {ErrorNotification} from "../dashboard/notifications";
+import {ErrorNotification} from "../notifications/notifications";
 import {stringify} from "lossless-json";
 import {User} from "../api/auth";
 import {send} from "../api/message";
-import {channelsMap} from "../api/channel";
+import {channels, channelsMap} from "../api/channel";
 export function ChatBox(props) {
     let chat = document.querySelector('textarea')
-    let chatBoxRef = createRef()
+    const chatBoxRef = useRef()
+    const imageSendRef = useRef()
+    const videoSendRef = useRef()
     const [textReply, textRep] = useState(undefined)
+    const [allowedToSend, allow] = useState(true)
     useEffect(() => {
+        if (channels.find(e => e.ChannelID.valueOf() === CurrentChannel).Privilege === "viewer") {
+            allow(false)
+        } else if (!allowedToSend) allow(true)
         if (props.replyingTo !== 0 && channelsMap[CurrentChannel] !== null) {
             textRep(channelsMap[CurrentChannel].find(e => e.ID.valueOf() === props.replyingTo))
         }
+        autosize(chat)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props]);
     function sendHandler() {
         if (chatBoxRef.current.value !== '') {
@@ -37,11 +45,12 @@ export function ChatBox(props) {
             if (props.replyingTo !== 0) props.reply(0)
         }
     }
-    autosize(chat)
     async function SendImage(e) {
         if (e.key === 'Enter' && e.target.value !== "") {
             if (await ImageExists(e.target.value)) {
                 send(stringify({channel:CurrentChannel,type:'image',content:e.target.value, reply: props.replyingTo}))
+                imageSendRef.current.close()
+                props.reply(0)
             }
             else {
                 ErrorNotification("image-error", "Invalid link.")
@@ -66,24 +75,55 @@ export function ChatBox(props) {
                 return
             }
             send(stringify({channel:CurrentChannel,type:'video',content:match[1], reply: props.replyingTo}))
+            videoSendRef.current.close()
+            props.reply(0)
             e.target.value = ''
         }
     }
-    return (
-        <div style={{zIndex: "3", borderTop: props.replyingTo !== 0 ? "1px solid black" : "none"}}>{props.replyingTo !== 0 && textReply !== undefined &&
-            <ReplyingTo message={textReply} removeReply={props.reply}/>}
-            <div style={{background:"white", height:"max-content", width:"100%", display:"flex", alignItems:"center"}}>
-                <textarea placeholder="Aa" ref={chatBoxRef} className="ChatBox" onKeyDown={keyDownHandler}/>
-                <Popup position="top right" trigger={<button className="FunctionButton ImageButton"></button>}>
-                    <input className="Input" onKeyDown={SendImage}/>
-                </Popup>
-                <Popup position="top right" trigger={<button className="FunctionButton VideoButton"></button>}>
-                    <input className="Input" onKeyDown={SendVideo}/>
-                </Popup>
-                <button className="FunctionButton SendButton" onClick={sendHandler}/>
+    if (allowedToSend) {
+        return (
+            <div style={{
+                zIndex: "3",
+                backgroundColor: "white",
+                borderTop: props.replyingTo !== 0 ? "1px solid black" : "none"
+            }}>{props.replyingTo !== 0 && textReply !== undefined &&
+                <ReplyingTo message={textReply} removeReply={props.reply}/>}
+                <div style={{
+                    background: "white",
+                    height: "max-content",
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center"
+                }}>
+                    <textarea placeholder="Aa" ref={chatBoxRef} className="ChatBox" onKeyDown={keyDownHandler}/>
+                    <Popup ref={imageSendRef} position="top right"
+                           trigger={<button className="FunctionButton ImageButton"></button>}>
+                        <input className="Input" onKeyDown={SendImage}/>
+                    </Popup>
+                    <Popup ref={videoSendRef} position="top right"
+                           trigger={<button className="FunctionButton VideoButton"></button>}>
+                        <input className="Input" onKeyDown={SendVideo}/>
+                    </Popup>
+                    <button className="FunctionButton SendButton" onClick={sendHandler}/>
+                </div>
             </div>
-        </div>
-    )
+        )
+    }
+    else {
+        return (
+            <div style={{zIndex: "3", borderTop: "1px solid black"}}>
+                <div style={{
+                    backgroundColor: "white",
+                    height: "max-content",
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center"
+                }}>
+                    <input disabled placeholder="You do not have permission to send messages in this channel." style={{width: "100%", cursor: "not-allowed", fontFamily: "\"Open Sans\", sans-serif"}} className="ChatBox" onKeyDown={keyDownHandler}/>
+                </div>
+            </div>
+        )
+    }
 }
 function ReplyingTo(props) {
     if (props.message.Type === 'text') {

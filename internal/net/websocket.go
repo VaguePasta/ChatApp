@@ -3,6 +3,7 @@ package net
 import (
 	"ChatApp/internal/connections"
 	"context"
+	"github.com/alphadose/haxmap"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"net/http"
@@ -30,10 +31,11 @@ func ServeWs(pool *connections.Pool, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var client = (*Client)(&connections.Client{
-		ID:    userid,
-		Name:  username,
-		Token: token,
-		Conn:  conn,
+		ID:       userid,
+		Name:     username,
+		Token:    token,
+		Conn:     conn,
+		Channels: haxmap.New[int, int8](),
 	})
 	connections.Register(pool, (*connections.Client)(client))
 	client.Read(pool)

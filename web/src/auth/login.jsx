@@ -1,7 +1,7 @@
 import {createRef, useState} from "react";
 import "./infoprompt.scss"
 import {Navigate, useNavigate} from "react-router-dom";
-import {ErrorNotification} from "../dashboard/notifications";
+import {ErrorNotification} from "../notifications/notifications";
 import {LogIn, OpenSocket, socket, User} from "../api/auth";
 import {UpdateUsername} from "../api/user";
 export function LogInPrompt() {
@@ -29,7 +29,7 @@ export function LogInPrompt() {
             let _username = Username.current.value
             let _password = Password.current.value
             signingIn(true)
-            LogIn(_username,_password).then(() => Proceed(_username))
+            LogIn(_username,_password).then(() => Proceed(_username),() => Proceed(_username))
         }
         else if (e.key === "CapsLock") CheckCaps(e)
     }
@@ -57,7 +57,7 @@ export function LogInPrompt() {
             let _username = Username.current.value
             let _password = Password.current.value
             signingIn(true)
-            LogIn(_username,_password).then(() => Proceed(_username))
+            LogIn(_username,_password).then(() => Proceed(_username),() => Proceed(_username))
         }
     }
     function InputChangeHandler() {

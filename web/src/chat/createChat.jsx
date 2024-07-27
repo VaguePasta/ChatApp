@@ -1,4 +1,4 @@
-import {ErrorNotification} from "../dashboard/notifications";
+import {ErrorNotification} from "../notifications/notifications";
 import {useRef} from "react";
 import {User} from "../api/auth";
 import {SearchUser} from "../api/user";

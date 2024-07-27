@@ -14,6 +14,9 @@ export function Decompress(data) {
 }
 
 export function SaveMessage(message) {
+    if (message.Fetch !== true && !channelsMap[message.Channel.valueOf()].some(e => e.ID.valueOf() === message.ReplyTo.valueOf())) {
+        GetMessage(message.ReplyTo.valueOf(), message.Channel.valueOf()).then()
+    }
     if (channelsMap[message.Channel.valueOf()].some(e => e.ID.valueOf() === message.ID.valueOf())) {
         let message_index = channelsMap[message.Channel.valueOf()].findIndex(e => e.ID.valueOf() === message.ID.valueOf())
         if (channelsMap[message.Channel.valueOf()][message_index].Fetch === true) {

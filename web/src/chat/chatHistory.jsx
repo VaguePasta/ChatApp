@@ -6,10 +6,10 @@ import "../dashboard/dashboard.scss"
 import {ChatInfo} from "./chatinfo";
 import {ChatBox} from "./chatbox";
 import {CurrentChannel} from "../conversation/conversation";
-import {ErrorNotification} from "../dashboard/notifications";
+import {ErrorNotification} from "../notifications/notifications";
 import {Members} from "../chatmenu/members";
 import {AnimatePresence, motion} from "framer-motion";
-import {channelsMap, RequestChat} from "../api/channel";
+import {channels, channelsMap, RequestChat} from "../api/channel";
 export function ChatHistory(props) {
     const history = useContext(CurrentChatContext)
     const refs = useRef(null)
@@ -80,11 +80,7 @@ export function ChatHistory(props) {
             <div className="ChatWindow">
                 <ChatInfo showingMem={showingMember} showMem={showMem} handler={props.handler}/>
                 <AnimatePresence>
-                    {isOnTop && (<motion.button
-                        className="UpDownButton LoadMore"
-                        onClick={LoadChat}
-                        exit = {{top: 0}}
-                        />
+                    {isOnTop && (<motion.button style={{zIndex: "3"}} className="UpDownButton LoadMore" onClick={LoadChat} exit = {{top: 0}}/>
                     )}
                 </AnimatePresence>
                 {history.Content !== null ? <div className="ChatHistory" onScroll={ScrollHandler}>
@@ -96,16 +92,27 @@ export function ChatHistory(props) {
                         <div className="loader"/>
                         <div ref={refs} style={{clear: "both", bottom: "0"}}/>
                     </div>}
+                {(channels !== null && channels.find(e => e.ChannelID.valueOf() === CurrentChannel).Privilege !== "viewer") ?
                 <AnimatePresence>
                     {isNotOnBottom && (<motion.button
-                        style={{bottom: (replyTo === 0) ? '8%' : '15%'}}
                         onClick = {ScrollToBottom}
+                        initial = {{bottom: 0}}
+                        animate = {{bottom: (replyTo === 0) ? '8%' : '15%'}}
                         exit = {{bottom: 0}}
                         transition = {{duration: 0.3}}
-                        className={"UpDownButton ScrollToBottom" + (replyTo !== 0 ? " Rep" : ""
-                        )}
+                        className={"UpDownButton ScrollToBottom"}
                     />)}
-                </AnimatePresence>
+                </AnimatePresence> : <AnimatePresence>
+                        {isNotOnBottom && (<motion.button
+                            onClick = {ScrollToBottom}
+                            initial = {{bottom: 0}}
+                            animate = {{bottom: '8%'}}
+                            exit = {{bottom: 0}}
+                            transition = {{duration: 0.3}}
+                            className={"UpDownButton ScrollToBottom"}
+                        />)}
+                    </AnimatePresence>
+                }
                 {CurrentChannel !== 0 && <ChatBox replyingTo={replyTo} reply={reply}/>}
             </div>
             {showingMember && <Members showingMember={showingMember} showMem={showMem}/>}

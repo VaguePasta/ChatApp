@@ -1,6 +1,6 @@
 import "./profile.scss"
 import Popup from "reactjs-popup";
-import {ErrorNotification, SuccessNotification} from "../dashboard/notifications";
+import {ErrorNotification, Reconnect, SuccessNotification} from "../notifications/notifications";
 import React, {useEffect, useRef, useState} from "react";
 import {Navigate, useNavigate} from "react-router-dom";
 import {parse} from "lossless-json";
@@ -10,6 +10,7 @@ import {channels, channelsMap, RequestChannelList} from "../api/channel";
 import {ChangePassword, RequestUserInfo} from "../api/user";
 export function Profile() {
     const ref = useRef()
+    const [, forceRender] = useState(false)
     const history = useNavigate()
     const navigate = useNavigate()
     function connectionLost() {
@@ -18,7 +19,7 @@ export function Profile() {
     }
     useEffect(() => {
         socket.onerror = () => {
-            ref.current.open()
+            Reconnect(ref).then((result) => {if (result) forceRender(render => !render)})
         }
         socket.onmessage = data => {
             let message = parse(Decompress(data.data))

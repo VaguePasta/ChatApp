@@ -11,7 +11,7 @@ export function SetChannelMap(map) {
     channelsMap = map
 }
 export function SaveToChannelMap(key, pos, value) {
-    if (key === -1) {
+    if (pos === -1) {
         channelsMap[key].push(value)
     }
     else {
