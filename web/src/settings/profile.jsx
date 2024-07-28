@@ -8,6 +8,7 @@ import {LogOut, socket, User} from "../api/auth";
 import {Decompress, SaveMessage} from "../api/message";
 import {channels, channelsMap, RequestChannelList} from "../api/channel";
 import {ChangePassword, RequestUserInfo} from "../api/user";
+import {SetChannel} from "../conversation/conversation";
 export function Profile() {
     const ref = useRef()
     const [, forceRender] = useState(false)
@@ -18,6 +19,7 @@ export function Profile() {
         history("/login", {replace: true})
     }
     useEffect(() => {
+        SetChannel(0)
         socket.onerror = () => {
             Reconnect(ref).then((result) => {if (result) forceRender(render => !render)})
         }
@@ -33,7 +35,7 @@ export function Profile() {
                 SaveMessage(message)
             }
         }
-    },[])
+    })
     if (User.token === "0") {
         return <Navigate replace to="/login"/>
     }
@@ -139,11 +141,10 @@ function ChangePasswordPrompt() {
             {mismatch && <div style={{color:"red", margin:"3px 0"}}>Passwords do not match.</div>}
             {wrongOldPassword && <div style={{color: "red", margin: "3px 0"}}>Wrong old password.</div>}
             {duplicatePassword && <div style={{color: "red", margin: "3px 0"}}>Old and new passwords can not be the same.</div>}
-            <Popup ref={ConfirmPopup} trigger={<button className="ConfirmButton">Change Password</button>}
+            <Popup className="confirm-popup" ref={ConfirmPopup} trigger={<button className="ConfirmButton">Change Password</button>}
                    onOpen={Confirming}
                    modal nested>
                 <div style={{
-                    border:"1px solid black",
                     display:"flex",
                     flexDirection:"column",
                     textAlign:"center",

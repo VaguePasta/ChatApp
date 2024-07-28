@@ -8,12 +8,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 	"io"
+	"log"
 	"net/http"
 )
 
 func SearchUser(w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
-	if CheckToken(r.Header.Get("Authorization")) == -1 {
+	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
 	}
@@ -30,8 +30,7 @@ func SearchUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 func ChangePassword(w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
-	if CheckToken(r.Header.Get("Authorization")) == -1 {
+	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
 	}
@@ -66,8 +65,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 func GetUserInfo(w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
-	if CheckToken(r.Header.Get("Authorization")) == -1 {
+	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
 	}
@@ -75,6 +73,7 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	var joinDate pgtype.Date
 	err := connections.DatabaseConn.QueryRow(context.Background(), "select register_at from users where user_id = $1", userID).Scan(&joinDate)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(500)
 		return
 	}
@@ -84,8 +83,7 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
-	if CheckToken(r.Header.Get("Authorization")) == -1 {
+	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
 	}
@@ -110,6 +108,7 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(arr[2], &role)
 	err = connections.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where channel_id = $1 and user_id = $2", channel, user.ID).Scan(&senderRole)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(500)
 		return
 	}
@@ -120,6 +119,7 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 	if senderRole == "admin" {
 		_, err := connections.DatabaseConn.Exec(context.Background(), "update participants set privilege = $1 where user_id = $2 and channel_id = $3", role, IDtoChange, channel)
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(500)
 			return
 		}
@@ -136,6 +136,7 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 		}
 		_, err := connections.DatabaseConn.Exec(context.Background(), "update participants set privilege = $1 where user_id = $2 and channel_id = $3", role, IDtoChange, channel)
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(500)
 			return
 		}
@@ -143,12 +144,6 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(403)
 		return
 	}
-	connections.ConnectionPool.Clients.ForEach(func(key string, value *connections.Client) bool {
-		if value.ID != IDtoChange {
-			return true
-		}
-		value.Channels.Set(channel, connections.SaveClientsChannelPrivilege(role))
-		return true
-	})
+	user.Channels.List.Set(channel, connections.SaveClientsChannelPrivilege(role))
 	w.WriteHeader(200)
 }

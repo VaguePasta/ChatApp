@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"github.com/alphadose/haxmap"
 	"github.com/jackc/pgx/v5"
 	"log"
 	"os"
@@ -33,8 +34,35 @@ func GetClientOrigin() {
 
 type Client connections.Client
 
+func (client *Client) LogIn() {
+	connection, ok := connections.ConnectionPool.ClientChannels.Get(client.ID)
+	if !ok {
+		channelList := connections.ChannelConnections{
+			Counter: 1,
+			List:    haxmap.New[int, int8](),
+		}
+		client.Channels = &channelList
+		connections.ConnectionPool.ClientChannels.Set(client.ID, &channelList)
+	} else {
+		client.Channels = connection
+		client.ClientMutex.Lock()
+		connection.Counter++
+		client.ClientMutex.Unlock()
+	}
+}
+func (client *Client) LogOut() {
+	if client.Channels.Counter == 1 {
+		connections.ConnectionPool.ClientChannels.Del(client.ID)
+	} else {
+		client.ClientMutex.Lock()
+		client.Channels.Counter--
+		client.ClientMutex.Unlock()
+	}
+}
+
 func (client *Client) Read(pool *connections.Pool) {
 	defer func() {
+		client.LogOut()
 		connections.Unregister(pool, (*connections.Client)(client))
 		err := client.Conn.Close()
 		_, err = connections.DatabaseConn.Exec(context.Background(), "delete from sessions where session_key = $1", client.Token)
@@ -52,11 +80,11 @@ func (client *Client) Read(pool *connections.Pool) {
 		if err != nil {
 			continue
 		}
-		privilegeInt, ok := client.Channels.Get(message.Channel)
+		privilegeInt, ok := client.Channels.List.Get(message.Channel)
 		if !ok {
 			var privilege string
 			err := connections.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", client.ID, message.Channel).Scan(&privilege)
-			client.Channels.Set(message.Channel, connections.SaveClientsChannelPrivilege(privilege))
+			client.Channels.List.Set(message.Channel, connections.SaveClientsChannelPrivilege(privilege))
 			if err != nil || privilege == "viewer" {
 				continue
 			}
@@ -99,7 +127,6 @@ func SendToChannel(pool *connections.Pool, textMessage *system.Message) {
 		_, err = connections.DatabaseConn.Exec(context.Background(), "update channels set last_message = $1 where channel_id = $2", textMessage.ID, textMessage.ChannelID)
 	}
 	onlineUsers, err := connections.DatabaseConn.Query(context.Background(), "select session_key from sessions inner join participants on sessions.user_id = participants.user_id where participants.channel_id = $1", textMessage.ChannelID)
-	defer onlineUsers.Close()
 	for onlineUsers.Next() {
 		var token string
 		err := onlineUsers.Scan(&token)

@@ -94,3 +94,19 @@
 .Reloading {
   animation: rotation 1s infinite linear;
 }
+.important-button {
+  display: block;
+  width: 100%;
+  border-style: solid;
+  background: white;
+  border-color: black;
+  border-width: 0;
+  min-height: 40px;
+  padding: 0 7px;
+  font-size: 14px;
+  color: red;
+}
+.important-button:hover {
+  background-color: lightslategrey;
+  color: yellow;
+}

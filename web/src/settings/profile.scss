@@ -40,3 +40,26 @@
 .BackButton:hover {
   background-color: lightgray;
 }
+.confirm-popup-content {
+  background: white;
+  border: none;
+  animation: confirm-popup-open 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px;
+  border-radius: 10px;
+}
+.confirm-popup-overlay {
+  background: rgba(0, 0, 0, 0.3);
+}
+@keyframes confirm-popup-open {
+  0% {
+    opacity: 0.5;
+    top: -10px;
+  }
+  100% {
+    opacity: 1;
+    top: 0;
+  }
+}

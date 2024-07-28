@@ -10,12 +10,18 @@ type Client struct {
 	ID          int
 	Name        string
 	Token       string
-	Channels    *haxmap.Map[int, int8]
+	Channels    *ChannelConnections
 	Conn        *websocket.Conn
 	ClientMutex sync.Mutex
 }
+type ChannelConnections struct {
+	Counter int
+	List    *haxmap.Map[int, int8]
+}
+
 type Pool struct {
-	Clients *haxmap.Map[string, *Client]
+	Clients        *haxmap.Map[string, *Client]
+	ClientChannels *haxmap.Map[int, *ChannelConnections]
 }
 
 func Register(pool *Pool, client *Client) {
@@ -26,7 +32,8 @@ func Unregister(pool *Pool, client *Client) {
 }
 func NewPool() *Pool {
 	return &Pool{
-		Clients: haxmap.New[string, *Client](),
+		Clients:        haxmap.New[string, *Client](),
+		ClientChannels: haxmap.New[int, *ChannelConnections](),
 	}
 }
 

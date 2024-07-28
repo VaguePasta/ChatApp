@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -17,31 +18,30 @@ type Channel struct {
 }
 
 func GetChannelList(w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
-	token := r.Header.Get("Authorization")
-	if CheckToken(token) == -1 {
+	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
 	}
-	user, ok := connections.ConnectionPool.Clients.Get(token)
+	user, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
 	if !ok {
 		w.WriteHeader(404)
 		return
 	}
 	var channelIDs []Channel
 	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channels.channel_id, title, privilege from channels inner join participants on channels.channel_id = participants.channel_id where user_id = $1 order by last_message desc", user.ID)
-	for channels.Next() {
-		var channelID int
-		var title string
-		var privilege string
-		err := channels.Scan(&channelID, &title, &privilege)
-		if err != nil {
-			return
-		}
+	var channelID int
+	var title string
+	var privilege string
+	_, err := pgx.ForEachRow(channels, []any{&channelID, &title, &privilege}, func() error {
 		channelIDs = append(channelIDs, Channel{ChannelID: channelID, Title: title, Privilege: privilege})
-		user.Channels.Set(channelID, connections.SaveClientsChannelPrivilege(privilege))
+		user.Channels.List.Set(channelID, connections.SaveClientsChannelPrivilege(privilege))
+		return nil
+	})
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(500)
+		return
 	}
-	channels.Close()
 	bytes, err := json.Marshal(channelIDs)
 	_, _ = w.Write(bytes)
 	if err != nil {
@@ -49,13 +49,12 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func CreateChannel(w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
-	err := r.ParseForm()
-	if err != nil {
+	if !Authorize(w, r) {
+		w.WriteHeader(401)
 		return
 	}
-	if CheckToken(r.Header.Get("Authorization")) == -1 {
-		w.WriteHeader(401)
+	err := r.ParseForm()
+	if err != nil {
 		return
 	}
 	body, err := io.ReadAll(r.Body)
@@ -84,7 +83,7 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		var user []interface{}
 		err = json.Unmarshal(element, &user)
 		if err != nil {
-			w.WriteHeader(500)
+			w.WriteHeader(400)
 			return
 		}
 		users = append(users, []interface{}{
@@ -95,20 +94,20 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = connections.DatabaseConn.CopyFrom(context.Background(), pgx.Identifier{"participants"}, []string{"user_id", "channel_id", "privilege"}, pgx.CopyFromRows(users))
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(500)
 		return
 	}
 	w.WriteHeader(201)
 }
 func DeleteChannel(w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
+	if !Authorize(w, r) {
+		w.WriteHeader(401)
+		return
+	}
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(400)
-		return
-	}
-	if CheckToken(r.Header.Get("Authorization")) == -1 {
-		w.WriteHeader(401)
 		return
 	}
 	body, err := io.ReadAll(r.Body)
@@ -134,14 +133,14 @@ func DeleteChannel(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = connections.DatabaseConn.Exec(context.Background(), "delete from channels where channel_id = $1", arr[1])
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(500)
 		return
 	}
 	w.WriteHeader(200)
 }
 func GetChannelMember(w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
-	if CheckToken(r.Header.Get("Authorization")) == -1 {
+	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
 	}
@@ -160,18 +159,19 @@ func GetChannelMember(w http.ResponseWriter, r *http.Request) {
 	}
 	memberList, err := json.Marshal(members)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(500)
 		return
 	}
 	_, err = w.Write(memberList)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(500)
 		return
 	}
 }
 func ChangeChannelName(w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
-	if CheckToken(r.Header.Get("Authorization")) == -1 {
+	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
 	}
@@ -198,6 +198,7 @@ func ChangeChannelName(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = connections.DatabaseConn.Exec(context.Background(), "update channels set title = $1 where channel_id = $2", arr[2], arr[1])
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(500)
 		return
 	}

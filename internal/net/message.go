@@ -9,15 +9,14 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"io"
+	"log"
 	"math"
 	"net/http"
 	"strconv"
 )
 
 func GetChannelMessages(pool *connections.Pool, w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
-	token := r.Header.Get("Authorization")
-	if CheckToken(token) == -1 {
+	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
 	}
@@ -26,7 +25,7 @@ func GetChannelMessages(pool *connections.Pool, w http.ResponseWriter, r *http.R
 	if lastMessage == 0 {
 		lastMessage = math.MaxInt64
 	}
-	client, _ := pool.Clients.Get(token)
+	client, _ := pool.Clients.Get(r.Header.Get("Authorization"))
 	rows, _ := connections.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message, type, reply_to, username from (messages inner join users on messages.sender_id = users.user_id) left join replies on messages.message_id = replies.reply where channel_id = $1 and message_id < $2 and deleted = false order by message_id desc limit 16 ", channel, lastMessage)
 	for rows.Next() {
 		var messageID uint64
@@ -61,10 +60,10 @@ func SendTo(message *system.Message, client *connections.Client, isNew bool) {
 	if message == nil {
 		return
 	}
-	client.ClientMutex.Lock()
-	defer client.ClientMutex.Unlock()
 	jsonified := system.ToJSON(*message, isNew)
 	if jsonified != nil {
+		client.ClientMutex.Lock()
+		defer client.ClientMutex.Unlock()
 		err := client.Conn.WriteMessage(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString(jsonified)))
 		if err != nil {
 			return
@@ -72,9 +71,7 @@ func SendTo(message *system.Message, client *connections.Client, isNew bool) {
 	}
 }
 func DeleteMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
-	token := r.Header.Get("Authorization")
-	if CheckToken(token) == -1 {
+	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
 	}
@@ -83,7 +80,7 @@ func DeleteMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(400)
 		return
 	}
-	var requester, _ = pool.Clients.Get(token)
+	var requester, _ = pool.Clients.Get(r.Header.Get("Authorization"))
 	commandTag, err := connections.DatabaseConn.Exec(context.Background(), "update messages set deleted = true where message_id = $1 and sender_id = $2 and deleted = false", body, requester.ID)
 	if err != nil {
 		w.WriteHeader(400)
@@ -97,9 +94,7 @@ func DeleteMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Reques
 }
 
 func GetMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Request) {
-	SetOrigin(w, r)
-	token := r.Header.Get("Authorization")
-	if CheckToken(token) == -1 {
+	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
 	}
@@ -108,7 +103,7 @@ func GetMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(400)
 		return
 	}
-	var requester, _ = pool.Clients.Get(token)
+	var requester, _ = pool.Clients.Get(r.Header.Get("Authorization"))
 	var permitted = false
 	err = connections.DatabaseConn.QueryRow(context.Background(), "select exists(select 1 from participants where user_id = $1 and channel_id = (select channel_id from messages where message_id = $2))", requester.ID, body).Scan(&permitted)
 	if err != nil || !permitted {
@@ -144,6 +139,7 @@ func GetMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Request) 
 		marshaled, _ := json.Marshal(messageFetch)
 		_, err := w.Write([]byte(base64.StdEncoding.EncodeToString(system.Compress(marshaled))))
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(500)
 		}
 	}

@@ -1,4 +1,4 @@
-import {useContext, useEffect, useRef, useState} from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import "./chatinfo.scss"
 import {CurrentChannel, SetChannel} from "../conversation/conversation";
 import {CurrentChatContext} from "../dashboard/dashboard";
@@ -10,6 +10,8 @@ export function ChatInfo(props) {
     const currentChat = useContext(CurrentChatContext)
     const [channelName, changeName] = useState("")
     const [reloading, reloadChat] = useState(false)
+    const ConfirmPopupDelete = useRef()
+    const ConfirmPopupLeave = useRef()
     const ref = useRef()
     useEffect(() => {
         let _privilege = channels.find(obj => {
@@ -29,21 +31,7 @@ export function ChatInfo(props) {
     }, [currentChat.Current]);
     async function DeleteChannelClick() {
         ref.current.close()
-        DeleteChannel(CurrentChannel).then(
-            (result) => {
-                if (result) {
-                    RequestChannelList().then(
-                        () => {
-                            SetChannel(0)
-                            props.handler()
-                        }
-                    )
-                }
-                else {
-                    ErrorNotification("no-privilege", "Admin privilege required.")
-                }
-            }
-        )
+        ConfirmPopupDelete.current.open()
     }
     async function ChangeName(e) {
         if (e.key === 'Enter' && e.target.value !== "") {
@@ -80,22 +68,76 @@ export function ChatInfo(props) {
             <div className="ChatInfo"/>
         )
     }
+    function ConfirmDelete() {
+        ConfirmPopupDelete.current.close()
+        DeleteChannel(CurrentChannel).then(
+            (result) => {
+                if (result) {
+                    RequestChannelList().then(
+                        () => {
+                            SetChannel(0)
+                            props.handler()
+                        }
+                    )
+                }
+                else {
+                    ErrorNotification("no-privilege", "Admin privilege required.")
+                }
+            }
+        )
+    }
+
+    function LeaveChannelClick() {
+        ConfirmPopupLeave.current.open()
+    }
+    function ConfirmLeave() {
+        ConfirmPopupLeave.current.close()
+    }
+    function RefuseLeave() {
+        ConfirmPopupLeave.current.close()
+    }
+    function RefuseDelete() {
+        ConfirmPopupDelete.current.close()
+    }
     return (
         <div className="ChatInfo">
             <div style={{marginLeft: "0", flex: "1", textOverflow:"ellipsis", overflow: "hidden"}}>{channelName}</div>
-            {reloading ? <button onClick={reload} className="ChatInfoButton Reload Reloading"/> :
-                <button onClick={reload} className="ChatInfoButton Reload"/>}
-                <Popup position="bottom right" className="tooltip-popup" ref={ref}
-                   trigger={<button className="ChatInfoButton MenuBar"/>}>
-                    {privilege === 'admin' && <Popup trigger={<button className="popup-button">Change Channel Name</button>}>
-                        <input onKeyDown={ChangeName}/>
-                    </Popup>}
-                    <button onClick={() => {
-                        if (!props.showingMem) props.showMem(true)
-                        ref.current.close()
-                    }} style={{borderWidth: "1px 0"}} className="popup-button">Chat member(s)...</button>
-                    {privilege === 'admin' && <button onClick={DeleteChannelClick} className="popup-button">Delete Channel</button>}
+            {reloading ? <button onClick={reload} className="ChatInfoButton Reload Reloading"/> : <button onClick={reload} className="ChatInfoButton Reload"/>}
+            <Popup position="bottom right" className="tooltip-popup" ref={ref}
+               trigger={<button className="ChatInfoButton MenuBar"/>}>
+                {privilege === 'admin' && <Popup trigger={<button className="popup-button">Change Channel Name</button>}>
+                    <input onKeyDown={ChangeName}/>
+                </Popup>}
+                <button onClick={() => {
+                    if (!props.showingMem) props.showMem(true)
+                    ref.current.close()
+                }} style={{borderWidth: "1px 0"}} className="popup-button">Chat member(s)...</button>
+                {privilege === 'admin' && <button onClick={DeleteChannelClick} className="important-button">Delete Channel</button>}
+                {privilege !== "admin" && <button onClick={LeaveChannelClick} className="important-button">Leave Channel</button>}
             </Popup>
+            <Popup ref={ConfirmPopupDelete} className="confirm-popup" modal nested>
+                <ConfirmPopup accept={ConfirmDelete} refuse={RefuseDelete}/>
+            </Popup>
+            <Popup ref={ConfirmPopupLeave} className="confirm-popup" modal nested>
+                <ConfirmPopup accept={ConfirmLeave} refuse={RefuseLeave}/>
+            </Popup>
+        </div>
+    )
+}
+function ConfirmPopup(props) {
+    return (
+        <div style={{
+            display:"flex",
+            flexDirection:"column",
+            textAlign:"center",
+            padding:"10px",
+            width: "fit-content",
+            fontSize: "20px",}}>
+            Are you sure?
+            <div style={{display:"flex", justifyContent:"center", minWidth:"200px", flex:"1"}}>
+                <button onClick={props.accept} style={{margin:"5px", minWidth:"20%"}} className="ConfirmButton">Yes</button>
+                <button onClick={props.refuse} style={{margin:"5px", minWidth:"20%"}} className="ConfirmButton">No</button>
+            </div>
         </div>
     )
 }

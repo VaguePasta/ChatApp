@@ -92,7 +92,7 @@ export function ChatHistory(props) {
                         <div className="loader"/>
                         <div ref={refs} style={{clear: "both", bottom: "0"}}/>
                     </div>}
-                {(channels !== null && channels.find(e => e.ChannelID.valueOf() === CurrentChannel).Privilege !== "viewer") ?
+                {(channels !== null && CurrentChannel !== 0 && channels.find(e => e.ChannelID.valueOf() === CurrentChannel).Privilege !== "viewer") ?
                 <AnimatePresence>
                     {isNotOnBottom && (<motion.button
                         onClick = {ScrollToBottom}
