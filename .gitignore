@@ -7,3 +7,4 @@ web/build
 *.bat
 *.exe
 bin
+*.json
