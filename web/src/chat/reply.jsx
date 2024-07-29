@@ -27,7 +27,7 @@ export function Reply(props) {
             fontSize: "15px",
             margin: `${props.margin}`,
             zIndex: "1",
-            maxWidth: "fit-content",
+            maxWidth: "89%",
             borderRadius: "5px 7px",
         }}>
             {message !== undefined && message.Type !== null && <div style={{fontSize: "14px", color: "#8f8f92"}}>{message.SenderName}</div>}
