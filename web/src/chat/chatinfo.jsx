@@ -4,11 +4,18 @@ import {CurrentChannel, SetChannel} from "../conversation/conversation";
 import {CurrentChatContext} from "../dashboard/dashboard";
 import Popup from "reactjs-popup";
 import {ErrorNotification} from "../notifications/notifications";
-import {ChangeChannelName, channels, channelsMap, DeleteChannel, RequestChannelList, RequestChat} from "../api/channel";
+import {
+    ChangeChannelName,
+    channels,
+    channelsMap,
+    DeleteChannel,
+    LeaveChannel, RemoveFromMap,
+    RequestChannelList,
+    RequestChat, SetChannelList
+} from "../api/channel";
 export function ChatInfo(props) {
     const [privilege, p] = useState(null)
     const currentChat = useContext(CurrentChatContext)
-    const [channelName, changeName] = useState("")
     const [reloading, reloadChat] = useState(false)
     const ConfirmPopupDelete = useRef()
     const ConfirmPopupLeave = useRef()
@@ -21,14 +28,7 @@ export function ChatInfo(props) {
             p(_privilege.Privilege)
         }
         else p(null)
-        if (CurrentChannel === 0) {
-            changeName("")
-            return
-        }
-        changeName(channels.find(obj => {
-            return obj.ChannelID.valueOf() === CurrentChannel
-        }).Title)
-    }, [currentChat.Current]);
+    }, [currentChat]);
     async function DeleteChannelClick() {
         ref.current.close()
         ConfirmPopupDelete.current.open()
@@ -39,16 +39,15 @@ export function ChatInfo(props) {
             e.preventDefault()
             e.stopPropagation()
             if (await ChangeChannelName(CurrentChannel, e.target.value) === true) {
-                changeName(e.target.value)
                 await RequestChannelList()
-                props.handler(false, true, false, false)
+                props.handler(true, true, false, false)
             }
             else {
                 ErrorNotification("no-privilege", "Admin privilege required.")
             }
         }
     }
-    async function reload() {
+     function reload() {
         channelsMap[CurrentChannel] = []
         if (reloading === false) {
             reloadChat(true)
@@ -73,12 +72,10 @@ export function ChatInfo(props) {
         DeleteChannel(CurrentChannel).then(
             (result) => {
                 if (result) {
-                    RequestChannelList().then(
-                        () => {
-                            SetChannel(0)
-                            props.handler()
-                        }
-                    )
+                    SetChannelList(channels.filter(e => e.ChannelID.valueOf() !== CurrentChannel))
+                    RemoveFromMap(CurrentChannel)
+                    SetChannel(0)
+                    props.handler(true, true, true, false)
                 }
                 else {
                     ErrorNotification("no-privilege", "Admin privilege required.")
@@ -86,22 +83,32 @@ export function ChatInfo(props) {
             }
         )
     }
-
+    function RefuseDelete() {
+        ConfirmPopupDelete.current.close()
+    }
     function LeaveChannelClick() {
         ConfirmPopupLeave.current.open()
     }
     function ConfirmLeave() {
         ConfirmPopupLeave.current.close()
+        LeaveChannel(CurrentChannel).then(
+            () => {
+                SetChannelList(channels.filter(e => e.ChannelID.valueOf() !== CurrentChannel))
+                RemoveFromMap(CurrentChannel)
+                SetChannel(0)
+                props.handler(true, true, true, false)
+            },
+            () => {
+                    ErrorNotification("leave-channel-error", "Something went wrong. Please try again.")
+            }
+        )
     }
     function RefuseLeave() {
         ConfirmPopupLeave.current.close()
     }
-    function RefuseDelete() {
-        ConfirmPopupDelete.current.close()
-    }
     return (
         <div className="ChatInfo">
-            <div style={{marginLeft: "0", flex: "1", textOverflow:"ellipsis", overflow: "hidden"}}>{channelName}</div>
+            <div style={{marginLeft: "0", flex: "1", textOverflow:"ellipsis", overflow: "hidden"}}>{CurrentChannel !== 0 ? channels.find(e => e.ChannelID.valueOf() === CurrentChannel).Title : ""}</div>
             {reloading ? <button onClick={reload} className="ChatInfoButton Reload Reloading"/> : <button onClick={reload} className="ChatInfoButton Reload"/>}
             <Popup position="bottom right" className="tooltip-popup" ref={ref}
                trigger={<button className="ChatInfoButton MenuBar"/>}>

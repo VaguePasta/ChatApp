@@ -10,23 +10,12 @@ import (
 
 type Message struct {
 	ID         uint64
-	ChannelID  int
-	SenderID   int
+	ChannelID  uint
+	SenderID   uint
 	SenderName string
 	Type       string
 	Content    string
-	ReplyTo    int64
-}
-type SendMessage struct {
-	IsNew      bool
-	ID         uint64
-	TimeStamp  string
-	Type       string
-	Text       string
-	ReplyTo    int64
-	SenderID   int
-	SenderName string
-	Channel    int
+	ReplyTo    *uint64
 }
 
 func Compress(src []byte) []byte {
@@ -43,7 +32,17 @@ func Compress(src []byte) []byte {
 	return buf.Bytes()
 }
 func ToJSON(message Message, _isNew bool) []byte {
-	jsonified, err := json.Marshal(SendMessage{
+	jsonified, err := json.Marshal(struct {
+		IsNew      bool
+		ID         uint64
+		TimeStamp  string
+		Type       string
+		Text       string
+		ReplyTo    *uint64
+		SenderID   uint
+		SenderName string
+		Channel    uint
+	}{
 		IsNew:      _isNew,
 		ID:         message.ID,
 		SenderID:   message.SenderID,

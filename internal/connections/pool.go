@@ -7,21 +7,21 @@ import (
 )
 
 type Client struct {
-	ID          int
+	ID          uint
 	Name        string
 	Token       string
 	Channels    *ChannelConnections
 	Conn        *websocket.Conn
-	ClientMutex sync.Mutex
+	ClientMutex sync.RWMutex
 }
 type ChannelConnections struct {
 	Counter int
-	List    *haxmap.Map[int, int8]
+	List    *haxmap.Map[uint, uint8]
 }
 
 type Pool struct {
 	Clients        *haxmap.Map[string, *Client]
-	ClientChannels *haxmap.Map[int, *ChannelConnections]
+	ClientChannels *haxmap.Map[uint, *ChannelConnections]
 }
 
 func Register(pool *Pool, client *Client) {
@@ -33,13 +33,13 @@ func Unregister(pool *Pool, client *Client) {
 func NewPool() *Pool {
 	return &Pool{
 		Clients:        haxmap.New[string, *Client](),
-		ClientChannels: haxmap.New[int, *ChannelConnections](),
+		ClientChannels: haxmap.New[uint, *ChannelConnections](),
 	}
 }
 
 var ConnectionPool = NewPool()
 
-func SaveClientsChannelPrivilege(privilege string) int8 {
+func SaveClientsChannelPrivilege(privilege string) uint8 {
 	switch privilege {
 	case "admin":
 		return 0

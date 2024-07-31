@@ -1,19 +1,9 @@
 import {CurrentChannel} from "../conversation/conversation";
-import {useEffect, useState} from "react";
-import {GetMessage} from "../api/message";
+import {useState} from "react";
 import {channelsMap} from "../api/channel";
 
 export function Reply(props) {
-    const [, forceRender] = useState(false)
-    const [message, replyTo] = useState(channelsMap[CurrentChannel].find((e) => e.ID.valueOf() === props.ID))
-    useEffect(() => {
-        if (message === undefined) {
-            GetMessage(props.ID, CurrentChannel).then(() => {
-                replyTo(channelsMap[CurrentChannel].find(element => element.ID.valueOf() === props.ID))
-                forceRender(render => !render)
-            })
-        }
-    })
+    const [message,] = useState(channelsMap[CurrentChannel].find((e) => e.ID.valueOf() === props.ID))
     return (
         <div style={{
             background: "white",
@@ -30,8 +20,8 @@ export function Reply(props) {
             maxWidth: "89%",
             borderRadius: "5px 7px",
         }}>
-            {message !== undefined && message.Type !== null && <div style={{fontSize: "14px", color: "#8f8f92"}}>{message.SenderName}</div>}
-            {(message !== undefined && message.Type !== null) ?
+            {props.ID !== 0 && message !== undefined && message.Type !== null && <div style={{fontSize: "14px", color: "#8f8f92"}}>{message.SenderName}</div>}
+            {(message !== undefined && message.Type !== null && props.ID !== 0) ?
                 <ReplyContent style={{color: "gray", maxWidth: "fit-content"}} message={message}/> :
             <div style={{color: "gray"}}>Message not available.</div>
         }
@@ -49,7 +39,7 @@ function ReplyContent(props) {
     }
     else if (props.message.Type === 'image') {
         return (
-                <img alt={props.message.ID.valueOf()} src={props.message.Text} style={{margin: "3px -3px -6px -3px", maxWidth: "300px"}}/>
+                <img alt={props.message.Text} src={props.message.Text} style={{wordWrap:"anywhere", background: "white", margin: "3px 0 -6px 0", maxWidth: "300px", width: "100%"}}/>
         )
     }
     else if (props.message.Type === 'video') {

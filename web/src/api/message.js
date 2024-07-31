@@ -14,15 +14,11 @@ export function Decompress(data) {
 }
 
 export function SaveMessage(message) {
-    if (message.Fetch !== true && !channelsMap[message.Channel.valueOf()].some(e => e.ID.valueOf() === message.ReplyTo.valueOf())) {
-        GetMessage(message.ReplyTo.valueOf(), message.Channel.valueOf()).then()
-    }
     if (channelsMap[message.Channel.valueOf()].some(e => e.ID.valueOf() === message.ID.valueOf())) {
         let message_index = channelsMap[message.Channel.valueOf()].findIndex(e => e.ID.valueOf() === message.ID.valueOf())
         if (channelsMap[message.Channel.valueOf()][message_index].Fetch === true) {
             removeMessage(message.Channel.valueOf(), message.ID.valueOf())
-        }
-        else return
+        } else return
     }
     let insertPos = channelsMap[message.Channel.valueOf()].findIndex((element) => element.ID.valueOf() > message.ID.valueOf());
     SaveToChannelMap(message.Channel.valueOf(), insertPos, message)
@@ -52,23 +48,27 @@ export async function DeleteMessage(id) {
         }
     )
 }
-export async function GetMessage(id, channel) {
+export function GetMessage(id, channel) {
     let log = new XMLHttpRequest()
     log.open("POST", server + "message/get")
     log.withCredentials = true
     log.setRequestHeader('Authorization', User.token)
-    return await makeRequest(log, id).then(
-        (success) => {
-            SaveMessage(parse(Decompress(success.Response)))
-        },
-        (error) => {
-            if (error.Status === 403) {
-                SaveMessage({
-                    ID: id,
-                    Type: null,
-                    Channel: channel,
-                })
+    return new Promise((resolve) => {
+        makeRequest(log, id).then(
+            (success) => {
+                SaveMessage(parse(Decompress(success.Response)))
+                resolve()
+            },
+            (error) => {
+                if (error.Status === 403) {
+                    SaveMessage({
+                        ID: id,
+                        Type: null,
+                        Channel: channel,
+                    })
+                }
+                resolve()
             }
-        }
-    )
+        )
+    })
 }

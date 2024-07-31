@@ -24,7 +24,7 @@ export function Channel(props) {
     }
 
     return (
-        <div style={{width:"10%", display:"flex", flexFlow:"column"}}>
+        <div style={{width:"10%", display:"flex", flexFlow:"column", flexShrink: "0"}}>
             <div style={{padding:" 5px 3px", fontSize:"20px", alignContent:"center", alignItems:"center"}}>{User.username}
                     <Popup trigger={<button className="User-Button"/>} nested position="bottom center" className="tooltip-popup">
                         <div style={{display:"flex", flexDirection:"column"}}>

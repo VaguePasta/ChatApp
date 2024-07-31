@@ -30,6 +30,7 @@ export function ChatHistory(props) {
             RequestChat(CurrentChannel).then(
                 () => {
                     props.handler(false, true, true, true)
+                    setTimeout(() => refs.current.scrollIntoView(), 500)
                 },
                 () => {
                     ErrorNotification("fetch-message-error", "Cannot connect to server.")
@@ -39,7 +40,9 @@ export function ChatHistory(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [history.Current]);
     useEffect(() => {
-        if (history.NewMessage) setTimeout(() => refs.current.scrollIntoView());
+        if (history.NewMessage) {
+            setTimeout(() => refs.current.scrollIntoView());
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [history.Content]);
     function ScrollHandler(e) {
@@ -84,7 +87,7 @@ export function ChatHistory(props) {
                     )}
                 </AnimatePresence>
                 {history.Content !== null ? <div className="ChatHistory" onScroll={ScrollHandler}>
-                        {history.Content.map(msg => msg.Fetch !== true &&
+                        {history.Content.map(msg => msg.Fetch !== true && msg.Type !== null &&
                             <Message key={msg.ID.valueOf()} reply={reply} message={msg} replyTo={replyTo} handler={props.handler}/>)}
                         <div ref={refs} style={{clear: "both"}}/>
                     </div> :

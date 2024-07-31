@@ -26,13 +26,14 @@ func DatabaseConnect() {
 	for scanner.Scan() {
 		*info = append(*info, scanner.Text())
 	}
-	DatabaseURL := "postgresql://" + (*info)[0] + ":" + (*info)[1] + "@" + (*info)[2] + ":" + (*info)[3] + "/" + (*info)[4] + "?pool_max_conns=95"
-	DatabaseConn, err = pgxpool.New(context.Background(), DatabaseURL)
+	DatabaseConn, err = pgxpool.New(context.Background(), "postgresql://"+(*info)[0]+":"+(*info)[1]+"@"+(*info)[2]+":"+(*info)[3]+"/"+(*info)[4]+"?pool_max_conns=95")
 	if err != nil {
 		log.Fatal("FATAL: Cannot connect to database. " + err.Error())
 	}
+	_, _ = DatabaseConn.Exec(context.Background(), "truncate table sessions")
+	_, _ = DatabaseConn.Exec(context.Background(), "insert into messages(message_id) values(0) on conflict do nothing")
 }
-func CheckPassword(userid int, password string) (bool, string) {
+func CheckPassword(userid uint, password string) (bool, string) {
 	var _password string
 	err := DatabaseConn.QueryRow(context.Background(), "select password from users where user_id = $1", userid).Scan(&_password)
 	if err != nil {

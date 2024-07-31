@@ -13,6 +13,7 @@ export function TimeStamp(props) {
             color: "black",
             border: "1px solid black",
             padding: "5px",
+            whiteSpace: "nowrap"
         }}>{props.timeStamp}</div>
     )
 }

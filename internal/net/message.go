@@ -26,34 +26,34 @@ func GetChannelMessages(pool *connections.Pool, w http.ResponseWriter, r *http.R
 		lastMessage = math.MaxInt64
 	}
 	client, _ := pool.Clients.Get(r.Header.Get("Authorization"))
-	rows, _ := connections.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message, type, reply_to, username from (messages inner join users on messages.sender_id = users.user_id) left join replies on messages.message_id = replies.reply where channel_id = $1 and message_id < $2 and deleted = false order by message_id desc limit 16 ", channel, lastMessage)
-	for rows.Next() {
+	rows, _ := connections.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message, type, reply_to, username from (messages inner join users on messages.sender_id = users.user_id) left join replies on messages.message_id = replies.reply where channel_id = $1 and message_id < $2 and deleted = false order by message_id desc limit 16", channel, lastMessage)
+	var nextRow = rows.Next()
+	for nextRow == true {
 		var messageID uint64
-		var channelID int
-		var senderID int
+		var channelID uint
+		var senderID uint
 		var senderName string
-		var replyTo *int64
+		var replyTo *uint64
 		var _type string
 		var message string
 		err := rows.Scan(&messageID, &channelID, &senderID, &message, &_type, &replyTo, &senderName)
 		if err != nil {
-			continue
-		}
-		if replyTo == nil {
-			replyTo = new(int64)
-			*replyTo = 0
+			break
 		}
 		SendTo(&system.Message{
 			ID:         messageID,
 			ChannelID:  channelID,
 			SenderName: senderName,
 			SenderID:   senderID,
-			ReplyTo:    *replyTo,
+			ReplyTo:    replyTo,
 			Type:       _type,
 			Content:    message,
 		}, client, false)
+		nextRow = rows.Next()
+		if !nextRow {
+			w.WriteHeader(200)
+		}
 	}
-	rows.Close()
 	w.WriteHeader(200)
 }
 func SendTo(message *system.Message, client *connections.Client, isNew bool) {

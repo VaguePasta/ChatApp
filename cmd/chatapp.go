@@ -4,7 +4,6 @@ import (
 	"ChatApp/internal/connections"
 	"ChatApp/internal/logger"
 	"ChatApp/internal/net"
-	"context"
 	"github.com/gorilla/handlers"
 	"net/http"
 )
@@ -15,7 +14,6 @@ func main() {
 	}
 	connections.DatabaseConnect()
 	net.GetClientOrigin()
-	_, _ = connections.DatabaseConn.Exec(context.Background(), "truncate table sessions")
 	defer connections.DatabaseConn.Close()
 	router := net.SetupRoutes()
 	err := http.ListenAndServe(":8080", handlers.CORS(

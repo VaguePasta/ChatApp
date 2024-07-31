@@ -10,6 +10,9 @@ export function SetChannelList(list) {
 export function SetChannelMap(map) {
     channelsMap = map
 }
+export function RemoveFromMap(channelID) {
+    channelsMap.delete(channelID)
+}
 export function SaveToChannelMap(key, pos, value) {
     if (pos === -1) {
         channelsMap[key].push(value)
@@ -23,21 +26,20 @@ export async function RequestChannelList() {
     log.open("GET",server + "channel/read",true)
     log.withCredentials = true;
     log.setRequestHeader('Authorization', User.token)
-    channelsMap = new Map()
-    channelsMap[0] = []
     channels = []
     let result = await makeRequest(log,null)
     if (result.Response !== 'null') {
         channels = parse(result.Response)
         channels.forEach((element) => {
-            channelsMap[element.ChannelID.valueOf()] = null
+            if (channelsMap[element.ChannelID.valueOf()] === undefined)
+                channelsMap[element.ChannelID.valueOf()] = null
         })
     }
     else {
         channels = null
     }
 }
-export async function RequestChat(CurrentChannel) {
+export function RequestChat(CurrentChannel) {
     let log = new XMLHttpRequest()
     let lastMessage = "0"
     if (channelsMap[CurrentChannel].length !== 0) {
@@ -46,14 +48,16 @@ export async function RequestChat(CurrentChannel) {
     log.open("GET", server + "message/read/" + CurrentChannel + "/" + lastMessage, true)
     log.withCredentials = true;
     log.setRequestHeader('Authorization', User.token)
-    await makeRequest(log, null).then(
-        () => {
-            return true
-        },
-        () => {
-            return false
-        }
-    )
+    return new Promise((resolve) => {
+        makeRequest(log, null).then(
+            () => {
+                resolve()
+            },
+            () => {
+                resolve()
+            }
+        )
+    })
 }
 export async function RequestChatMember(CurrentChannel) {
     let log = new XMLHttpRequest()
@@ -110,4 +114,11 @@ export async function ChangeChannelName(_channel, _name) {
             return false
         }
     )
+}
+export function LeaveChannel(_channel) {
+    let log = new XMLHttpRequest()
+    log.open("POST", server + "channel/leave", true)
+    log.withCredentials = true
+    log.setRequestHeader('Authorization', User.token)
+    return makeRequest(log, stringify(_channel))
 }

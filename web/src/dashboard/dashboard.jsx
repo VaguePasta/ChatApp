@@ -8,7 +8,7 @@ import Popup from "reactjs-popup";
 import {new_message} from "../audio/audio";
 import {parse} from "lossless-json";
 import {LogOut, socket, User} from "../api/auth";
-import {Decompress, SaveMessage} from "../api/message";
+import {Decompress, GetMessage, SaveMessage} from "../api/message";
 import {channels, channelsMap, RequestChannelList, RequestChat} from "../api/channel";
 import {Reconnect} from "../notifications/notifications";
 export const CurrentChatContext = createContext({Current:0, Channels: [], Content: [], NewMessage: false})
@@ -19,24 +19,30 @@ export function Dashboard() {
     const [, forceRender] = useState(false)
     let history = useNavigate()
     const [channelHistory,update] = useState({Current: 0, Channels: [], Content: [], NewMessage: false})
-    function onMessage(message) {
+    async function onMessage(message) {
         if (channelsMap[message.Channel.valueOf()] === null) {
             channelsMap[message.Channel.valueOf()] = []
             RequestChat(message.Channel.valueOf()).then()
+        }
+        if (message.Fetch !== true &&
+            message.ReplyTo !== null &&
+            message.ReplyTo.valueOf() !== 0 &&
+            !channelsMap[message.Channel.valueOf()].some(e => e.ID.valueOf() === message.ReplyTo.valueOf())) {
+            await GetMessage(message.ReplyTo.valueOf(), message.Channel.valueOf())
         }
         SaveMessage(message)
         if (message.IsNew === true) {
             updateList(channels.findIndex((channel) => channel.ChannelID.valueOf() === message.Channel.valueOf()))
             if (message.SenderID.valueOf() !== User.userid) {
                 document.title = "ChatApp (•)"
-                notification_sound.play().then(setTimeout(() => {document.title = "ChatApp"}, 2500))
+                notification_sound.play().then(() => setTimeout(() => {
+                    document.title = "ChatApp"
+                }, 2500))
             }
             if (message.Channel.valueOf() === CurrentChannel) {
                 handler(false, true, true, true)
-            }
-            else handler(false, true, false, false)
-        }
-        else if (message.Channel.valueOf() === CurrentChannel) {
+            } else handler(false, true, false, false)
+        } else if (message.Channel.valueOf() === CurrentChannel) {
             handler(false, true, true, false)
         }
     }
@@ -47,11 +53,11 @@ export function Dashboard() {
                 if (channelsMap[message.Channel.valueOf()] === undefined) {
                     RequestChannelList().then(
                         () => {
-                            onMessage(message)
+                            onMessage(message).then()
                         }
                     )
                 } else {
-                    onMessage(message)
+                    onMessage(message).then()
                 }
             }
             socket.onerror = () => {
@@ -68,9 +74,9 @@ export function Dashboard() {
     }
     function handler(c_channel, l_channel, cnt_channel, load) {
         update({
-            Current: c_channel !== false ? CurrentChannel : channelHistory.Current,
-            Channels: l_channel !== false ? [...channels] : channelHistory.Channels,
-            Content: cnt_channel !== false ? (channelsMap[CurrentChannel] !== null ? [...channelsMap[CurrentChannel]] : null) : channelHistory.Content,
+            Current: c_channel === true ? CurrentChannel : channelHistory.Current,
+            Channels: l_channel === true ? [...channels] : channelHistory.Channels,
+            Content: cnt_channel === true ? (channelsMap[CurrentChannel] !== null ? [...channelsMap[CurrentChannel]] : null) : channelHistory.Content,
             NewMessage: load,
         })
     }

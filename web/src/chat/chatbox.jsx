@@ -149,12 +149,11 @@ function ReplyingTo(props) {
             <div style={{display: "flex", alignItems: "center"}}>
                 <div style={{
                     margin: "2px 5px 0 5px",
+                    textOverflow: "ellipsis",
                     display: '-webkit-box',
                     WebkitBoxOrient: 'vertical',
                     WebkitLineClamp: 2,
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    whiteSpace: "pre",
+                    overflow: "hidden"
                 }}>Replying to {props.message.SenderID.valueOf() === User.userid ? 'myself' : props.message.SenderName}
                     <div style={{color: "gray"}}>
                         Image: <a href={props.message.Text} target="_blank" rel="noreferrer"> {props.message.Text}</a>
@@ -168,12 +167,11 @@ function ReplyingTo(props) {
             <div style={{display: "flex", alignItems: "center"}}>
                 <div style={{
                     margin: "2px 5px 0 5px",
+                    textOverflow: "ellipsis",
                     display: '-webkit-box',
                     WebkitBoxOrient: 'vertical',
                     WebkitLineClamp: 2,
-                    textOverflow: "ellipsis",
                     overflow: "hidden",
-                    whiteSpace: "pre",
                 }}>Replying to {props.message.SenderID.valueOf() === User.userid ? 'myself' : props.message.SenderName}
                     <div style={{color: "gray"}}>
                         Video: <a target="_blank" href={"https://www.youtube.com/watch?v=" + props.message.Text}

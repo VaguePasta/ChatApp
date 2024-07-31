@@ -13,7 +13,7 @@ import (
 )
 
 type Result struct {
-	Channel int    `json:"channel"`
+	Channel uint   `json:"channel"`
 	Type    string `json:"type"`
 	Content string `json:"content"`
 	ReplyTo int64  `json:"reply"`
@@ -39,10 +39,20 @@ func (client *Client) LogIn() {
 	if !ok {
 		channelList := connections.ChannelConnections{
 			Counter: 1,
-			List:    haxmap.New[int, int8](),
+			List:    haxmap.New[uint, uint8](),
 		}
 		client.Channels = &channelList
 		connections.ConnectionPool.ClientChannels.Set(client.ID, &channelList)
+		channels, _ := connections.DatabaseConn.Query(context.Background(), "select channels.channel_id, privilege from channels inner join participants on channels.channel_id = participants.channel_id where user_id = $1", client.ID)
+		var privilege string
+		var channelID uint
+		_, err := pgx.ForEachRow(channels, []any{&channelID, &privilege}, func() error {
+			channelList.List.Set(channelID, connections.SaveClientsChannelPrivilege(privilege))
+			return nil
+		})
+		if err != nil {
+			log.Println(err)
+		}
 	} else {
 		client.Channels = connection
 		client.ClientMutex.Lock()
@@ -73,7 +83,7 @@ func (client *Client) Read(pool *connections.Pool) {
 	for {
 		_, content, err := client.Conn.ReadMessage()
 		if err != nil {
-			return
+			break
 		}
 		var message Result
 		err = json.Unmarshal(content, &message)
@@ -91,12 +101,18 @@ func (client *Client) Read(pool *connections.Pool) {
 		} else if privilegeInt == 3 {
 			continue
 		}
+		var reply = new(uint64)
+		if message.ReplyTo == 0 {
+			reply = nil
+		} else {
+			*reply = uint64(message.ReplyTo)
+		}
 		ID, _ := connections.IdGenerator.NextID()
 		textMessage := system.Message{
 			ID:         ID,
 			ChannelID:  message.Channel,
 			Type:       message.Type,
-			ReplyTo:    message.ReplyTo,
+			ReplyTo:    reply,
 			Content:    message.Content,
 			SenderName: client.Name,
 			SenderID:   client.ID,
@@ -119,8 +135,8 @@ func SendToChannel(pool *connections.Pool, textMessage *system.Message) {
 	if err != nil {
 		return
 	}
-	if textMessage.ReplyTo != 0 {
-		_, err := connections.DatabaseConn.Exec(context.Background(), "insert into replies values($1, $2); ", textMessage.ReplyTo, textMessage.ID)
+	if textMessage.ReplyTo != nil {
+		_, err := connections.DatabaseConn.Exec(context.Background(), "insert into replies values($1, $2); ", *textMessage.ReplyTo, textMessage.ID)
 		if err != nil {
 			return
 		}

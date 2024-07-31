@@ -99,8 +99,8 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	var IDtoChange int
-	var channel int
+	var IDtoChange uint
+	var channel uint
 	var role string
 	var senderRole string
 	err = json.Unmarshal(arr[0], &IDtoChange)
@@ -144,6 +144,9 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(403)
 		return
 	}
-	user.Channels.List.Set(channel, connections.SaveClientsChannelPrivilege(role))
+	setter, ok := connections.ConnectionPool.ClientChannels.Get(IDtoChange)
+	if ok {
+		setter.List.Set(channel, connections.SaveClientsChannelPrivilege(role))
+	}
 	w.WriteHeader(200)
 }

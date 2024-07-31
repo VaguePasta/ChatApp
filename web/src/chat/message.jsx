@@ -47,7 +47,6 @@ export function Message(props) {
                 maxWidth: "55%",
                 margin: "5px 10px",
                 alignItems: "center",
-
             }}>
                 <div style={{background: "transparent", color: "black", border: "solid 1px"}} className="Message">
                     <Linkify componentDecorator={(decoratedHref, decoratedText, key) => (
@@ -70,12 +69,13 @@ export function Message(props) {
                     clear: "both",
                     maxWidth: "60%",
                     margin: "5px 10px",
-                    alignItems: "center",
-                    flexDirection: "column"
+                    alignItems: "end",
+                    flexDirection: "column",
+                    overflowWrap: "break-word"
                 }}
                      onMouseEnter={() => showOptions(true)}
                      onMouseLeave={() => hideOptions(true)}>
-                    {props.message.ReplyTo.valueOf() !== 0 &&
+                    {props.message.ReplyTo !== null &&
                         <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo.valueOf()}/>}
                     <div style={{display: "flex", alignItems: "center", zIndex: "2"}}>
                         <button ref={deleteButton} onClick={Delete} className="Button DeleteButton"/>
@@ -114,14 +114,14 @@ export function Message(props) {
                     maxWidth: "55%",
                     clear: "both",
                     margin: "5px 10px",
-                    alignItems: "center",
+                    alignItems: "end",
                     flexDirection: "column"
                 }}
                      onMouseEnter={() => showOptions(true)}
                      onMouseLeave={() => hideOptions(true)}>
-                    {props.message.ReplyTo.valueOf() !== 0 &&
+                    {props.message.ReplyTo !== null &&
                         <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo.valueOf()}/>}
-                    <div style={{display: "flex", alignItems: "center", zIndex: "2"}}>
+                    <div style={{display: "flex", alignItems: "center", zIndex: "2", marginLeft: "auto"}}>
                         <button ref={deleteButton} onClick={Delete} className="Button DeleteButton"/>
                         <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
                         <div onMouseLeave={() => {
@@ -138,7 +138,7 @@ export function Message(props) {
                                                                               plusHeight={message.current.clientHeight}
                                                                               isRight={true}/>}
                             <img alt={props.message.Text} src={props.message.Text}
-                                 style={{width: "100%", border: "1px solid black", borderRadius: "5px 7px"}}/>
+                                 style={{wordWrap: "anywhere", background: "white", width: "100%", border: "1px solid black", borderRadius: "5px 7px"}}/>
                         </div>
                     </div>
                 </div>
@@ -151,14 +151,14 @@ export function Message(props) {
                     display: "flex",
                     clear: "both",
                     margin: "5px 10px",
-                    alignItems: "center",
+                    alignItems: "end",
                     maxHeight: "fit-content",
                     width: "55%",
                     flexDirection: "column"
                 }}
                      onMouseEnter={() => showOptions(true)}
                      onMouseLeave={() => hideOptions(true)}>
-                    {props.message.ReplyTo.valueOf() !== 0 &&
+                    {props.message.ReplyTo !== null &&
                         <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo.valueOf()}/>}
                     <div style={{display: "flex", alignItems: "center", zIndex: "2", minWidth: "100%"}}
                          onMouseLeave={() => {
@@ -202,7 +202,7 @@ export function Message(props) {
                     clear: "both",
                     maxWidth: "55%",
                     margin: "5px 10px",
-                    alignItems: "center",
+                    alignItems: "start",
                     flexDirection: "column"
                 }}
                      onMouseEnter={() => showOptions(false)}
@@ -212,7 +212,7 @@ export function Message(props) {
                         fontSize: "14px",
                         marginRight: "auto"
                     }}>{props.message.SenderName}</div>
-                    {props.message.ReplyTo.valueOf() !== 0 &&
+                    {props.message.ReplyTo !== null &&
                         <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo.valueOf()}/>}
                     <div style={{display: "flex", alignItems: "center", zIndex: "2"}}>
                         <div style={{background: "#f2f2f7", color: "black", float: "left"}} className="Message"
@@ -249,7 +249,7 @@ export function Message(props) {
                     maxWidth: "45%",
                     clear: "both",
                     margin: "5px 10px",
-                    alignItems: "center",
+                    alignItems: "start",
                     flexDirection: "column"
                 }}
                      onMouseEnter={() => showOptions(false)}
@@ -259,9 +259,9 @@ export function Message(props) {
                         fontSize: "14px",
                         marginRight: "auto"
                     }}>{props.message.SenderName}</div>
-                    {props.message.ReplyTo.valueOf() !== 0 &&
+                    {props.message.ReplyTo !== null &&
                         <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo.valueOf()}/>}
-                    <div style={{display: "flex", alignItems: "center", zIndex: "2"}}>
+                    <div style={{display: "flex", alignItems: "center", zIndex: "2", marginRight: "auto"}}>
                         <div onMouseLeave={() => {
                             clearTimeout(timeStampTimeout)
                             timeStampTimeout = null
@@ -271,7 +271,7 @@ export function Message(props) {
                                  timeStampTimeout = setTimeout(() => seeTimeStamp(true), 500)
                              }} ref={message}>
                             <img alt={props.message.Text} src={props.message.Text}
-                                 style={{width: "100%", border: "1px solid black", borderRadius: "5px 7px"}}/>
+                                 style={{wordWrap: "anywhere", background: "white", width: "100%", border: "1px solid black", borderRadius: "5px 7px"}}/>
                             {message.current && seeingTimeStamp && <TimeStamp timeStamp={props.message.TimeStamp}
                                                                               offSet={message.current.getBoundingClientRect()}
                                                                               plusHeight={message.current.clientHeight}
@@ -289,7 +289,7 @@ export function Message(props) {
                     display: "flex",
                     clear: "both",
                     margin: "5px 10px",
-                    alignItems: "center",
+                    alignItems: "start",
                     maxHeight: "fit-content",
                     width: "55%",
                     flexDirection: "column"
@@ -301,7 +301,7 @@ export function Message(props) {
                         fontSize: "14px",
                         marginRight: "auto"
                     }}>{props.message.SenderName}</div>
-                    {props.message.ReplyTo.valueOf() !== 0 &&
+                    {props.message.ReplyTo !== null &&
                         <Reply margin={"0 auto -5px 0"} ID={props.message.ReplyTo.valueOf()}/>}
                     <div
                         style={{display: "flex", alignItems: "center", zIndex: "2", minWidth: "100%"}}

@@ -9,10 +9,11 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type Channel struct {
-	ChannelID int
+	ChannelID uint
 	Title     string
 	Privilege string
 }
@@ -29,12 +30,11 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 	}
 	var channelIDs []Channel
 	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channels.channel_id, title, privilege from channels inner join participants on channels.channel_id = participants.channel_id where user_id = $1 order by last_message desc", user.ID)
-	var channelID int
+	var channelID uint
 	var title string
 	var privilege string
 	_, err := pgx.ForEachRow(channels, []any{&channelID, &title, &privilege}, func() error {
 		channelIDs = append(channelIDs, Channel{ChannelID: channelID, Title: title, Privilege: privilege})
-		user.Channels.List.Set(channelID, connections.SaveClientsChannelPrivilege(privilege))
 		return nil
 	})
 	if err != nil {
@@ -144,8 +144,14 @@ func GetChannelMember(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
+	channel, _ := strconv.ParseUint(mux.Vars(r)["channelID"], 10, 32)
+	user, _ := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	_, ok := user.Channels.List.Get(uint(channel))
+	if !ok {
+		w.WriteHeader(403)
+		return
+	}
 	var members []interface{}
-	channel := mux.Vars(r)["channelID"]
 	rows, _ := connections.DatabaseConn.Query(context.Background(), "select users.user_id, username, privilege from participants inner join users on participants.user_id = users.user_id where channel_id = $1 order by privilege, username", channel)
 	for rows.Next() {
 		var userId int
@@ -201,6 +207,41 @@ func ChangeChannelName(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		w.WriteHeader(500)
 		return
+	}
+	w.WriteHeader(200)
+}
+func LeaveChannel(w http.ResponseWriter, r *http.Request) {
+	if !Authorize(w, r) {
+		w.WriteHeader(401)
+		return
+	}
+	user, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	if !ok {
+		w.WriteHeader(401)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	var channel uint
+	err = json.Unmarshal(body, &channel)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	currentPrivilege, ok := user.Channels.List.Get(channel)
+	if currentPrivilege == 0 {
+		w.WriteHeader(403)
+		return
+	} else {
+		_, err := connections.DatabaseConn.Exec(context.Background(), "delete from participants where user_id = $1 and channel_id = $2", user.ID, channel)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		user.Channels.List.Del(channel)
 	}
 	w.WriteHeader(200)
 }
