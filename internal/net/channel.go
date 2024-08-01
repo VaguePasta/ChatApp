@@ -245,3 +245,63 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(200)
 }
+func JoinChannel(w http.ResponseWriter, r *http.Request) {
+	//if !Authorize(w, r) {
+	//	w.WriteHeader(401)
+	//	return
+	//}
+	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	var joinRequest [2]json.RawMessage
+	err = json.Unmarshal(body, &joinRequest)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	var requestType uint8
+	err = json.Unmarshal(joinRequest[0], &requestType)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	if requestType == 0 { //[receiverID, channel, privilege]
+		sender, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+		if !ok {
+			w.WriteHeader(401)
+			return
+		}
+		var inviteInfo []interface{}
+		err := json.Unmarshal(joinRequest[1], &inviteInfo)
+		if err != nil {
+			w.WriteHeader(400)
+			return
+		}
+		userID, _ := inviteInfo[1].(uint)
+		senderPrivilege, _ := sender.Channels.List.Get(userID)
+		if senderPrivilege != 0 && senderPrivilege != 1 {
+			w.WriteHeader(403)
+			return
+		}
+		cmdTag, err := connections.DatabaseConn.Exec(context.Background(), "insert into participants values($1, $2, $3) on conflict do nothing", inviteInfo[0], inviteInfo[1], inviteInfo[2])
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		if cmdTag.RowsAffected() == 0 {
+			w.WriteHeader(409)
+			return
+		}
+	} else if requestType == 1 { //[Invite code, userID]
+		w.WriteHeader(501)
+		return
+	} else {
+		w.WriteHeader(400)
+		return
+	}
+	w.WriteHeader(200)
+}

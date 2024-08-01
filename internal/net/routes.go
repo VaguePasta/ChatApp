@@ -36,6 +36,7 @@ func SetupRoutes() *mux.Router {
 	router.HandleFunc("/channel/privilege", ChangeUserPrivilege)
 	router.HandleFunc("/user/search/{username}", SearchUser)
 	router.HandleFunc("/user/get/{userid}", GetUserInfo)
+	router.HandleFunc("/user/join", JoinChannel)
 	router.HandleFunc("/ws/{token}", func(w http.ResponseWriter, r *http.Request) {
 		ServeWs(connections.ConnectionPool, w, r)
 	})
