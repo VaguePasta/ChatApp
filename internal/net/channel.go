@@ -3,6 +3,8 @@ package net
 import (
 	"ChatApp/internal/connections"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
@@ -16,6 +18,7 @@ type Channel struct {
 	ChannelID uint
 	Title     string
 	Privilege string
+	Code      *string
 }
 
 func GetChannelList(w http.ResponseWriter, r *http.Request) {
@@ -29,12 +32,13 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var channelIDs []Channel
-	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channels.channel_id, title, privilege from channels inner join participants on channels.channel_id = participants.channel_id where user_id = $1 order by last_message desc", user.ID)
+	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channels.channel_id, title, privilege, code from channels inner join participants on channels.channel_id = participants.channel_id left join invite_code on channels.channel_id = invite_code.channel_id where user_id = $1 order by last_message desc", user.ID)
 	var channelID uint
 	var title string
 	var privilege string
-	_, err := pgx.ForEachRow(channels, []any{&channelID, &title, &privilege}, func() error {
-		channelIDs = append(channelIDs, Channel{ChannelID: channelID, Title: title, Privilege: privilege})
+	var inviteCode *string
+	_, err := pgx.ForEachRow(channels, []any{&channelID, &title, &privilege, &inviteCode}, func() error {
+		channelIDs = append(channelIDs, Channel{ChannelID: channelID, Title: title, Privilege: privilege, Code: inviteCode})
 		return nil
 	})
 	if err != nil {
@@ -246,12 +250,10 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 func JoinChannel(w http.ResponseWriter, r *http.Request) {
-	//if !Authorize(w, r) {
-	//	w.WriteHeader(401)
-	//	return
-	//}
-	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	if !Authorize(w, r) {
+		w.WriteHeader(401)
+		return
+	}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(400)
@@ -269,19 +271,23 @@ func JoinChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
+	var inviteInfo []interface{}
+	err = json.Unmarshal(joinRequest[1], &inviteInfo)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
 	if requestType == 0 { //[receiverID, channel, privilege]
 		sender, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
 		if !ok {
 			w.WriteHeader(401)
 			return
 		}
-		var inviteInfo []interface{}
-		err := json.Unmarshal(joinRequest[1], &inviteInfo)
-		if err != nil {
+		userID, i := inviteInfo[1].(uint)
+		if !i {
 			w.WriteHeader(400)
 			return
 		}
-		userID, _ := inviteInfo[1].(uint)
 		senderPrivilege, _ := sender.Channels.List.Get(userID)
 		if senderPrivilege != 0 && senderPrivilege != 1 {
 			w.WriteHeader(403)
@@ -304,4 +310,57 @@ func JoinChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(200)
+}
+func ChannelCode(w http.ResponseWriter, r *http.Request) {
+	if !Authorize(w, r) {
+		w.WriteHeader(401)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	var bodyInfo []uint //[0|1,channel_id]  0: Create/modify code, 1: Delete code
+	err = json.Unmarshal(body, &bodyInfo)
+	if err != nil {
+		w.WriteHeader(400)
+		return
+	}
+	user, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	if !ok {
+		w.WriteHeader(401)
+		return
+	}
+	privilege, ok := user.Channels.List.Get(bodyInfo[1])
+	if !ok || privilege != 0 {
+		w.WriteHeader(401)
+		return
+	}
+	if bodyInfo[0] == 0 {
+		randomBytes := make([]byte, 4)
+		_, err = rand.Read(randomBytes)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		code := hex.EncodeToString(randomBytes)
+		_, err := connections.DatabaseConn.Exec(context.Background(), "insert into invite_code values($1, $2) on conflict (channel_id) do update set code = excluded.code", bodyInfo[1], code)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		_, err = w.Write([]byte(code))
+		if err != nil {
+			w.WriteHeader(200)
+			return
+		}
+		return
+	} else if bodyInfo[1] == 1 {
+		_, err := connections.DatabaseConn.Exec(context.Background(), "delete from invite_code where channel_id = $1", bodyInfo[1])
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+	}
 }

@@ -34,6 +34,7 @@ func SetupRoutes() *mux.Router {
 	router.HandleFunc("/channel/rename", ChangeChannelName)
 	router.HandleFunc("/channel/leave", LeaveChannel)
 	router.HandleFunc("/channel/privilege", ChangeUserPrivilege)
+	router.HandleFunc("/channel/invite", ChannelCode)
 	router.HandleFunc("/user/search/{username}", SearchUser)
 	router.HandleFunc("/user/get/{userid}", GetUserInfo)
 	router.HandleFunc("/user/join", JoinChannel)

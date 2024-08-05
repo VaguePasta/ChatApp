@@ -5,7 +5,7 @@ import {CurrentChatContext} from "../dashboard/dashboard";
 import Popup from "reactjs-popup";
 import {ErrorNotification} from "../notifications/notifications";
 import {
-    ChangeChannelName,
+    ChangeChannelName, ChangeCode,
     channels,
     channelsMap,
     DeleteChannel,
@@ -111,7 +111,13 @@ export function ChatInfo(props) {
             <div style={{marginLeft: "0", flex: "1", textOverflow:"ellipsis", overflow: "hidden"}}>{CurrentChannel !== 0 ? channels.find(e => e.ChannelID.valueOf() === CurrentChannel).Title : ""}</div>
             {reloading ? <button onClick={reload} className="ChatInfoButton Reload Reloading"/> : <button onClick={reload} className="ChatInfoButton Reload"/>}
             <Popup position="bottom right" className="tooltip-popup" ref={ref}
-               trigger={<button className="ChatInfoButton MenuBar"/>}>
+               trigger={<button className="ChatInfoButton MenuBar"/>} nested>
+                {privilege === 'admin' &&
+                    <Popup position="right center" onClose={() => ref.current.close()}
+                        trigger={<button style={{borderBottom: "1px solid black"}} className="popup-button">Invite code...</button >}
+                        className="modal-popup" modal nested>
+                    <ChannelCode/>
+                </Popup>}
                 {privilege === 'admin' && <Popup trigger={<button className="popup-button">Change Channel Name</button>}>
                     <input onKeyDown={ChangeName}/>
                 </Popup>}
@@ -144,6 +150,47 @@ function ConfirmPopup(props) {
             <div style={{display:"flex", justifyContent:"center", minWidth:"200px", flex:"1"}}>
                 <button onClick={props.accept} style={{margin:"5px", minWidth:"20%"}} className="ConfirmButton">Yes</button>
                 <button onClick={props.refuse} style={{margin:"5px", minWidth:"20%"}} className="ConfirmButton">No</button>
+            </div>
+        </div>
+    )
+}
+function ChannelCode() {
+    const [, forceRender] = useState(false)
+    return (
+        <div style={{display: "flex", flexDirection: "column"}}>
+            <div>Channel code:</div>
+            <button onClick={() => {
+                ChangeCode(0, CurrentChannel).then((re) => {
+                    channels[channels.findIndex(e => e.ChannelID.valueOf() === CurrentChannel)].Code = String(re.Response)
+                    forceRender(render => !render)
+                }, () => ErrorNotification("code-error", "An error occured. Please try again."))
+            }}>Create/change code
+            </button>
+            {channels.find(e => e.ChannelID.valueOf() === CurrentChannel).Code && <button onClick={() => {
+                ChangeCode(1, CurrentChannel).then(() => {
+                    channels[channels.findIndex(e => e.ChannelID.valueOf() === CurrentChannel)].Code = null
+                    forceRender(render => !render)
+                }, () => ErrorNotification("code-error", "An error occured. Please try again."))
+            }}>Delete code</button>}
+            <div style={{
+                top: "50%",
+                transform: "translate(0, -50%)",
+                position: "absolute",
+                justifyContent: "center",
+                padding: "10px",
+                border: "2px solid red",
+                fontSize: "30px",
+                alignSelf: "center",
+                width: "50%",
+                textAlign: "center"
+            }}>
+                <div className="invite-code" style={{
+                    margin: "auto",
+                    flex: "1"
+                }}>{channels.find(e => e.ChannelID.valueOf() === CurrentChannel).Code || "Not available"}</div>
+                {channels.find(e => e.ChannelID.valueOf() === CurrentChannel).Code && <button
+                    onClick={() => navigator.clipboard.writeText(channels.find(e => e.ChannelID.valueOf() === CurrentChannel).Code)}
+                    className="copy-button"/>}
             </div>
         </div>
     )

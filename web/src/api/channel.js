@@ -129,3 +129,10 @@ export function InviteToChannel(_userID, _channel, _privilege) {
     log.setRequestHeader('Authorization', User.token)
     return makeRequest(log, stringify([0, [_userID, _channel, _privilege]]))
 }
+export function ChangeCode(command, channel) {
+    let log = new XMLHttpRequest()
+    log.open("POST", server + "channel/invite", true)
+    log.withCredentials = true
+    log.setRequestHeader('Authorization', User.token)
+    return makeRequest(log, stringify([command, channel]))
+}

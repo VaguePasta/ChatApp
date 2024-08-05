@@ -56,7 +56,7 @@ func CheckCredentials(username string, password string) string {
 	if err != nil {
 		return ""
 	}
-	b := make([]byte, 8)
+	b := make([]byte, 12)
 	if _, err := rand.Read(b); err != nil {
 		return ""
 	}
