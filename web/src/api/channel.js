@@ -122,12 +122,12 @@ export function LeaveChannel(_channel) {
     log.setRequestHeader('Authorization', User.token)
     return makeRequest(log, stringify(_channel))
 }
-export function InviteToChannel(_userID, _channel, _privilege) {
+export function JoinChannelFromCode(code) {
     let log = new XMLHttpRequest()
-    log.open("POST", server + "channel/leave", true)
+    log.open("POST", server + "user/join", true)
     log.withCredentials = true
     log.setRequestHeader('Authorization', User.token)
-    return makeRequest(log, stringify([0, [_userID, _channel, _privilege]]))
+    return makeRequest(log, stringify([1, code]))
 }
 export function ChangeCode(command, channel) {
     let log = new XMLHttpRequest()

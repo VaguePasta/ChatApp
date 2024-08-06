@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
 	"io"
@@ -254,6 +255,11 @@ func JoinChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
+	sender, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	if !ok {
+		w.WriteHeader(401)
+		return
+	}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(400)
@@ -271,16 +277,11 @@ func JoinChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	var inviteInfo []interface{}
-	err = json.Unmarshal(joinRequest[1], &inviteInfo)
-	if err != nil {
-		w.WriteHeader(400)
-		return
-	}
 	if requestType == 0 { //[receiverID, channel, privilege]
-		sender, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
-		if !ok {
-			w.WriteHeader(401)
+		var inviteInfo []interface{}
+		err = json.Unmarshal(joinRequest[1], &inviteInfo)
+		if err != nil {
+			w.WriteHeader(400)
 			return
 		}
 		userID, i := inviteInfo[1].(uint)
@@ -302,14 +303,31 @@ func JoinChannel(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(409)
 			return
 		}
-	} else if requestType == 1 { //[Invite code, userID]
-		w.WriteHeader(501)
+	} else if requestType == 1 {
+		var inviteCode string
+		err := json.Unmarshal(joinRequest[1], &inviteCode)
+		if err != nil {
+			w.WriteHeader(400)
+			return
+		}
+		var channel uint
+		err = connections.DatabaseConn.QueryRow(context.Background(), "insert into participants values($1, (select channel_id from invite_code where code = $2), 'member') on conflict do nothing returning channel_id", sender.ID, inviteCode).Scan(&channel)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				w.WriteHeader(409)
+				return
+			} else {
+				w.WriteHeader(403)
+				return
+			}
+		}
+		sender.Channels.List.Set(channel, 2)
+		w.WriteHeader(200)
 		return
 	} else {
 		w.WriteHeader(400)
 		return
 	}
-	w.WriteHeader(200)
 }
 func ChannelCode(w http.ResponseWriter, r *http.Request) {
 	if !Authorize(w, r) {
