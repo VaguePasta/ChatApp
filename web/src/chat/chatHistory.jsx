@@ -28,7 +28,9 @@ export function ChatHistory(props) {
         if (channelsMap[CurrentChannel] === null) {
             channelsMap[CurrentChannel] = []
             RequestChat(CurrentChannel).then(
-                () => {},
+                () => {
+                    props.handler(false, false, true, false, false)
+                },
                 () => {
                     ErrorNotification("fetch-message-error", "Cannot connect to server.")
                 }

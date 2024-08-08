@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
 	"io"
@@ -32,6 +33,8 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
 		return
 	}
+	force := mux.Vars(r)["force"]
+	fmt.Println("Force: " + force)
 	var channelIDs []Channel
 	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channels.channel_id, title, privilege, code from channels inner join participants on channels.channel_id = participants.channel_id left join invite_code on channels.channel_id = invite_code.channel_id where user_id = $1 order by last_message desc", user.ID)
 	var channelID uint
@@ -40,6 +43,9 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 	var inviteCode *string
 	_, err := pgx.ForEachRow(channels, []any{&channelID, &title, &privilege, &inviteCode}, func() error {
 		channelIDs = append(channelIDs, Channel{ChannelID: channelID, Title: title, Privilege: privilege, Code: inviteCode})
+		if force == "force" {
+			user.Channels.List.Set(channelID, connections.SaveClientsChannelPrivilege(privilege))
+		}
 		return nil
 	})
 	if err != nil {
@@ -58,8 +64,9 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
-	err := r.ParseForm()
-	if err != nil {
+	sender, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	if !ok {
+		w.WriteHeader(401)
 		return
 	}
 	body, err := io.ReadAll(r.Body)
@@ -70,7 +77,7 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	createTime, _ := connections.IdGenerator.NextID()
-	var channelId string
+	var channelId uint
 	var channelName string
 	err = json.Unmarshal(arr[0], &channelName)
 	if err != nil {
@@ -103,16 +110,12 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
+	sender.Channels.List.Set(channelId, 0)
 	w.WriteHeader(201)
 }
 func DeleteChannel(w http.ResponseWriter, r *http.Request) {
 	if !Authorize(w, r) {
 		w.WriteHeader(401)
-		return
-	}
-	err := r.ParseForm()
-	if err != nil {
-		w.WriteHeader(400)
 		return
 	}
 	body, err := io.ReadAll(r.Body)
@@ -142,6 +145,10 @@ func DeleteChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
+	connections.ConnectionPool.ClientChannels.ForEach(func(userID uint, channelConnections *connections.ChannelConnections) bool {
+		channelConnections.List.Del(arr[1])
+		return true
+	})
 	w.WriteHeader(200)
 }
 func GetChannelMember(w http.ResponseWriter, r *http.Request) {

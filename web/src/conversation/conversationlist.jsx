@@ -26,7 +26,7 @@ export function ConversationList(props) {
             JoinChannelFromCode(e.target.value).then(
                 () => {
                     joinRef.current.close()
-                    RequestChannelList().then(() => {
+                    RequestChannelList(false).then(() => {
                         props.handler(false, true, false, false, false)
                     })
                 },

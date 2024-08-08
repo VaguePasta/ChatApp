@@ -56,7 +56,7 @@ export function Dashboard() {
             socket.onmessage = data => {
                 let message = parse(Decompress(data.data))
                 if (channelsMap[message.Channel.valueOf()] === undefined) {
-                    RequestChannelList().then(
+                    RequestChannelList(false).then(
                         () => {
                             onMessage(message).then()
                         }

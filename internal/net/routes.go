@@ -25,7 +25,7 @@ func SetupRoutes() *mux.Router {
 	router.HandleFunc("/auth/register", system.Register)
 	router.HandleFunc("/auth/password", ChangePassword)
 
-	router.HandleFunc("/channel/read", GetChannelList)
+	router.HandleFunc("/channel/read/{force}", GetChannelList)
 	router.HandleFunc("/channel/create", CreateChannel)
 	router.HandleFunc("/channel/delete", DeleteChannel)
 	router.HandleFunc("/channel/member/{channelID}", GetChannelMember)

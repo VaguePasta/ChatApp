@@ -48,7 +48,7 @@ export function CreateChat(props) {
         }
         CreateChannel(ChannelName.current.value, props.userList).then(
             () => {
-                RequestChannelList().then(
+                RequestChannelList(false).then(
                     () => props.handler(false, true, true, false, false)
                 )
                 props.closePopup()

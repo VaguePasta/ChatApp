@@ -21,9 +21,9 @@ export function SaveToChannelMap(key, pos, value) {
         channelsMap[key].splice(pos, 0, value)
     }
 }
-export async function RequestChannelList() {
+export async function RequestChannelList(force) {
     let log = new XMLHttpRequest()
-    log.open("GET",server + "channel/read",true)
+    log.open("GET",server + "channel/read/" + (force ? "force":("_"+ Math.random().toString(36).substring(7))),true)
     log.withCredentials = true;
     log.setRequestHeader('Authorization', User.token)
     channels = []

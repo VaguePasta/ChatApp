@@ -39,7 +39,7 @@ export function ChatInfo(props) {
             e.preventDefault()
             e.stopPropagation()
             if (await ChangeChannelName(CurrentChannel, e.target.value) === true) {
-                await RequestChannelList()
+                await RequestChannelList(false)
                 props.handler(true, true, false, false, false)
             }
             else {
