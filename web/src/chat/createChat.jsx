@@ -49,7 +49,7 @@ export function CreateChat(props) {
         CreateChannel(ChannelName.current.value, props.userList).then(
             () => {
                 RequestChannelList().then(
-                    () => props.handler(false, true, true, false)
+                    () => props.handler(false, true, true, false, false)
                 )
                 props.closePopup()
             },

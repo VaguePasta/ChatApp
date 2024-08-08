@@ -11,14 +11,14 @@ import {LogOut, socket, User} from "../api/auth";
 import {Decompress, GetMessage, SaveMessage} from "../api/message";
 import {channels, channelsMap, RequestChannelList, RequestChat} from "../api/channel";
 import {Reconnect} from "../notifications/notifications";
-export const CurrentChatContext = createContext({Current:0, Channels: [], Content: [], NewMessage: false})
+export const CurrentChatContext = createContext({Current:0, Channels: [], Content: [], NewMessage: false, LastMessage: false})
 const notification_sound = new Audio()
 notification_sound.src = new_message
 export function Dashboard() {
     const ref = useRef()
     const [, forceRender] = useState(false)
     let history = useNavigate()
-    const [channelHistory,update] = useState({Current: 0, Channels: [], Content: [], NewMessage: false})
+    const [channelHistory,update] = useState({Current: 0, Channels: [], Content: [], NewMessage: false, LastMessage: false})
     async function onMessage(message) {
         if (channelsMap[message.Channel.valueOf()] === null) {
             channelsMap[message.Channel.valueOf()] = []
@@ -32,6 +32,7 @@ export function Dashboard() {
         }
         SaveMessage(message)
         if (message.IsNew === true) {
+            delete message.IsNew
             updateList(channels.findIndex((channel) => channel.ChannelID.valueOf() === message.Channel.valueOf()))
             if (message.SenderID.valueOf() !== User.userid) {
                 document.title = "ChatApp (•)"
@@ -40,10 +41,14 @@ export function Dashboard() {
                 }, 2500))
             }
             if (message.Channel.valueOf() === CurrentChannel) {
-                handler(false, true, true, true)
-            } else handler(false, true, false, false)
+                handler(false, true, true, true, false)
+            } else handler(false, true, false, false, false)
         } else if (message.Channel.valueOf() === CurrentChannel) {
-            handler(false, true, true, false)
+            if (message.IsLast === true) {
+                delete message.IsLast
+                handler(false, true, true, false, true)
+            }
+            else handler(false, true, true, false, false)
         }
     }
     useEffect(() => {
@@ -72,12 +77,13 @@ export function Dashboard() {
         LogOut()
         history("/login", {replace: true})
     }
-    function handler(c_channel, l_channel, cnt_channel, load) {
+    function handler(c_channel, l_channel, cnt_channel, load, last) {
         update({
             Current: c_channel === true ? CurrentChannel : channelHistory.Current,
             Channels: l_channel === true ? [...channels] : channelHistory.Channels,
             Content: cnt_channel === true ? (channelsMap[CurrentChannel] !== null ? [...channelsMap[CurrentChannel]] : null) : channelHistory.Content,
             NewMessage: load,
+            LastMessage: last,
         })
     }
     if (User.token === "0") {

@@ -40,6 +40,12 @@ func GetChannelMessages(pool *connections.Pool, w http.ResponseWriter, r *http.R
 		if err != nil {
 			break
 		}
+		nextRow = rows.Next()
+		isLast := false
+		if !nextRow {
+			isLast = true
+			w.WriteHeader(200)
+		}
 		SendTo(&system.Message{
 			ID:         messageID,
 			ChannelID:  channelID,
@@ -48,19 +54,15 @@ func GetChannelMessages(pool *connections.Pool, w http.ResponseWriter, r *http.R
 			ReplyTo:    replyTo,
 			Type:       _type,
 			Content:    message,
-		}, client, false)
-		nextRow = rows.Next()
-		if !nextRow {
-			w.WriteHeader(200)
-		}
+		}, client, false, isLast)
 	}
 	w.WriteHeader(200)
 }
-func SendTo(message *system.Message, client *connections.Client, isNew bool) {
+func SendTo(message *system.Message, client *connections.Client, isNew bool, isLast bool) {
 	if message == nil {
 		return
 	}
-	jsonified := system.ToJSON(*message, isNew)
+	jsonified := system.ToJSON(*message, isNew, isLast)
 	if jsonified != nil {
 		client.ClientMutex.Lock()
 		defer client.ClientMutex.Unlock()

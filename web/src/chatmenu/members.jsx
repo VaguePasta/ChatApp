@@ -1,10 +1,11 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {CurrentChannel} from "../conversation/conversation";
 import "../chat/chatbox.scss"
 import {ErrorNotification} from "../notifications/notifications";
 import {ChangeUserPrivilege} from "../api/user";
 import {User} from "../api/auth";
-import {channels, RequestChatMember} from "../api/channel";
+import {channels, KickMember, RequestChatMember} from "../api/channel";
+import Popup from "reactjs-popup";
 export let ChatMember = {
     CurrentList: 0,
     UserList: [],
@@ -105,6 +106,8 @@ export function Members(props) {
     )
 }
 function Member(props) {
+    const userAction = useRef()
+    const [actionMenu, openActionMenu] = useState(false)
     function ChangePrivilege(e) {
         let newPrivilege = e.target.value
         ChangeUserPrivilege(props.user[0], CurrentChannel, newPrivilege).then((result) => {
@@ -116,6 +119,18 @@ function Member(props) {
                 ErrorNotification(props.user, "Cannot change user privilege. Please try again.")
             }
         })
+    }
+    function KickUser() {
+        userAction.current.close()
+        KickMember(props.user[0], CurrentChannel).then(
+            () => {
+                ChatMember.UserList.splice(ChatMember.UserList.findIndex(e => e[0] === props.user[0]), 1)
+                props.forceRender(render => !render)
+            },
+            () => {
+                ErrorNotification("Kick-error", "Some error occurred.")
+            }
+        )
     }
     return (
         <div style={{
@@ -135,13 +150,27 @@ function Member(props) {
                 alignContent: "center",
             }}>
                 <div style={{
+                    display: "flex",
+                    alignItems: "center"
+                }}><div style={{
+                    padding: "3px",
                     whiteSpace: "nowrap",
                     fontSize: "16px",
-                    margin: "0px 5px",
-                    padding: "2px 1px",
+                    margin: "0 0 0 5px",
                     overflow: "hidden",
-                    textOverflow: "ellipsis"
+                    textOverflow: "ellipsis",
                 }}>{props.user[1]}</div>
+                    {User.userid !== props.user[0].valueOf() && props.privilege === 'admin' && props.user[2] !== "admin" &&
+                        <Popup
+                            onOpen={() => openActionMenu(true)}
+                            onClose={() => openActionMenu(false)}
+                            position="bottom center" ref={userAction}
+                            trigger={<button className={"drop-down-button " + (actionMenu ? "drop-down-open":"drop-down-close")}/>}
+                            nested>
+                            <button onClick={KickUser} className="user-action">Kick</button>
+                        </Popup>
+                    }
+                </div>
                 <div style={{
                     fontSize: "12px",
                     margin: "0px 5px",

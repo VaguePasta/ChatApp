@@ -40,7 +40,7 @@ export function ChatInfo(props) {
             e.stopPropagation()
             if (await ChangeChannelName(CurrentChannel, e.target.value) === true) {
                 await RequestChannelList()
-                props.handler(true, true, false, false)
+                props.handler(true, true, false, false, false)
             }
             else {
                 ErrorNotification("no-privilege", "Admin privilege required.")
@@ -55,7 +55,7 @@ export function ChatInfo(props) {
         }
         RequestChat(CurrentChannel).then(
             () => {
-                props.handler(false, false, false, false)
+                props.handler(false, false, false, false, false)
             },
             () => {
                 ErrorNotification("fetch-message-error", "Cannot connect to server.")
@@ -75,7 +75,7 @@ export function ChatInfo(props) {
                     SetChannelList(channels.filter(e => e.ChannelID.valueOf() !== CurrentChannel))
                     RemoveFromMap(CurrentChannel)
                     SetChannel(0)
-                    props.handler(true, true, true, false)
+                    props.handler(true, true, true, false, false)
                 }
                 else {
                     ErrorNotification("no-privilege", "Admin privilege required.")
@@ -96,7 +96,7 @@ export function ChatInfo(props) {
                 SetChannelList(channels.filter(e => e.ChannelID.valueOf() !== CurrentChannel))
                 RemoveFromMap(CurrentChannel)
                 SetChannel(0)
-                props.handler(true, true, true, false)
+                props.handler(true, true, true, false, false)
             },
             () => {
                     ErrorNotification("leave-channel-error", "Something went wrong. Please try again.")

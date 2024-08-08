@@ -150,6 +150,6 @@ func SendToChannel(pool *connections.Pool, textMessage *system.Message) {
 			continue
 		}
 		_client, _ := pool.Clients.Get(token)
-		SendTo(textMessage, _client, true)
+		SendTo(textMessage, _client, true, false)
 	}
 }

@@ -31,28 +31,75 @@ func Compress(src []byte) []byte {
 	}
 	return buf.Bytes()
 }
-func ToJSON(message Message, _isNew bool) []byte {
-	jsonified, err := json.Marshal(struct {
-		IsNew      bool
-		ID         uint64
-		TimeStamp  string
-		Type       string
-		Text       string
-		ReplyTo    *uint64
-		SenderID   uint
-		SenderName string
-		Channel    uint
-	}{
-		IsNew:      _isNew,
-		ID:         message.ID,
-		SenderID:   message.SenderID,
-		SenderName: message.SenderName,
-		Channel:    message.ChannelID,
-		TimeStamp:  connections.Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
-		ReplyTo:    message.ReplyTo,
-		Type:       message.Type,
-		Text:       message.Content,
-	})
+func JsonStruct(message Message, _isNew bool, _isLast bool) interface{} {
+	if _isNew {
+		return struct {
+			IsNew      bool
+			ID         uint64
+			TimeStamp  string
+			Type       string
+			Text       string
+			ReplyTo    *uint64
+			SenderID   uint
+			SenderName string
+			Channel    uint
+		}{
+			ID:         message.ID,
+			SenderID:   message.SenderID,
+			SenderName: message.SenderName,
+			Channel:    message.ChannelID,
+			TimeStamp:  connections.Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
+			ReplyTo:    message.ReplyTo,
+			Type:       message.Type,
+			Text:       message.Content,
+			IsNew:      true,
+		}
+	} else if _isLast {
+		return struct {
+			IsLast     bool
+			ID         uint64
+			TimeStamp  string
+			Type       string
+			Text       string
+			ReplyTo    *uint64
+			SenderID   uint
+			SenderName string
+			Channel    uint
+		}{
+			ID:         message.ID,
+			SenderID:   message.SenderID,
+			SenderName: message.SenderName,
+			Channel:    message.ChannelID,
+			TimeStamp:  connections.Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
+			ReplyTo:    message.ReplyTo,
+			Type:       message.Type,
+			Text:       message.Content,
+			IsLast:     true,
+		}
+	} else {
+		return struct {
+			ID         uint64
+			TimeStamp  string
+			Type       string
+			Text       string
+			ReplyTo    *uint64
+			SenderID   uint
+			SenderName string
+			Channel    uint
+		}{
+			ID:         message.ID,
+			SenderID:   message.SenderID,
+			SenderName: message.SenderName,
+			Channel:    message.ChannelID,
+			TimeStamp:  connections.Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
+			ReplyTo:    message.ReplyTo,
+			Type:       message.Type,
+			Text:       message.Content,
+		}
+	}
+}
+func ToJSON(message Message, _isNew bool, _isLast bool) []byte {
+	jsonified, err := json.Marshal(JsonStruct(message, _isNew, _isLast))
 	if err != nil {
 		return nil
 	}

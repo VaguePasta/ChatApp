@@ -24,3 +24,39 @@
 .reload:hover {
   background-color: lightgray;
 }
+.drop-down-button {
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 3px;
+  background-color: white;
+  aspect-ratio: 1/1;
+  align-self: center;
+  flex-shrink: 0;
+}
+.drop-down-open {
+  animation: open-dropdown 0.5s;
+  transform: rotate(45deg);
+}
+@keyframes open-dropdown {
+  from {transform:  rotate(-45deg)}
+  to {transform:  rotate(45deg)}
+}
+.drop-down-close {
+  animation: close-dropdown 0.5s;
+  transform:  rotate(-45deg);
+}
+@keyframes close-dropdown {
+  from {transform: rotate(45deg)}
+  to {transform: rotate(-45deg)}
+}
+.user-action {
+  background-color: white;
+  border: 1px solid black;
+  color: red;
+  padding: 4px;
+}
+.user-action:hover {
+  background-color: red;
+  color: yellow
+}

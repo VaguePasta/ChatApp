@@ -28,20 +28,23 @@ export function ChatHistory(props) {
         if (channelsMap[CurrentChannel] === null) {
             channelsMap[CurrentChannel] = []
             RequestChat(CurrentChannel).then(
-                () => {
-                    props.handler(false, true, true, true)
-                    setTimeout(() => refs.current.scrollIntoView(), 500)
-                },
+                () => {},
                 () => {
                     ErrorNotification("fetch-message-error", "Cannot connect to server.")
                 }
             )
         }
+        else {
+            setTimeout(() => refs.current.scrollIntoView({behavior:"instant"}));
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [history.Current]);
     useEffect(() => {
         if (history.NewMessage) {
-            setTimeout(() => refs.current.scrollIntoView());
+            setTimeout(() => refs.current.scrollIntoView({behavior:"smooth"}),100);
+        }
+        if (history.LastMessage) {
+            setTimeout(() => refs.current.scrollIntoView({behavior:"instant"}),100);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [history.Content]);
@@ -64,7 +67,7 @@ export function ChatHistory(props) {
         RequestChat(CurrentChannel).then(
             () => {
                 onTop(false)
-                props.handler(false, false, true, false)
+                props.handler(false, false, true, false, false)
             },
             () => {
                 ErrorNotification("fetch-message-error", "Cannot connect to server.")
@@ -73,7 +76,7 @@ export function ChatHistory(props) {
     }
 
     function ScrollToBottom() {
-        setTimeout(() => refs.current.scrollIntoView());
+        setTimeout(() => refs.current.scrollIntoView({behavior: "smooth"}));
     }
     return (
         <div style={{

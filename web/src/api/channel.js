@@ -91,7 +91,7 @@ export async function DeleteChannel(channel) {
     log.open("POST", server + "channel/delete", true)
     log.withCredentials = true;
     log.setRequestHeader('Authorization', User.token)
-    return await makeRequest(log, stringify([String(User.userid), String(channel)])).then(
+    return await makeRequest(log, stringify([User.userid, channel])).then(
         () => {
             return true
         },
@@ -101,12 +101,12 @@ export async function DeleteChannel(channel) {
     )
 }
 
-export async function ChangeChannelName(_channel, _name) {
+export async function ChangeChannelName(Channel, Name) {
     let log = new XMLHttpRequest()
     log.open("POST", server + "channel/rename", true)
     log.withCredentials = true
     log.setRequestHeader('Authorization', User.token)
-    return await makeRequest(log, stringify([String(User.userid), String(_channel), _name])).then(
+    return await makeRequest(log, stringify({Channel, Name})).then(
         () => {
             return true
         },
@@ -120,14 +120,14 @@ export function LeaveChannel(_channel) {
     log.open("POST", server + "channel/leave", true)
     log.withCredentials = true
     log.setRequestHeader('Authorization', User.token)
-    return makeRequest(log, stringify(_channel))
+    return makeRequest(log, stringify([_channel]))
 }
 export function JoinChannelFromCode(code) {
     let log = new XMLHttpRequest()
     log.open("POST", server + "user/join", true)
     log.withCredentials = true
     log.setRequestHeader('Authorization', User.token)
-    return makeRequest(log, stringify([1, code]))
+    return makeRequest(log, stringify(code))
 }
 export function ChangeCode(command, channel) {
     let log = new XMLHttpRequest()
@@ -135,4 +135,11 @@ export function ChangeCode(command, channel) {
     log.withCredentials = true
     log.setRequestHeader('Authorization', User.token)
     return makeRequest(log, stringify([command, channel]))
+}
+export function KickMember(_user, _channel) {
+    let log = new XMLHttpRequest()
+    log.open("POST", server + "channel/leave", true)
+    log.withCredentials = true
+    log.setRequestHeader('Authorization', User.token)
+    return makeRequest(log, stringify([_user, _channel]))
 }

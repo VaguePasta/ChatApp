@@ -1,7 +1,7 @@
 import {makeRequest, server} from "./api";
 import {ResetMember} from "../chatmenu/members";
 import {SetChannel} from "../conversation/conversation";
-import {SetChannelList, SetChannelMap} from "./channel";
+import {channelsMap, SetChannelList, SetChannelMap} from "./channel";
 
 export let User = {token: "0", userid: "0", username: "", password:"", joinDate: null}
 export let socket;
@@ -16,11 +16,12 @@ export async function LogIn(_username, _password) {
                 User.userid = parseInt(response[0])
                 User.token = response[1]
                 User.password = _password
+                channelsMap[0] = null
                 resolve()
             },
-            (err) => {
+            () => {
                 User.token = "0"
-                reject(err)
+                reject()
             }
         )
     })

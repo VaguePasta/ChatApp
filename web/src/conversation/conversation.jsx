@@ -10,7 +10,7 @@ export function Conversation(props) {
     function ChooseChannel() {
         CurrentChannel = props.ChannelID
         ResetMember()
-        props.handler(true, false, true, true)
+        props.handler(true, false, true, false, false)
     }
     return (
         CurrentChannel === props.ChannelID ?

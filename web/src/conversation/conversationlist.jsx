@@ -27,7 +27,7 @@ export function ConversationList(props) {
                 () => {
                     joinRef.current.close()
                     RequestChannelList().then(() => {
-                        props.handler(false, true, false, false)
+                        props.handler(false, true, false, false, false)
                     })
                 },
                 () => {
@@ -44,7 +44,7 @@ export function ConversationList(props) {
                        borderWidth: "1px 0 0 0",
                        borderStyle: "solid",
                        position: "sticky"
-                   }}>New Channel...</button>}
+                   }}>New Channel</button>}
                    ref={ref}
                    onClose={() => changeUserList([])}
                    modal nested>
@@ -58,7 +58,7 @@ export function ConversationList(props) {
                 borderWidth: "1px 0",
                 borderStyle: "solid",
                 position: "sticky"
-            }}>Join Channel...
+            }}>Join Channel
             </button>}>
                    <input onKeyDown={joinInputKeyHandler}
                        style={{

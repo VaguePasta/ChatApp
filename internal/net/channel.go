@@ -120,20 +120,20 @@ func DeleteChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	var arr []string
+	var arr []uint
 	err = json.Unmarshal(body, &arr)
 	if err != nil {
 		w.WriteHeader(400)
 		return
 	}
-	var privilege string
-	err = connections.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", arr[0], arr[1]).Scan(&privilege)
-	if err != nil {
-		w.WriteHeader(404)
+	sender, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	if !ok {
+		w.WriteHeader(401)
 		return
 	}
-	if privilege != "admin" {
-		w.WriteHeader(401)
+	privilege, ok := sender.Channels.List.Get(arr[1])
+	if !ok || privilege != 0 {
+		w.WriteHeader(403)
 		return
 	}
 	_, err = connections.DatabaseConn.Exec(context.Background(), "delete from channels where channel_id = $1", arr[1])
@@ -191,23 +191,26 @@ func ChangeChannelName(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	var arr []string
+	arr := struct {
+		Channel uint   `json:"Channel"`
+		Name    string `json:"Name"`
+	}{}
 	err = json.Unmarshal(body, &arr)
 	if err != nil {
 		w.WriteHeader(400)
 		return
 	}
-	var privilege string
-	err = connections.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", arr[0], arr[1]).Scan(&privilege)
-	if err != nil {
-		w.WriteHeader(404)
-		return
-	}
-	if privilege != "admin" {
+	sender, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	if !ok {
 		w.WriteHeader(401)
 		return
 	}
-	_, err = connections.DatabaseConn.Exec(context.Background(), "update channels set title = $1 where channel_id = $2", arr[2], arr[1])
+	privilege, ok := sender.Channels.List.Get(arr.Channel)
+	if !ok || privilege != 0 {
+		w.WriteHeader(403)
+		return
+	}
+	_, err = connections.DatabaseConn.Exec(context.Background(), "update channels set title = $1 where channel_id = $2", arr.Name, arr.Channel)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(500)
@@ -230,25 +233,71 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	var channel uint
-	err = json.Unmarshal(body, &channel)
+	var infos []uint
+	err = json.Unmarshal(body, &infos)
 	if err != nil {
 		w.WriteHeader(400)
 		return
 	}
-	currentPrivilege, ok := user.Channels.List.Get(channel)
-	if currentPrivilege == 0 {
-		w.WriteHeader(403)
+	if len(infos) == 1 {
+		currentPrivilege, _ := user.Channels.List.Get(infos[0])
+		if currentPrivilege == 0 {
+			w.WriteHeader(403)
+			return
+		} else {
+			_, err := connections.DatabaseConn.Exec(context.Background(), "delete from participants where user_id = $1 and channel_id = $2", user.ID, infos[0])
+			if err != nil {
+				w.WriteHeader(500)
+				return
+			}
+			user.Channels.List.Del(infos[0])
+		}
+		w.WriteHeader(200)
 		return
-	} else {
-		_, err := connections.DatabaseConn.Exec(context.Background(), "delete from participants where user_id = $1 and channel_id = $2", user.ID, channel)
-		if err != nil {
-			w.WriteHeader(500)
+	} else if len(infos) == 2 { //[UserID, ChannelID]
+		senderPrivilege, _ := user.Channels.List.Get(infos[1])
+		if senderPrivilege != 0 && senderPrivilege != 1 {
+			w.WriteHeader(403)
 			return
 		}
-		user.Channels.List.Del(channel)
+		receiver, ok := connections.ConnectionPool.ClientChannels.Get(infos[0])
+		if ok {
+			receiverPrivilege, _ := receiver.List.Get(infos[1])
+			if receiverPrivilege == 0 {
+				w.WriteHeader(403)
+				return
+			}
+			_, err = connections.DatabaseConn.Exec(context.Background(), "delete from participants where user_id = $1 and channel_id = $2", infos[0], infos[1])
+			if err != nil {
+				w.WriteHeader(500)
+				return
+			}
+			receiver.List.Del(infos[1])
+			w.WriteHeader(200)
+		} else {
+			var receiverPrivilege string
+			err := connections.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", infos[0], infos[1]).Scan(&receiverPrivilege)
+			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					w.WriteHeader(404)
+					return
+				} else {
+					w.WriteHeader(500)
+					return
+				}
+			}
+			if receiverPrivilege == "admin" {
+				w.WriteHeader(403)
+				return
+			}
+			_, err = connections.DatabaseConn.Exec(context.Background(), "delete from participants where user_id = $1 and channel_id = $2", infos[0], infos[1])
+			if err != nil {
+				w.WriteHeader(500)
+				return
+			}
+			w.WriteHeader(200)
+		}
 	}
-	w.WriteHeader(200)
 }
 func JoinChannel(w http.ResponseWriter, r *http.Request) {
 	if !Authorize(w, r) {
@@ -265,69 +314,25 @@ func JoinChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	var joinRequest [2]json.RawMessage
-	err = json.Unmarshal(body, &joinRequest)
+	var inviteCode string
+	err = json.Unmarshal(body, &inviteCode)
 	if err != nil {
 		w.WriteHeader(400)
 		return
 	}
-	var requestType uint8
-	err = json.Unmarshal(joinRequest[0], &requestType)
+	var channel uint
+	err = connections.DatabaseConn.QueryRow(context.Background(), "insert into participants values($1, (select channel_id from invite_code where code = $2), 'member') on conflict do nothing returning channel_id", sender.ID, inviteCode).Scan(&channel)
 	if err != nil {
-		w.WriteHeader(400)
-		return
-	}
-	if requestType == 0 { //[receiverID, channel, privilege]
-		var inviteInfo []interface{}
-		err = json.Unmarshal(joinRequest[1], &inviteInfo)
-		if err != nil {
-			w.WriteHeader(400)
+		if errors.Is(err, pgx.ErrNoRows) {
+			w.WriteHeader(409)
 			return
-		}
-		userID, i := inviteInfo[1].(uint)
-		if !i {
-			w.WriteHeader(400)
-			return
-		}
-		senderPrivilege, _ := sender.Channels.List.Get(userID)
-		if senderPrivilege != 0 && senderPrivilege != 1 {
+		} else {
 			w.WriteHeader(403)
 			return
 		}
-		cmdTag, err := connections.DatabaseConn.Exec(context.Background(), "insert into participants values($1, $2, $3) on conflict do nothing", inviteInfo[0], inviteInfo[1], inviteInfo[2])
-		if err != nil {
-			w.WriteHeader(500)
-			return
-		}
-		if cmdTag.RowsAffected() == 0 {
-			w.WriteHeader(409)
-			return
-		}
-	} else if requestType == 1 {
-		var inviteCode string
-		err := json.Unmarshal(joinRequest[1], &inviteCode)
-		if err != nil {
-			w.WriteHeader(400)
-			return
-		}
-		var channel uint
-		err = connections.DatabaseConn.QueryRow(context.Background(), "insert into participants values($1, (select channel_id from invite_code where code = $2), 'member') on conflict do nothing returning channel_id", sender.ID, inviteCode).Scan(&channel)
-		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				w.WriteHeader(409)
-				return
-			} else {
-				w.WriteHeader(403)
-				return
-			}
-		}
-		sender.Channels.List.Set(channel, 2)
-		w.WriteHeader(200)
-		return
-	} else {
-		w.WriteHeader(400)
-		return
 	}
+	sender.Channels.List.Set(channel, 2)
+	w.WriteHeader(200)
 }
 func ChannelCode(w http.ResponseWriter, r *http.Request) {
 	if !Authorize(w, r) {
