@@ -5,21 +5,18 @@ import {Reply} from "./reply";
 import {DeleteMessage, removeMessage} from "../api/message";
 import {User} from "../api/auth";
 import {TimeStamp} from "./timestamp";
-
+import Popup from "reactjs-popup";
 export function Message(props) {
-    const deleteButton = useRef(null)
-    const replyButton = useRef(null)
+    const ButtonGroup = useRef(null)
     const [isDeleted, deleteMessage] = useState(false)
     const message = useRef()
-
-    function showOptions(isSelf) {
-        if (isSelf) deleteButton.current.style.visibility = 'visible'
-        replyButton.current.style.visibility = 'visible'
+    const deletePopup = useRef()
+    function showOptions() {
+        ButtonGroup.current.style.visibility = 'visible'
     }
 
-    function hideOptions(isSelf) {
-        if (isSelf) deleteButton.current.style.visibility = 'hidden'
-        replyButton.current.style.visibility = 'hidden'
+    function hideOptions() {
+        ButtonGroup.current.style.visibility = 'hidden'
     }
 
     async function Delete() {
@@ -35,7 +32,6 @@ export function Message(props) {
     async function ReplyMessage() {
         props.reply(props.message.ID.valueOf())
     }
-
     const [seeingTimeStamp, seeTimeStamp] = useState(false)
     let timeStampTimeout = null
     if (isDeleted && props.message.SenderID.valueOf() === User.userid) {
@@ -78,8 +74,28 @@ export function Message(props) {
                     {props.message.ReplyTo !== null &&
                         <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo.valueOf()}/>}
                     <div style={{display: "flex", alignItems: "center", zIndex: "2"}}>
-                        <button ref={deleteButton} onClick={Delete} className="Button DeleteButton"/>
-                        <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
+                        <div style={{display: "flex", visibility: "hidden"}} ref={ButtonGroup}>
+                            <Popup className="confirm-popup" ref={deletePopup}
+                                   trigger={<button className="Button DeleteButton"/>}
+                                   modal nested>
+                                <div style={{display: "flex", flexDirection: "column", alignItems: "center", padding: "15px 5px"}}>
+                                        <div style={{fontFamily: "\"Open Sans\", sans-serif",
+                                            fontOpticalSizing: "auto",
+                                            fontWeight: "500",
+                                            fontStyle: "normal",
+                                            fontSize: "15px",
+                                            fontVariationSettings: "\"wdth\" 100",
+                                            paddingBottom: "10px"
+                                        }}>Are you sure you want to delete this message? This action cannot be undone.
+                                    </div>
+                                    <div style={{width: "100%", display: "flex"}}>
+                                        <button className="Confirm-Delete" onClick={Delete}>Yes</button>
+                                        <button onClick={() => deletePopup.current.close()} className="Reject-Delete">No</button>
+                                    </div>
+                                    </div>
+                            </Popup>
+                            <button onClick={ReplyMessage} className="Button ReplyButton"/>
+                        </div>
                         <div onMouseLeave={() => {
                             clearTimeout(timeStampTimeout)
                             timeStampTimeout = null
@@ -122,8 +138,28 @@ export function Message(props) {
                     {props.message.ReplyTo !== null &&
                         <Reply margin={"0 0 -5px auto"} ID={props.message.ReplyTo.valueOf()}/>}
                     <div style={{display: "flex", alignItems: "center", zIndex: "2", marginLeft: "auto"}}>
-                        <button ref={deleteButton} onClick={Delete} className="Button DeleteButton"/>
-                        <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
+                        <div style={{display: "flex", visibility: "hidden"}} ref={ButtonGroup}>
+                            <Popup className="confirm-popup" ref={deletePopup}
+                                   trigger={<button className="Button DeleteButton"/>}
+                                   modal nested>
+                                <div style={{display: "flex", flexDirection: "column", alignItems: "center", padding: "15px 5px"}}>
+                                    <div style={{fontFamily: "\"Open Sans\", sans-serif",
+                                        fontOpticalSizing: "auto",
+                                        fontWeight: "500",
+                                        fontStyle: "normal",
+                                        fontSize: "15px",
+                                        fontVariationSettings: "\"wdth\" 100",
+                                        paddingBottom: "10px"
+                                    }}>Are you sure you want to delete this message? This action cannot be undone.
+                                    </div>
+                                    <div style={{width: "100%", display: "flex"}}>
+                                        <button className="Confirm-Delete" onClick={Delete}>Yes</button>
+                                        <button onClick={() => deletePopup.current.close()} className="Reject-Delete">No</button>
+                                    </div>
+                                </div>
+                            </Popup>
+                            <button onClick={ReplyMessage} className="Button ReplyButton"/>
+                        </div>
                         <div onMouseLeave={() => {
                             clearTimeout(timeStampTimeout)
                             timeStampTimeout = null
@@ -174,9 +210,28 @@ export function Message(props) {
                                                                           offSet={message.current.getBoundingClientRect()}
                                                                           plusHeight={message.current.clientHeight}
                                                                           isRight={true}/>}
-                        <button style={{marginLeft: "auto"}} ref={deleteButton} onClick={Delete}
-                                className="Button DeleteButton"/>
-                        <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
+                        <div style={{display: "flex", visibility: "hidden"}} ref={ButtonGroup}>
+                            <Popup className="confirm-popup" ref={deletePopup}
+                                   trigger={<button className="Button DeleteButton"/>}
+                                   modal nested>
+                                <div style={{display: "flex", flexDirection: "column", alignItems: "center", padding: "15px 5px"}}>
+                                    <div style={{fontFamily: "\"Open Sans\", sans-serif",
+                                        fontOpticalSizing: "auto",
+                                        fontWeight: "500",
+                                        fontStyle: "normal",
+                                        fontSize: "15px",
+                                        fontVariationSettings: "\"wdth\" 100",
+                                        paddingBottom: "10px"
+                                    }}>Are you sure you want to delete this message? This action cannot be undone.
+                                    </div>
+                                    <div style={{width: "100%", display: "flex"}}>
+                                        <button className="Confirm-Delete" onClick={Delete}>Yes</button>
+                                        <button onClick={() => deletePopup.current.close()} className="Reject-Delete">No</button>
+                                    </div>
+                                </div>
+                            </Popup>
+                            <button onClick={ReplyMessage} className="Button ReplyButton"/>
+                        </div>
                         <iframe
                             src={src} style={{
                             aspectRatio: "16/9",
@@ -237,7 +292,9 @@ export function Message(props) {
                                                                               plusHeight={message.current.clientHeight}
                                                                               isRight={false}/>}
                         </div>
-                        <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
+                        <div style={{display: "flex", visibility: "hidden"}} ref={ButtonGroup}>
+                            <button onClick={ReplyMessage} className="Button ReplyButton"/>
+                        </div>
                     </div>
                 </div>
             )
@@ -277,7 +334,9 @@ export function Message(props) {
                                                                               plusHeight={message.current.clientHeight}
                                                                               isRight={false}/>}
                         </div>
-                        <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
+                        <div style={{display: "flex", visibility: "hidden"}} ref={ButtonGroup}>
+                            <button onClick={ReplyMessage} className="Button ReplyButton"/>
+                        </div>
                     </div>
                 </div>
             )
@@ -325,14 +384,16 @@ export function Message(props) {
                                 title="YouTube video player"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                 referrerPolicy="strict-origin-when-cross-origin" allowFullScreen/>
-                        <button ref={replyButton} onClick={ReplyMessage} className="Button ReplyButton"/>
-                        {message.current && seeingTimeStamp && <TimeStamp timeStamp={props.message.TimeStamp}
-                                                                          offSet={message.current.getBoundingClientRect()}
-                                                                          plusHeight={message.current.clientHeight}
-                                                                          isRight={false}/>}
+                        <div style={{display: "flex", visibility: "hidden"}} ref={ButtonGroup}>
+                            <button onClick={ReplyMessage} className="Button ReplyButton"/>
+                        </div>
+                            {message.current && seeingTimeStamp && <TimeStamp timeStamp={props.message.TimeStamp}
+                                                                              offSet={message.current.getBoundingClientRect()}
+                                                                              plusHeight={message.current.clientHeight}
+                                                                              isRight={false}/>}
+                        </div>
                     </div>
-                </div>
-            )
-        }
-    }
-}
+                    )
+                    }
+                    }
+                    }

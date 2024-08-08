@@ -28,7 +28,7 @@ export function RegisterPrompt() {
         if (e.key === 'Enter' && FirstPassword.current.value !== '') {
             SecondPassword.current.focus()
         }
-        else if (e.key === "CapsLock") CheckCaps(e)
+        CheckCaps(e)
     }
 
     async function SecondPasswordHandler(e) {
@@ -45,7 +45,7 @@ export function RegisterPrompt() {
                 sub(true)
             }
         }
-        else if (e.key === "CapsLock") CheckCaps(e)
+        CheckCaps(e)
     }
     async function RegisterClick() {
         if (Username.current.value !=='' && FirstPassword.current.value!=='' &&SecondPassword.current.value !== '' && !passwordMismatch) {

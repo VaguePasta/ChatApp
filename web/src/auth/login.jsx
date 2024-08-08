@@ -21,7 +21,6 @@ export function LogInPrompt() {
     function UsernameHandler(e) {
         if (e.key === 'Enter') {
             Password.current.focus()
-            CheckCaps(e)
         }
     }
     function PasswordHandler(e) {
@@ -31,7 +30,7 @@ export function LogInPrompt() {
             signingIn(true)
             LogIn(_username,_password).then(() => Proceed(_username),() => Proceed(_username))
         }
-        else if (e.key === "CapsLock") CheckCaps(e)
+        CheckCaps(e)
     }
     function Proceed(username) {
         if (User.token !== "0") {

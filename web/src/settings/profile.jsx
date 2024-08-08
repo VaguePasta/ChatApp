@@ -26,7 +26,7 @@ export function Profile() {
         socket.onmessage = data => {
             let message = parse(Decompress(data.data))
             if (channelsMap[message.Channel.valueOf()] === undefined) {
-                RequestChannelList(false).then(
+                RequestChannelList(true).then(
                     () => {
                         SaveMessage(message)
                     }

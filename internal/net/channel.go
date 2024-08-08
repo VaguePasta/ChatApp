@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
 	"io"
@@ -34,7 +33,6 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	force := mux.Vars(r)["force"]
-	fmt.Println("Force: " + force)
 	var channelIDs []Channel
 	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channels.channel_id, title, privilege, code from channels inner join participants on channels.channel_id = participants.channel_id left join invite_code on channels.channel_id = invite_code.channel_id where user_id = $1 order by last_message desc", user.ID)
 	var channelID uint
