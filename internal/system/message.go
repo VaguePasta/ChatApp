@@ -1,7 +1,6 @@
 package system
 
 import (
-	"ChatApp/internal/connections"
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
@@ -48,7 +47,7 @@ func JsonStruct(message Message, _isNew bool, _isLast bool) interface{} {
 			SenderID:   message.SenderID,
 			SenderName: message.SenderName,
 			Channel:    message.ChannelID,
-			TimeStamp:  connections.Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
+			TimeStamp:  Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
 			ReplyTo:    message.ReplyTo,
 			Type:       message.Type,
 			Text:       message.Content,
@@ -70,7 +69,7 @@ func JsonStruct(message Message, _isNew bool, _isLast bool) interface{} {
 			SenderID:   message.SenderID,
 			SenderName: message.SenderName,
 			Channel:    message.ChannelID,
-			TimeStamp:  connections.Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
+			TimeStamp:  Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
 			ReplyTo:    message.ReplyTo,
 			Type:       message.Type,
 			Text:       message.Content,
@@ -91,7 +90,7 @@ func JsonStruct(message Message, _isNew bool, _isLast bool) interface{} {
 			SenderID:   message.SenderID,
 			SenderName: message.SenderName,
 			Channel:    message.ChannelID,
-			TimeStamp:  connections.Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
+			TimeStamp:  Setting.StartTime.Add(sonyflake.ElapsedTime(message.ID)).Format("02/01/2006 15:04:05"),
 			ReplyTo:    message.ReplyTo,
 			Type:       message.Type,
 			Text:       message.Content,

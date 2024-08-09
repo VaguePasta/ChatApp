@@ -1,7 +1,7 @@
-package net
+package requests
 
 import (
-	"ChatApp/internal/connections"
+	"ChatApp/internal/system"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -27,14 +27,14 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
-	user, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	user, ok := system.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
 	if !ok {
 		w.WriteHeader(404)
 		return
 	}
 	force := mux.Vars(r)["force"]
 	var channelIDs []Channel
-	channels, _ := connections.DatabaseConn.Query(context.Background(), "select channels.channel_id, title, privilege, code from channels inner join participants on channels.channel_id = participants.channel_id left join invite_code on channels.channel_id = invite_code.channel_id where user_id = $1 order by last_message desc", user.ID)
+	channels, _ := system.DatabaseConn.Query(context.Background(), "select channels.channel_id, title, privilege, code from channels inner join participants on channels.channel_id = participants.channel_id left join invite_code on channels.channel_id = invite_code.channel_id where user_id = $1 order by last_message desc", user.ID)
 	var channelID uint
 	var title string
 	var privilege string
@@ -42,7 +42,7 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 	_, err := pgx.ForEachRow(channels, []any{&channelID, &title, &privilege, &inviteCode}, func() error {
 		channelIDs = append(channelIDs, Channel{ChannelID: channelID, Title: title, Privilege: privilege, Code: inviteCode})
 		if force == "force" {
-			user.Channels.List.Set(channelID, connections.SaveClientsChannelPrivilege(privilege))
+			user.Channels.List.Set(channelID, system.SaveClientsChannelPrivilege(privilege))
 		}
 		return nil
 	})
@@ -62,7 +62,7 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
-	sender, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	sender, ok := system.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
 	if !ok {
 		w.WriteHeader(401)
 		return
@@ -74,7 +74,7 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	createTime, _ := connections.IdGenerator.NextID()
+	createTime, _ := system.IdGenerator.NextID()
 	var channelId uint
 	var channelName string
 	err = json.Unmarshal(arr[0], &channelName)
@@ -82,7 +82,7 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	err = connections.DatabaseConn.QueryRow(context.Background(), "insert into channels (title, create_date, last_message) values ($1, (select current_date), $2) returning channel_id", channelName, createTime).Scan(&channelId)
+	err = system.DatabaseConn.QueryRow(context.Background(), "insert into channels (title, create_date, last_message) values ($1, (select current_date), $2) returning channel_id", channelName, createTime).Scan(&channelId)
 	if err != nil {
 		w.WriteHeader(500)
 		return
@@ -102,7 +102,7 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 			user[1],
 		})
 	}
-	_, err = connections.DatabaseConn.CopyFrom(context.Background(), pgx.Identifier{"participants"}, []string{"user_id", "channel_id", "privilege"}, pgx.CopyFromRows(users))
+	_, err = system.DatabaseConn.CopyFrom(context.Background(), pgx.Identifier{"participants"}, []string{"user_id", "channel_id", "privilege"}, pgx.CopyFromRows(users))
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(500)
@@ -127,7 +127,7 @@ func DeleteChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	sender, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	sender, ok := system.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
 	if !ok {
 		w.WriteHeader(401)
 		return
@@ -137,13 +137,13 @@ func DeleteChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(403)
 		return
 	}
-	_, err = connections.DatabaseConn.Exec(context.Background(), "delete from channels where channel_id = $1", arr[1])
+	_, err = system.DatabaseConn.Exec(context.Background(), "delete from channels where channel_id = $1", arr[1])
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(500)
 		return
 	}
-	connections.ConnectionPool.ClientChannels.ForEach(func(userID uint, channelConnections *connections.ChannelConnections) bool {
+	system.ConnectionPool.ClientChannels.ForEach(func(userID uint, channelConnections *system.ChannelConnections) bool {
 		channelConnections.List.Del(arr[1])
 		return true
 	})
@@ -155,14 +155,14 @@ func GetChannelMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	channel, _ := strconv.ParseUint(mux.Vars(r)["channelID"], 10, 32)
-	user, _ := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	user, _ := system.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
 	_, ok := user.Channels.List.Get(uint(channel))
 	if !ok {
 		w.WriteHeader(403)
 		return
 	}
 	var members []interface{}
-	rows, _ := connections.DatabaseConn.Query(context.Background(), "select users.user_id, username, privilege from participants inner join users on participants.user_id = users.user_id where channel_id = $1 order by privilege, username", channel)
+	rows, _ := system.DatabaseConn.Query(context.Background(), "select users.user_id, username, privilege from participants inner join users on participants.user_id = users.user_id where channel_id = $1 order by privilege, username", channel)
 	for rows.Next() {
 		var userId int
 		var user [2]string
@@ -205,7 +205,7 @@ func ChangeChannelName(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	sender, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	sender, ok := system.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
 	if !ok {
 		w.WriteHeader(401)
 		return
@@ -215,7 +215,7 @@ func ChangeChannelName(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(403)
 		return
 	}
-	_, err = connections.DatabaseConn.Exec(context.Background(), "update channels set title = $1 where channel_id = $2", arr.Name, arr.Channel)
+	_, err = system.DatabaseConn.Exec(context.Background(), "update channels set title = $1 where channel_id = $2", arr.Name, arr.Channel)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(500)
@@ -228,7 +228,7 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
-	user, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	user, ok := system.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
 	if !ok {
 		w.WriteHeader(401)
 		return
@@ -250,7 +250,7 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(403)
 			return
 		} else {
-			_, err := connections.DatabaseConn.Exec(context.Background(), "delete from participants where user_id = $1 and channel_id = $2", user.ID, infos[0])
+			_, err := system.DatabaseConn.Exec(context.Background(), "delete from participants where user_id = $1 and channel_id = $2", user.ID, infos[0])
 			if err != nil {
 				w.WriteHeader(500)
 				return
@@ -265,14 +265,14 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(403)
 			return
 		}
-		receiver, ok := connections.ConnectionPool.ClientChannels.Get(infos[0])
+		receiver, ok := system.ConnectionPool.ClientChannels.Get(infos[0])
 		if ok {
 			receiverPrivilege, _ := receiver.List.Get(infos[1])
 			if receiverPrivilege == 0 {
 				w.WriteHeader(403)
 				return
 			}
-			_, err = connections.DatabaseConn.Exec(context.Background(), "delete from participants where user_id = $1 and channel_id = $2", infos[0], infos[1])
+			_, err = system.DatabaseConn.Exec(context.Background(), "delete from participants where user_id = $1 and channel_id = $2", infos[0], infos[1])
 			if err != nil {
 				w.WriteHeader(500)
 				return
@@ -281,7 +281,7 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
 		} else {
 			var receiverPrivilege string
-			err := connections.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", infos[0], infos[1]).Scan(&receiverPrivilege)
+			err := system.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", infos[0], infos[1]).Scan(&receiverPrivilege)
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					w.WriteHeader(404)
@@ -295,7 +295,7 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(403)
 				return
 			}
-			_, err = connections.DatabaseConn.Exec(context.Background(), "delete from participants where user_id = $1 and channel_id = $2", infos[0], infos[1])
+			_, err = system.DatabaseConn.Exec(context.Background(), "delete from participants where user_id = $1 and channel_id = $2", infos[0], infos[1])
 			if err != nil {
 				w.WriteHeader(500)
 				return
@@ -309,7 +309,7 @@ func JoinChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
-	sender, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	sender, ok := system.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
 	if !ok {
 		w.WriteHeader(401)
 		return
@@ -326,7 +326,7 @@ func JoinChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var channel uint
-	err = connections.DatabaseConn.QueryRow(context.Background(), "insert into participants values($1, (select channel_id from invite_code where code = $2), 'member') on conflict do nothing returning channel_id", sender.ID, inviteCode).Scan(&channel)
+	err = system.DatabaseConn.QueryRow(context.Background(), "insert into participants values($1, (select channel_id from invite_code where code = $2), 'member') on conflict do nothing returning channel_id", sender.ID, inviteCode).Scan(&channel)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			w.WriteHeader(409)
@@ -355,7 +355,7 @@ func ChannelCode(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	user, ok := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	user, ok := system.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
 	if !ok {
 		w.WriteHeader(401)
 		return
@@ -373,7 +373,7 @@ func ChannelCode(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		code := hex.EncodeToString(randomBytes)
-		_, err := connections.DatabaseConn.Exec(context.Background(), "insert into invite_code values($1, $2) on conflict (channel_id) do update set code = excluded.code", bodyInfo[1], code)
+		_, err := system.DatabaseConn.Exec(context.Background(), "insert into invite_code values($1, $2) on conflict (channel_id) do update set code = excluded.code", bodyInfo[1], code)
 		if err != nil {
 			w.WriteHeader(500)
 			return
@@ -385,7 +385,7 @@ func ChannelCode(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	} else if bodyInfo[1] == 1 {
-		_, err := connections.DatabaseConn.Exec(context.Background(), "delete from invite_code where channel_id = $1", bodyInfo[1])
+		_, err := system.DatabaseConn.Exec(context.Background(), "delete from invite_code where channel_id = $1", bodyInfo[1])
 		if err != nil {
 			w.WriteHeader(500)
 			return

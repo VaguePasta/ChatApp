@@ -1,7 +1,7 @@
-package system
+package requests
 
 import (
-	"ChatApp/internal/connections"
+	"ChatApp/internal/system"
 	"context"
 	"log"
 	"net/http"
@@ -17,7 +17,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	credentials := connections.CheckCredentials(r.Form["username"][0], r.Form["password"][0])
+	credentials := CheckCredentials(r.Form["username"][0], r.Form["password"][0])
 	if credentials == "" {
 		w.WriteHeader(401)
 	} else {
@@ -31,9 +31,9 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 }
 func waitToRemove(token string) {
 	time.Sleep(10 * time.Second)
-	_, exists := connections.ConnectionPool.Clients.Get(token)
+	_, exists := system.ConnectionPool.Clients.Get(token)
 	if !exists {
-		_, err := connections.DatabaseConn.Exec(context.Background(), "delete from sessions where session_key = $1", token)
+		_, err := system.DatabaseConn.Exec(context.Background(), "delete from sessions where session_key = $1", token)
 		if err != nil {
 			log.Println(err)
 			return

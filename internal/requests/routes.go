@@ -1,7 +1,6 @@
-package net
+package requests
 
 import (
-	"ChatApp/internal/connections"
 	"ChatApp/internal/system"
 	"github.com/gorilla/mux"
 	"github.com/sony/sonyflake"
@@ -10,19 +9,19 @@ import (
 )
 
 func SetupRoutes() *mux.Router {
-	connections.Setting = sonyflake.Settings{
+	system.Setting = sonyflake.Settings{
 		StartTime:      time.Date(2024, time.May, 22, 0, 0, 0, 0, time.UTC).Local(),
 		MachineID:      nil,
 		CheckMachineID: nil,
 	}
-	IdGenerator, err := sonyflake.New(connections.Setting)
+	IdGenerator, err := sonyflake.New(system.Setting)
 	if err != nil {
 		return nil
 	}
-	connections.IdGenerator = IdGenerator
+	system.IdGenerator = IdGenerator
 	router := mux.NewRouter()
-	router.HandleFunc("/auth/login", system.LogIn)
-	router.HandleFunc("/auth/register", system.Register)
+	router.HandleFunc("/auth/login", LogIn)
+	router.HandleFunc("/auth/register", Register)
 	router.HandleFunc("/auth/password", ChangePassword)
 
 	router.HandleFunc("/channel/read/{force}", GetChannelList)
@@ -39,16 +38,16 @@ func SetupRoutes() *mux.Router {
 	router.HandleFunc("/user/join", JoinChannel)
 
 	router.HandleFunc("/message/read/{channelID}/{lastMessage}", func(w http.ResponseWriter, r *http.Request) {
-		GetChannelMessages(connections.ConnectionPool, w, r)
+		GetChannelMessages(system.ConnectionPool, w, r)
 	})
 	router.HandleFunc("/message/delete", func(w http.ResponseWriter, r *http.Request) {
-		DeleteMessage(connections.ConnectionPool, w, r)
+		DeleteMessage(system.ConnectionPool, w, r)
 	})
 	router.HandleFunc("/message/get", func(w http.ResponseWriter, r *http.Request) {
-		GetMessage(connections.ConnectionPool, w, r)
+		GetMessage(system.ConnectionPool, w, r)
 	})
 	router.HandleFunc("/ws/{token}", func(w http.ResponseWriter, r *http.Request) {
-		ServeWs(connections.ConnectionPool, w, r)
+		ServeWs(system.ConnectionPool, w, r)
 	})
 
 	return router

@@ -1,7 +1,6 @@
-package net
+package requests
 
 import (
-	"ChatApp/internal/connections"
 	"ChatApp/internal/system"
 	"context"
 	"encoding/base64"
@@ -15,7 +14,7 @@ import (
 	"strconv"
 )
 
-func GetChannelMessages(pool *connections.Pool, w http.ResponseWriter, r *http.Request) {
+func GetChannelMessages(pool *system.Pool, w http.ResponseWriter, r *http.Request) {
 	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
@@ -26,7 +25,7 @@ func GetChannelMessages(pool *connections.Pool, w http.ResponseWriter, r *http.R
 		lastMessage = math.MaxInt64
 	}
 	client, _ := pool.Clients.Get(r.Header.Get("Authorization"))
-	rows, _ := connections.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message, type, reply_to, username from (messages inner join users on messages.sender_id = users.user_id) left join replies on messages.message_id = replies.reply where channel_id = $1 and message_id < $2 and deleted = false order by message_id desc limit 16", channel, lastMessage)
+	rows, _ := system.DatabaseConn.Query(context.Background(), "select message_id, channel_id, sender_id, message, type, reply_to, username from (messages inner join users on messages.sender_id = users.user_id) left join replies on messages.message_id = replies.reply where channel_id = $1 and message_id < $2 and deleted = false order by message_id desc limit 16", channel, lastMessage)
 	var nextRow = rows.Next()
 	for nextRow == true {
 		var messageID uint64
@@ -56,9 +55,8 @@ func GetChannelMessages(pool *connections.Pool, w http.ResponseWriter, r *http.R
 			Content:    message,
 		}, client, false, isLast)
 	}
-	w.WriteHeader(200)
 }
-func SendTo(message *system.Message, client *connections.Client, isNew bool, isLast bool) {
+func SendTo(message *system.Message, client *system.Client, isNew bool, isLast bool) {
 	if message == nil {
 		return
 	}
@@ -72,7 +70,7 @@ func SendTo(message *system.Message, client *connections.Client, isNew bool, isL
 		}
 	}
 }
-func DeleteMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Request) {
+func DeleteMessage(pool *system.Pool, w http.ResponseWriter, r *http.Request) {
 	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
@@ -83,7 +81,7 @@ func DeleteMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Reques
 		return
 	}
 	var requester, _ = pool.Clients.Get(r.Header.Get("Authorization"))
-	commandTag, err := connections.DatabaseConn.Exec(context.Background(), "update messages set deleted = true where message_id = $1 and sender_id = $2 and deleted = false", body, requester.ID)
+	commandTag, err := system.DatabaseConn.Exec(context.Background(), "update messages set deleted = true where message_id = $1 and sender_id = $2 and deleted = false", body, requester.ID)
 	if err != nil {
 		w.WriteHeader(400)
 		return
@@ -95,7 +93,7 @@ func DeleteMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(200)
 }
 
-func GetMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Request) {
+func GetMessage(pool *system.Pool, w http.ResponseWriter, r *http.Request) {
 	if !Authorize(w, r) {
 		w.WriteHeader(401)
 		return
@@ -107,7 +105,7 @@ func GetMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Request) 
 	}
 	var requester, _ = pool.Clients.Get(r.Header.Get("Authorization"))
 	var permitted = false
-	err = connections.DatabaseConn.QueryRow(context.Background(), "select exists(select 1 from participants where user_id = $1 and channel_id = (select channel_id from messages where message_id = $2))", requester.ID, body).Scan(&permitted)
+	err = system.DatabaseConn.QueryRow(context.Background(), "select exists(select 1 from participants where user_id = $1 and channel_id = (select channel_id from messages where message_id = $2))", requester.ID, body).Scan(&permitted)
 	if err != nil || !permitted {
 		w.WriteHeader(401)
 		return
@@ -118,7 +116,7 @@ func GetMessage(pool *connections.Pool, w http.ResponseWriter, r *http.Request) 
 		var senderName string
 		var _type string
 		var message string
-		err = connections.DatabaseConn.QueryRow(context.Background(), "select message_id, channel_id, sender_id, message, type, username from messages inner join users on sender_id = user_id where message_id = $1 and deleted = false", body).Scan(&messageID, &channelID, &senderID, &message, &_type, &senderName)
+		err = system.DatabaseConn.QueryRow(context.Background(), "select message_id, channel_id, sender_id, message, type, username from messages inner join users on sender_id = user_id where message_id = $1 and deleted = false", body).Scan(&messageID, &channelID, &senderID, &message, &_type, &senderName)
 		if err != nil {
 			w.WriteHeader(403)
 			return

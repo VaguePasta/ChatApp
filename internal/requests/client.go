@@ -1,7 +1,6 @@
-package net
+package requests
 
 import (
-	"ChatApp/internal/connections"
 	"ChatApp/internal/system"
 	"bufio"
 	"context"
@@ -32,22 +31,22 @@ func GetClientOrigin() {
 	}
 }
 
-type Client connections.Client
+type Client system.Client
 
 func (client *Client) LogIn() {
-	connection, ok := connections.ConnectionPool.ClientChannels.Get(client.ID)
+	connection, ok := system.ConnectionPool.ClientChannels.Get(client.ID)
 	if !ok {
-		channelList := connections.ChannelConnections{
+		channelList := system.ChannelConnections{
 			Counter: 1,
 			List:    haxmap.New[uint, uint8](),
 		}
 		client.Channels = &channelList
-		connections.ConnectionPool.ClientChannels.Set(client.ID, &channelList)
-		channels, _ := connections.DatabaseConn.Query(context.Background(), "select channels.channel_id, privilege from channels inner join participants on channels.channel_id = participants.channel_id where user_id = $1", client.ID)
+		system.ConnectionPool.ClientChannels.Set(client.ID, &channelList)
+		channels, _ := system.DatabaseConn.Query(context.Background(), "select channels.channel_id, privilege from channels inner join participants on channels.channel_id = participants.channel_id where user_id = $1", client.ID)
 		var privilege string
 		var channelID uint
 		_, err := pgx.ForEachRow(channels, []any{&channelID, &privilege}, func() error {
-			channelList.List.Set(channelID, connections.SaveClientsChannelPrivilege(privilege))
+			channelList.List.Set(channelID, system.SaveClientsChannelPrivilege(privilege))
 			return nil
 		})
 		if err != nil {
@@ -62,7 +61,7 @@ func (client *Client) LogIn() {
 }
 func (client *Client) LogOut() {
 	if client.Channels.Counter == 1 {
-		connections.ConnectionPool.ClientChannels.Del(client.ID)
+		system.ConnectionPool.ClientChannels.Del(client.ID)
 	} else {
 		client.ClientMutex.Lock()
 		client.Channels.Counter--
@@ -70,12 +69,12 @@ func (client *Client) LogOut() {
 	}
 }
 
-func (client *Client) Read(pool *connections.Pool) {
+func (client *Client) Read(pool *system.Pool) {
 	defer func() {
 		client.LogOut()
-		connections.Unregister(pool, (*connections.Client)(client))
+		system.Unregister(pool, (*system.Client)(client))
 		err := client.Conn.Close()
-		_, err = connections.DatabaseConn.Exec(context.Background(), "delete from sessions where session_key = $1", client.Token)
+		_, err = system.DatabaseConn.Exec(context.Background(), "delete from sessions where session_key = $1", client.Token)
 		if err != nil {
 			log.Println(err)
 		}
@@ -93,8 +92,8 @@ func (client *Client) Read(pool *connections.Pool) {
 		privilegeInt, ok := client.Channels.List.Get(message.Channel)
 		if !ok {
 			var privilege string
-			err := connections.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", client.ID, message.Channel).Scan(&privilege)
-			client.Channels.List.Set(message.Channel, connections.SaveClientsChannelPrivilege(privilege))
+			err := system.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", client.ID, message.Channel).Scan(&privilege)
+			client.Channels.List.Set(message.Channel, system.SaveClientsChannelPrivilege(privilege))
 			if err != nil || privilege == "viewer" {
 				continue
 			}
@@ -107,7 +106,7 @@ func (client *Client) Read(pool *connections.Pool) {
 		} else {
 			*reply = uint64(message.ReplyTo)
 		}
-		ID, _ := connections.IdGenerator.NextID()
+		ID, _ := system.IdGenerator.NextID()
 		textMessage := system.Message{
 			ID:         ID,
 			ChannelID:  message.Channel,
@@ -121,7 +120,7 @@ func (client *Client) Read(pool *connections.Pool) {
 	}
 }
 
-func SendToChannel(pool *connections.Pool, textMessage *system.Message) {
+func SendToChannel(pool *system.Pool, textMessage *system.Message) {
 	query := "insert into messages(message_id, channel_id, sender_id, type, message) VALUES (@messageID, @channelID, @senderID, @messageType ,@content);"
 	args := pgx.NamedArgs{
 		"messageID":   textMessage.ID,
@@ -130,19 +129,19 @@ func SendToChannel(pool *connections.Pool, textMessage *system.Message) {
 		"messageType": textMessage.Type,
 		"content":     textMessage.Content,
 	}
-	_, err := connections.DatabaseConn.Exec(context.Background(), query, args)
-	_, err = connections.DatabaseConn.Exec(context.Background(), "update channels set last_message = $1 where channel_id = $2", textMessage.ID, textMessage.ChannelID)
+	_, err := system.DatabaseConn.Exec(context.Background(), query, args)
+	_, err = system.DatabaseConn.Exec(context.Background(), "update channels set last_message = $1 where channel_id = $2", textMessage.ID, textMessage.ChannelID)
 	if err != nil {
 		return
 	}
 	if textMessage.ReplyTo != nil {
-		_, err := connections.DatabaseConn.Exec(context.Background(), "insert into replies values($1, $2); ", *textMessage.ReplyTo, textMessage.ID)
+		_, err := system.DatabaseConn.Exec(context.Background(), "insert into replies values($1, $2); ", *textMessage.ReplyTo, textMessage.ID)
 		if err != nil {
 			return
 		}
-		_, err = connections.DatabaseConn.Exec(context.Background(), "update channels set last_message = $1 where channel_id = $2", textMessage.ID, textMessage.ChannelID)
+		_, err = system.DatabaseConn.Exec(context.Background(), "update channels set last_message = $1 where channel_id = $2", textMessage.ID, textMessage.ChannelID)
 	}
-	onlineUsers, err := connections.DatabaseConn.Query(context.Background(), "select session_key from sessions inner join participants on sessions.user_id = participants.user_id where participants.channel_id = $1", textMessage.ChannelID)
+	onlineUsers, err := system.DatabaseConn.Query(context.Background(), "select session_key from sessions inner join participants on sessions.user_id = participants.user_id where participants.channel_id = $1", textMessage.ChannelID)
 	for onlineUsers.Next() {
 		var token string
 		err := onlineUsers.Scan(&token)

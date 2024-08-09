@@ -1,7 +1,7 @@
-package net
+package requests
 
 import (
-	"ChatApp/internal/connections"
+	"ChatApp/internal/system"
 	"context"
 	"encoding/json"
 	"github.com/gorilla/mux"
@@ -19,7 +19,7 @@ func SearchUser(w http.ResponseWriter, r *http.Request) {
 	}
 	userName := mux.Vars(r)["username"]
 	var userid int
-	err := connections.DatabaseConn.QueryRow(context.Background(), "select user_id from users where username = $1 limit 1", userName).Scan(&userid)
+	err := system.DatabaseConn.QueryRow(context.Background(), "select user_id from users where username = $1 limit 1", userName).Scan(&userid)
 	if err != nil {
 		w.WriteHeader(404)
 		return
@@ -45,8 +45,8 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	user, _ := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
-	checkOldPassword, hashedOldPassword := connections.CheckPassword(user.ID, arr[0])
+	user, _ := system.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	checkOldPassword, hashedOldPassword := CheckPassword(user.ID, arr[0])
 	if !checkOldPassword {
 		w.WriteHeader(403)
 		return
@@ -57,7 +57,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(arr[1]), bcrypt.DefaultCost)
-	_, err = connections.DatabaseConn.Exec(context.Background(), "update users set password = $1 where user_id = $2", hashedPassword, user.ID)
+	_, err = system.DatabaseConn.Exec(context.Background(), "update users set password = $1 where user_id = $2", hashedPassword, user.ID)
 	if err != nil {
 		w.WriteHeader(400)
 		return
@@ -71,7 +71,7 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	userID := mux.Vars(r)["userid"]
 	var joinDate pgtype.Date
-	err := connections.DatabaseConn.QueryRow(context.Background(), "select register_at from users where user_id = $1", userID).Scan(&joinDate)
+	err := system.DatabaseConn.QueryRow(context.Background(), "select register_at from users where user_id = $1", userID).Scan(&joinDate)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(500)
@@ -87,7 +87,7 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
-	user, _ := connections.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
+	user, _ := system.ConnectionPool.Clients.Get(r.Header.Get("Authorization"))
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(400)
@@ -106,7 +106,7 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(arr[0], &IDtoChange)
 	err = json.Unmarshal(arr[1], &channel)
 	err = json.Unmarshal(arr[2], &role)
-	err = connections.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where channel_id = $1 and user_id = $2", channel, user.ID).Scan(&senderRole)
+	err = system.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where channel_id = $1 and user_id = $2", channel, user.ID).Scan(&senderRole)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(500)
@@ -117,7 +117,7 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if senderRole == "admin" {
-		_, err := connections.DatabaseConn.Exec(context.Background(), "update participants set privilege = $1 where user_id = $2 and channel_id = $3", role, IDtoChange, channel)
+		_, err := system.DatabaseConn.Exec(context.Background(), "update participants set privilege = $1 where user_id = $2 and channel_id = $3", role, IDtoChange, channel)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(500)
@@ -128,13 +128,22 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(403)
 			return
 		}
-		var currentRole string
-		err = connections.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where channel_id = $1 and user_id = $2", channel, IDtoChange).Scan(&currentRole)
-		if err != nil || (currentRole != "member" && currentRole != "viewer") {
-			w.WriteHeader(403)
-			return
+		receiver, ok := system.ConnectionPool.ClientChannels.Get(IDtoChange)
+		if ok {
+			currentRole, ok := receiver.List.Get(channel)
+			if !ok || currentRole == 0 || currentRole == 1 {
+				w.WriteHeader(403)
+				return
+			}
+		} else {
+			var currentRole string
+			err = system.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where channel_id = $1 and user_id = $2", channel, IDtoChange).Scan(&currentRole)
+			if err != nil || (currentRole != "member" && currentRole != "viewer") {
+				w.WriteHeader(403)
+				return
+			}
 		}
-		_, err := connections.DatabaseConn.Exec(context.Background(), "update participants set privilege = $1 where user_id = $2 and channel_id = $3", role, IDtoChange, channel)
+		_, err := system.DatabaseConn.Exec(context.Background(), "update participants set privilege = $1 where user_id = $2 and channel_id = $3", role, IDtoChange, channel)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(500)
@@ -144,9 +153,9 @@ func ChangeUserPrivilege(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(403)
 		return
 	}
-	setter, ok := connections.ConnectionPool.ClientChannels.Get(IDtoChange)
+	setter, ok := system.ConnectionPool.ClientChannels.Get(IDtoChange)
 	if ok {
-		setter.List.Set(channel, connections.SaveClientsChannelPrivilege(role))
+		setter.List.Set(channel, system.SaveClientsChannelPrivilege(role))
 	}
 	w.WriteHeader(200)
 }

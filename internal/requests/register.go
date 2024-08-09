@@ -1,7 +1,7 @@
-package system
+package requests
 
 import (
-	"ChatApp/internal/connections"
+	"ChatApp/internal/system"
 	"context"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -22,7 +22,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 func CheckRegister(username string, password string) bool {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	commandTag, err := connections.DatabaseConn.Exec(context.Background(), "insert into users (username, password, register_at) values($1, $2, (select current_date)) on conflict do nothing", username, hashedPassword)
+	commandTag, err := system.DatabaseConn.Exec(context.Background(), "insert into users (username, password, register_at) values($1, $2, (select current_date)) on conflict do nothing", username, hashedPassword)
 	if err != nil || commandTag.RowsAffected() == 0 {
 		return false
 	}
