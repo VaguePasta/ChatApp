@@ -81,6 +81,12 @@ func DeleteMessage(pool *system.Pool, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var requester, _ = pool.Clients.Get(r.Header.Get("Authorization"))
+	var permitted bool
+	err = system.DatabaseConn.QueryRow(context.Background(), "select exists(select user_id from participants inner join messages on messages.channel_id = participants.channel_id and messages.sender_id = participants.user_id where message_id = $1)", body).Scan(&permitted)
+	if err != nil || !permitted {
+		w.WriteHeader(403)
+		return
+	}
 	commandTag, err := system.DatabaseConn.Exec(context.Background(), "update messages set deleted = true where message_id = $1 and sender_id = $2 and deleted = false", body, requester.ID)
 	if err != nil {
 		w.WriteHeader(400)

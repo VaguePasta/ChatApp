@@ -6,11 +6,14 @@ import {DeleteMessage, removeMessage} from "../api/message";
 import {User} from "../api/auth";
 import {TimeStamp} from "./timestamp";
 import Popup from "reactjs-popup";
+import {ErrorNotification} from "../notifications/notifications";
+
 export function Message(props) {
     const ButtonGroup = useRef(null)
     const [isDeleted, deleteMessage] = useState(false)
     const message = useRef()
     const deletePopup = useRef()
+
     function showOptions() {
         ButtonGroup.current.style.visibility = 'visible'
     }
@@ -26,12 +29,17 @@ export function Message(props) {
             }
             removeMessage(props.message.Channel.valueOf(), props.message.ID.valueOf())
             deleteMessage(true)
+        } else {
+            ErrorNotification("not-deleted", "Cannot delete message.")
+
         }
+        deletePopup.current.close()
     }
 
     async function ReplyMessage() {
         props.reply(props.message.ID.valueOf())
     }
+
     const [seeingTimeStamp, seeTimeStamp] = useState(false)
     let timeStampTimeout = null
     if (isDeleted && props.message.SenderID.valueOf() === User.userid) {
@@ -78,21 +86,29 @@ export function Message(props) {
                             <Popup className="confirm-popup" ref={deletePopup}
                                    trigger={<button className="Button DeleteButton"/>}
                                    modal nested>
-                                <div style={{display: "flex", flexDirection: "column", alignItems: "center", padding: "15px 5px"}}>
-                                        <div style={{fontFamily: "\"Open Sans\", sans-serif",
-                                            fontOpticalSizing: "auto",
-                                            fontWeight: "500",
-                                            fontStyle: "normal",
-                                            fontSize: "15px",
-                                            fontVariationSettings: "\"wdth\" 100",
-                                            paddingBottom: "10px"
-                                        }}>Are you sure you want to delete this message? This action cannot be undone.
+                                <div style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    padding: "15px 5px"
+                                }}>
+                                    <div style={{
+                                        fontFamily: "\"Open Sans\", sans-serif",
+                                        fontOpticalSizing: "auto",
+                                        fontWeight: "500",
+                                        fontStyle: "normal",
+                                        fontSize: "15px",
+                                        fontVariationSettings: "\"wdth\" 100",
+                                        paddingBottom: "10px"
+                                    }}>Are you sure you want to delete this message? This action cannot be undone.
                                     </div>
                                     <div style={{width: "100%", display: "flex"}}>
                                         <button className="Confirm-Delete" onClick={Delete}>Yes</button>
-                                        <button onClick={() => deletePopup.current.close()} className="Reject-Delete">No</button>
+                                        <button onClick={() => deletePopup.current.close()}
+                                                className="Reject-Delete">No
+                                        </button>
                                     </div>
-                                    </div>
+                                </div>
                             </Popup>
                             <button onClick={ReplyMessage} className="Button ReplyButton"/>
                         </div>
@@ -142,8 +158,14 @@ export function Message(props) {
                             <Popup className="confirm-popup" ref={deletePopup}
                                    trigger={<button className="Button DeleteButton"/>}
                                    modal nested>
-                                <div style={{display: "flex", flexDirection: "column", alignItems: "center", padding: "15px 5px"}}>
-                                    <div style={{fontFamily: "\"Open Sans\", sans-serif",
+                                <div style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    padding: "15px 5px"
+                                }}>
+                                    <div style={{
+                                        fontFamily: "\"Open Sans\", sans-serif",
                                         fontOpticalSizing: "auto",
                                         fontWeight: "500",
                                         fontStyle: "normal",
@@ -154,7 +176,9 @@ export function Message(props) {
                                     </div>
                                     <div style={{width: "100%", display: "flex"}}>
                                         <button className="Confirm-Delete" onClick={Delete}>Yes</button>
-                                        <button onClick={() => deletePopup.current.close()} className="Reject-Delete">No</button>
+                                        <button onClick={() => deletePopup.current.close()}
+                                                className="Reject-Delete">No
+                                        </button>
                                     </div>
                                 </div>
                             </Popup>
@@ -174,7 +198,13 @@ export function Message(props) {
                                                                               plusHeight={message.current.clientHeight}
                                                                               isRight={true}/>}
                             <img alt={props.message.Text} src={props.message.Text}
-                                 style={{wordWrap: "anywhere", background: "white", width: "100%", border: "1px solid black", borderRadius: "5px 7px"}}/>
+                                 style={{
+                                     wordWrap: "anywhere",
+                                     background: "white",
+                                     width: "100%",
+                                     border: "1px solid black",
+                                     borderRadius: "5px 7px"
+                                 }}/>
                         </div>
                     </div>
                 </div>
@@ -214,8 +244,14 @@ export function Message(props) {
                             <Popup className="confirm-popup" ref={deletePopup}
                                    trigger={<button className="Button DeleteButton"/>}
                                    modal nested>
-                                <div style={{display: "flex", flexDirection: "column", alignItems: "center", padding: "15px 5px"}}>
-                                    <div style={{fontFamily: "\"Open Sans\", sans-serif",
+                                <div style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    padding: "15px 5px"
+                                }}>
+                                    <div style={{
+                                        fontFamily: "\"Open Sans\", sans-serif",
                                         fontOpticalSizing: "auto",
                                         fontWeight: "500",
                                         fontStyle: "normal",
@@ -226,7 +262,9 @@ export function Message(props) {
                                     </div>
                                     <div style={{width: "100%", display: "flex"}}>
                                         <button className="Confirm-Delete" onClick={Delete}>Yes</button>
-                                        <button onClick={() => deletePopup.current.close()} className="Reject-Delete">No</button>
+                                        <button onClick={() => deletePopup.current.close()}
+                                                className="Reject-Delete">No
+                                        </button>
                                     </div>
                                 </div>
                             </Popup>
@@ -328,7 +366,13 @@ export function Message(props) {
                                  timeStampTimeout = setTimeout(() => seeTimeStamp(true), 500)
                              }} ref={message}>
                             <img alt={props.message.Text} src={props.message.Text}
-                                 style={{wordWrap: "anywhere", background: "white", width: "100%", border: "1px solid black", borderRadius: "5px 7px"}}/>
+                                 style={{
+                                     wordWrap: "anywhere",
+                                     background: "white",
+                                     width: "100%",
+                                     border: "1px solid black",
+                                     borderRadius: "5px 7px"
+                                 }}/>
                             {message.current && seeingTimeStamp && <TimeStamp timeStamp={props.message.TimeStamp}
                                                                               offSet={message.current.getBoundingClientRect()}
                                                                               plusHeight={message.current.clientHeight}
@@ -387,13 +431,13 @@ export function Message(props) {
                         <div style={{display: "flex", visibility: "hidden"}} ref={ButtonGroup}>
                             <button onClick={ReplyMessage} className="Button ReplyButton"/>
                         </div>
-                            {message.current && seeingTimeStamp && <TimeStamp timeStamp={props.message.TimeStamp}
-                                                                              offSet={message.current.getBoundingClientRect()}
-                                                                              plusHeight={message.current.clientHeight}
-                                                                              isRight={false}/>}
-                        </div>
+                        {message.current && seeingTimeStamp && <TimeStamp timeStamp={props.message.TimeStamp}
+                                                                          offSet={message.current.getBoundingClientRect()}
+                                                                          plusHeight={message.current.clientHeight}
+                                                                          isRight={false}/>}
                     </div>
-                    )
-                    }
-                    }
-                    }
+                </div>
+            )
+        }
+    }
+}

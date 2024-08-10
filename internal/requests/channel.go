@@ -320,7 +320,12 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(200)
 				return
 			}
-			_channel.UserList.Del(user.Token)
+			_channel.UserList.ForEach(func(token string, client *system.Client) bool {
+				if client.ID == infos[0] {
+					_channel.UserList.Del(client.Token)
+				}
+				return true
+			})
 		} else {
 			var receiverPrivilege string
 			err := system.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", infos[0], infos[1]).Scan(&receiverPrivilege)
