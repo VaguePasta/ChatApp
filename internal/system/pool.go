@@ -15,13 +15,16 @@ type Client struct {
 	ClientMutex sync.RWMutex
 }
 type ChannelConnections struct {
-	Counter int
+	Counter uint
 	List    *haxmap.Map[uint, uint8]
 }
-
+type Channel struct {
+	UserList *haxmap.Map[string, *Client]
+}
 type Pool struct {
 	Clients        *haxmap.Map[string, *Client]
 	ClientChannels *haxmap.Map[uint, *ChannelConnections]
+	Channels       *haxmap.Map[uint, *Channel]
 }
 
 func Register(pool *Pool, client *Client) {
@@ -34,6 +37,7 @@ func NewPool() *Pool {
 	return &Pool{
 		Clients:        haxmap.New[string, *Client](),
 		ClientChannels: haxmap.New[uint, *ChannelConnections](),
+		Channels:       haxmap.New[uint, *Channel](),
 	}
 }
 

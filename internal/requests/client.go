@@ -58,8 +58,30 @@ func (client *Client) LogIn() {
 		connection.Counter++
 		client.ClientMutex.Unlock()
 	}
+	client.Channels.List.ForEach(func(channelID uint, privilege uint8) bool {
+		channel, ok := system.ConnectionPool.Channels.Get(channelID)
+		if !ok {
+			channel = &system.Channel{
+				UserList: haxmap.New[string, *system.Client](),
+			}
+			system.ConnectionPool.Channels.Set(channelID, channel)
+			channel.UserList.Set(client.Token, (*system.Client)(client))
+		} else {
+			channel.UserList.Set(client.Token, (*system.Client)(client))
+		}
+		return true
+	})
 }
 func (client *Client) LogOut() {
+	client.Channels.List.ForEach(func(key uint, privilege uint8) bool {
+		channel, _ := system.ConnectionPool.Channels.Get(key)
+		if channel.UserList.Len() == 1 {
+			system.ConnectionPool.Channels.Del(key)
+		} else {
+			channel.UserList.Del(client.Token)
+		}
+		return true
+	})
 	if client.Channels.Counter == 1 {
 		system.ConnectionPool.ClientChannels.Del(client.ID)
 	} else {
@@ -116,11 +138,11 @@ func (client *Client) Read(pool *system.Pool) {
 			SenderName: client.Name,
 			SenderID:   client.ID,
 		}
-		SendToChannel(pool, &textMessage)
+		SendToChannel(&textMessage)
 	}
 }
 
-func SendToChannel(pool *system.Pool, textMessage *system.Message) {
+func SendToChannel(textMessage *system.Message) {
 	query := "insert into messages(message_id, channel_id, sender_id, type, message) VALUES (@messageID, @channelID, @senderID, @messageType ,@content);"
 	args := pgx.NamedArgs{
 		"messageID":   textMessage.ID,
@@ -141,14 +163,9 @@ func SendToChannel(pool *system.Pool, textMessage *system.Message) {
 		}
 		_, err = system.DatabaseConn.Exec(context.Background(), "update channels set last_message = $1 where channel_id = $2", textMessage.ID, textMessage.ChannelID)
 	}
-	onlineUsers, err := system.DatabaseConn.Query(context.Background(), "select session_key from sessions inner join participants on sessions.user_id = participants.user_id where participants.channel_id = $1", textMessage.ChannelID)
-	for onlineUsers.Next() {
-		var token string
-		err := onlineUsers.Scan(&token)
-		if err != nil {
-			continue
-		}
-		_client, _ := pool.Clients.Get(token)
-		SendTo(textMessage, _client, true, false)
-	}
+	channel, _ := system.ConnectionPool.Channels.Get(textMessage.ChannelID)
+	channel.UserList.ForEach(func(token string, _client *system.Client) bool {
+		SendToClient(textMessage, _client, true, false)
+		return true
+	})
 }

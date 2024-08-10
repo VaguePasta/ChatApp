@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"github.com/alphadose/haxmap"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
 	"io"
@@ -43,6 +44,16 @@ func GetChannelList(w http.ResponseWriter, r *http.Request) {
 		channelIDs = append(channelIDs, Channel{ChannelID: channelID, Title: title, Privilege: privilege, Code: inviteCode})
 		if force == "force" {
 			user.Channels.List.Set(channelID, system.SaveClientsChannelPrivilege(privilege))
+			channel, ok := system.ConnectionPool.Channels.Get(channelID)
+			if !ok {
+				channel = &system.Channel{
+					UserList: haxmap.New[string, *system.Client](),
+				}
+				system.ConnectionPool.Channels.Set(channelID, channel)
+				channel.UserList.Set(user.Token, user)
+			} else {
+				channel.UserList.Set(user.Token, user)
+			}
 		}
 		return nil
 	})
@@ -109,6 +120,24 @@ func CreateChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sender.Channels.List.Set(channelId, 0)
+	newChannel := &system.Channel{
+		UserList: haxmap.New[string, *system.Client](),
+	}
+	system.ConnectionPool.Channels.Set(channelId, newChannel)
+	rows, err := system.DatabaseConn.Query(context.Background(), "select session_key from sessions inner join participants on sessions.user_id = participants.user_id where participants.channel_id = $1", channelId)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	for rows.Next() {
+		var sessionKey string
+		err := rows.Scan(&sessionKey)
+		if err != nil {
+			continue
+		}
+		member, _ := system.ConnectionPool.Clients.Get(sessionKey)
+		newChannel.UserList.Set(sessionKey, member)
+	}
 	w.WriteHeader(201)
 }
 func DeleteChannel(w http.ResponseWriter, r *http.Request) {
@@ -143,10 +172,12 @@ func DeleteChannel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
-	system.ConnectionPool.ClientChannels.ForEach(func(userID uint, channelConnections *system.ChannelConnections) bool {
-		channelConnections.List.Del(arr[1])
+	channel, _ := system.ConnectionPool.Channels.Get(arr[1])
+	channel.UserList.ForEach(func(token string, client *system.Client) bool {
+		client.Channels.List.Del(arr[1])
 		return true
 	})
+	system.ConnectionPool.Channels.Del(arr[1])
 	w.WriteHeader(200)
 }
 func GetChannelMember(w http.ResponseWriter, r *http.Request) {

@@ -45,7 +45,7 @@ func GetChannelMessages(pool *system.Pool, w http.ResponseWriter, r *http.Reques
 			isLast = true
 			w.WriteHeader(200)
 		}
-		SendTo(&system.Message{
+		SendToClient(&system.Message{
 			ID:         messageID,
 			ChannelID:  channelID,
 			SenderName: senderName,
@@ -56,7 +56,7 @@ func GetChannelMessages(pool *system.Pool, w http.ResponseWriter, r *http.Reques
 		}, client, false, isLast)
 	}
 }
-func SendTo(message *system.Message, client *system.Client, isNew bool, isLast bool) {
+func SendToClient(message *system.Message, client *system.Client, isNew bool, isLast bool) {
 	if message == nil {
 		return
 	}
