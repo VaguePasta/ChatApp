@@ -287,6 +287,12 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			user.Channels.List.Del(infos[0])
+			_channel, ok := system.ConnectionPool.Channels.Get(infos[0])
+			if !ok {
+				w.WriteHeader(200)
+				return
+			}
+			_channel.UserList.Del(user.Token)
 		}
 		w.WriteHeader(200)
 		return
@@ -309,7 +315,12 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			receiver.List.Del(infos[1])
-			w.WriteHeader(200)
+			_channel, ok := system.ConnectionPool.Channels.Get(infos[1])
+			if !ok {
+				w.WriteHeader(200)
+				return
+			}
+			_channel.UserList.Del(user.Token)
 		} else {
 			var receiverPrivilege string
 			err := system.DatabaseConn.QueryRow(context.Background(), "select privilege from participants where user_id = $1 and channel_id = $2", infos[0], infos[1]).Scan(&receiverPrivilege)
@@ -331,7 +342,12 @@ func LeaveChannel(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(500)
 				return
 			}
-			w.WriteHeader(200)
+			_channel, ok := system.ConnectionPool.Channels.Get(infos[1])
+			if !ok {
+				w.WriteHeader(200)
+				return
+			}
+			_channel.UserList.Del(user.Token)
 		}
 	}
 }
@@ -368,7 +384,12 @@ func JoinChannel(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	sender.Channels.List.Set(channel, 2)
-	w.WriteHeader(200)
+	_channel, ok := system.ConnectionPool.Channels.Get(channel)
+	if !ok {
+		w.WriteHeader(200)
+		return
+	}
+	_channel.UserList.Set(sender.Token, sender)
 }
 func ChannelCode(w http.ResponseWriter, r *http.Request) {
 	if !Authorize(w, r) {
