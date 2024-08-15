@@ -10,7 +10,7 @@ import {BrowserView, MobileView} from "react-device-detect";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    <React.StrictMode>
+    <body>
         <BrowserView>
             <BrowserRouter>
                 <Routes>
@@ -26,5 +26,5 @@ root.render(
         <MobileView>
             <div>This web application is not supported on mobile devices.</div>
         </MobileView>
-    </React.StrictMode>
+    </body>
 );
